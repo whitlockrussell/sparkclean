@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+:root {
+  --teal-50:  #E1F5EE;
+  --teal-100: #9FE1CB;
+  --teal-400: #1D9E75;
+  --teal-600: #0F6E56;
+  --teal-800: #085041;
+
+  --amber-50:  #FAEEDA;
+  --amber-400: #EF9F27;
+  --amber-600: #854F0B;
+
+  --slate-50:  #F8F9FA;
+  --slate-100: #F1F3F4;
+  --slate-200: #E8EAED;
+  --slate-400: #9AA0A6;
+  --slate-600: #5F6368;
+  --slate-800: #3C4043;
+  --slate-900: #202124;
+
+  --font-body: 'DM Sans', system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  font-family: var(--font-body);
+  background: #F8F9FA;
+  color: var(--slate-900);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+/* Smooth page transitions */
+.page-enter {
+  animation: fadeUp 0.18s ease-out both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Pulse for loading skeleton */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #e8eaed 25%, #f1f3f4 50%, #e8eaed 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 8px;
+}
