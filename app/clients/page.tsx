@@ -15,7 +15,7 @@ import { Users, Plus, Phone, ChevronRight, Search } from 'lucide-react'
 import type { Client, NewClient } from '@/lib/types'
 
 export default function ClientsPage() {
-  const { clients, loading, error, addClient, updateClient } = useClients()
+  const { clients, loading, error, addClient, updateClient, deleteClient } = useClients()
   const [showForm, setShowForm] = useState(false)
   const [editingClient, setEditingClient] = useState<Client | undefined>()
   const [search, setSearch] = useState('')
@@ -36,6 +36,10 @@ export default function ClientsPage() {
 
   const handleEdit = async (data: NewClient) => {
     if (editingClient) await updateClient(editingClient.id, data)
+  }
+
+  const handleDelete = async () => {
+    if (editingClient) await deleteClient(editingClient.id)
   }
 
   const openEdit = (client: Client) => {
@@ -137,6 +141,7 @@ export default function ClientsPage() {
           client={editingClient}
           onSave={editingClient ? handleEdit : handleAdd}
           onClose={closeForm}
+          onDelete={editingClient ? handleDelete : undefined}
         />
       )}
     </AppShell>

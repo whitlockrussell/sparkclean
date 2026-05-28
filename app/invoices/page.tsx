@@ -13,6 +13,7 @@ import { InvoiceForm } from '@/components/invoices/InvoiceForm'
 import { EditInvoiceForm } from '@/components/invoices/EditInvoiceForm'
 import { useInvoices } from '@/lib/hooks/useInvoices'
 import { useClients } from '@/lib/hooks/useClients'
+import { createClient } from '@/lib/supabase/client'
 import { FileText, Plus, CheckCircle, Send, Download, Pencil } from 'lucide-react'
 import type { Invoice } from '@/lib/types'
 import type { NewInvoice } from '@/lib/hooks/useInvoices'
@@ -37,6 +38,7 @@ function formatDate(dateStr: string | null) {
 export default function InvoicesPage() {
   const { invoices, loading, error, createInvoice, markPaid, markSent, refetch } = useInvoices()
   const { clients } = useClients()
+  const supabase = createClient()
   const [showForm, setShowForm] = useState(false)
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null)
   const [tab, setTab] = useState<Tab>('all')
@@ -66,6 +68,16 @@ export default function InvoicesPage() {
     e.stopPropagation()
     setActionId(inv.id)
     try { await markSent(inv.id) } finally { setActionId(null) }
+  }
+
+  const handleDeleteInvoice = async () => {
+    if (!editingInvoice) return
+    const { error } = await supabase
+      .from('invoices')
+      .delete()
+      .eq('id', editingInvoice.id)
+    if (error) throw new Error(error.message)
+    refetch()
   }
 
   const tabs: { key: Tab; label: string }[] = [
@@ -230,6 +242,7 @@ export default function InvoicesPage() {
           clients={clients}
           onSave={refetch}
           onClose={() => setEditingInvoice(null)}
+          onDelete={handleDeleteInvoice}
         />
       )}
     </AppShell>

@@ -15,7 +15,7 @@ import { useAppointments } from '@/lib/hooks/useAppointments'
 import { useClients } from '@/lib/hooks/useClients'
 import { createClient } from '@/lib/supabase/client'
 import {
-  DollarSign, CalendarDays, Clock, Plus, MapPin,
+  DollarSign, CalendarDays, Clock, Plus, MapPin, TrendingUp,
 } from 'lucide-react'
 import type { Appointment, NewAppointment } from '@/lib/types'
 
@@ -40,6 +40,7 @@ export default function TodayPage() {
   const [todayJobs, setTodayJobs] = useState<Appointment[]>([])
   const [unpaidTotal, setUnpaidTotal] = useState(0)
   const [unpaidCount, setUnpaidCount] = useState(0)
+  const [weekIncome, setWeekIncome] = useState(0)
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const supabase = createClient()
@@ -51,17 +52,37 @@ export default function TodayPage() {
   useEffect(() => {
     async function load() {
       setLoading(true)
-      const [jobs, invoices] = await Promise.all([
+
+      // Calculate this week's Mon–Sun range
+      const now = new Date()
+      const day = now.getDay()
+      const monday = new Date(now)
+      monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1))
+      const sunday = new Date(monday)
+      sunday.setDate(monday.getDate() + 6)
+      const weekStart = monday.toISOString().split('T')[0]
+      const weekEnd = sunday.toISOString().split('T')[0]
+
+      const [jobs, invoices, weekJobs] = await Promise.all([
         fetchToday(),
         supabase
           .from('invoices')
           .select('total')
           .in('status', ['sent', 'overdue']),
+        supabase
+          .from('appointments')
+          .select('price')
+          .eq('status', 'completed')
+          .gte('scheduled_date', weekStart)
+          .lte('scheduled_date', weekEnd),
       ])
+
       setTodayJobs(jobs)
       const inv = invoices.data ?? []
       setUnpaidCount(inv.length)
       setUnpaidTotal(inv.reduce((s, i) => s + i.total, 0))
+      const wj = weekJobs.data ?? []
+      setWeekIncome(wj.reduce((s, j) => s + j.price, 0))
       setLoading(false)
     }
     load()
@@ -78,6 +99,22 @@ export default function TodayPage() {
     await markDone(id)
     const jobs = await fetchToday()
     setTodayJobs(jobs)
+
+    // Refresh week income after marking done
+    const now = new Date()
+    const day = now.getDay()
+    const monday = new Date(now)
+    monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1))
+    const sunday = new Date(monday)
+    sunday.setDate(monday.getDate() + 6)
+    const weekJobs = await supabase
+      .from('appointments')
+      .select('price')
+      .eq('status', 'completed')
+      .gte('scheduled_date', monday.toISOString().split('T')[0])
+      .lte('scheduled_date', sunday.toISOString().split('T')[0])
+    const wj = weekJobs.data ?? []
+    setWeekIncome(wj.reduce((s, j) => s + j.price, 0))
   }
 
   const upcomingJobs = todayJobs.filter(j => j.status !== 'completed')
@@ -116,6 +153,13 @@ export default function TodayPage() {
                 icon={DollarSign}
                 accent={unpaidTotal > 0 ? 'amber' : 'slate'}
                 sub={unpaidCount > 0 ? `${unpaidCount} invoice${unpaidCount !== 1 ? 's' : ''}` : 'All paid up'}
+              />
+              <StatCard
+                label="This week's income"
+                value={`$${weekIncome.toFixed(0)}`}
+                icon={TrendingUp}
+                accent={weekIncome > 0 ? 'teal' : 'slate'}
+                sub="Completed jobs"
               />
             </div>
 

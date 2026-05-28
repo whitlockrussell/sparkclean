@@ -18,16 +18,18 @@ interface EditInvoiceFormProps {
   clients: Client[]
   onSave: () => void
   onClose: () => void
+  onDelete?: () => Promise<void>
 }
 
 const HST_RATE = 0.13
 
-export function EditInvoiceForm({ invoice, clients, onSave, onClose }: EditInvoiceFormProps) {
+export function EditInvoiceForm({ invoice, clients, onSave, onClose, onDelete }: EditInvoiceFormProps) {
   const [clientId, setClientId] = useState(invoice.client_id)
   const [dueDate, setDueDate] = useState(invoice.due_date ?? '')
   const [notes, setNotes] = useState(invoice.notes ?? '')
   const [items, setItems] = useState<LineItem[]>([])
   const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
@@ -116,6 +118,20 @@ export function EditInvoiceForm({ invoice, clients, onSave, onClose }: EditInvoi
     }
   }
 
+  const handleDelete = async () => {
+    if (!onDelete) return
+    if (!confirm('Delete this invoice? This cannot be undone.')) return
+    setDeleting(true)
+    try {
+      await onDelete()
+      onClose()
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Could not delete invoice.')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   const inputClass = 'w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent bg-white'
 
   return (
@@ -127,9 +143,21 @@ export function EditInvoiceForm({ invoice, clients, onSave, onClose }: EditInvoi
       <div className="bg-white w-full max-w-lg rounded-t-3xl lg:rounded-2xl max-h-[92vh] overflow-y-auto">
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 sticky top-0 bg-white rounded-t-3xl lg:rounded-t-2xl">
           <h2 className="text-[15px] font-semibold text-slate-900">Edit {invoice.invoice_number}</h2>
-          <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors" aria-label="Close">
-            <X className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            {onDelete && (
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-300 hover:text-red-400 hover:bg-red-50 transition-colors"
+                aria-label="Delete invoice"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+            <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors" aria-label="Close">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {loading ? (

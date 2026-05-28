@@ -3,12 +3,13 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import type { Client, NewClient } from '@/lib/types'
-import { X } from 'lucide-react'
+import { X, Trash2 } from 'lucide-react'
 
 interface ClientFormProps {
   client?: Client
   onSave: (data: NewClient) => Promise<void>
   onClose: () => void
+  onDelete?: () => Promise<void>
 }
 
 const emptyForm: NewClient = {
@@ -26,7 +27,7 @@ const emptyForm: NewClient = {
 
 const provinces = ['AB','BC','MB','NB','NL','NS','NT','NU','ON','PE','QC','SK','YT']
 
-export function ClientForm({ client, onSave, onClose }: ClientFormProps) {
+export function ClientForm({ client, onSave, onClose, onDelete }: ClientFormProps) {
   const [form, setForm] = useState<NewClient>(
     client
       ? {
@@ -44,6 +45,7 @@ export function ClientForm({ client, onSave, onClose }: ClientFormProps) {
       : emptyForm
   )
   const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const set = (field: keyof NewClient, value: string | boolean) =>
@@ -67,6 +69,20 @@ export function ClientForm({ client, onSave, onClose }: ClientFormProps) {
     }
   }
 
+  const handleDelete = async () => {
+    if (!onDelete) return
+    if (!confirm('Delete this client? This cannot be undone.')) return
+    setDeleting(true)
+    try {
+      await onDelete()
+      onClose()
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Could not delete client.')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
@@ -79,13 +95,25 @@ export function ClientForm({ client, onSave, onClose }: ClientFormProps) {
           <h2 className="text-[15px] font-semibold text-slate-900">
             {client ? 'Edit client' : 'Add client'}
           </h2>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors"
-            aria-label="Close"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            {client && onDelete && (
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-300 hover:text-red-400 hover:bg-red-50 transition-colors"
+                aria-label="Delete client"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors"
+              aria-label="Close"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="px-5 py-5 space-y-4">

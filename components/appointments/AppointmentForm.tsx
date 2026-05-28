@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
-import { X } from 'lucide-react'
+import { X, Trash2 } from 'lucide-react'
 import type { Appointment, NewAppointment, Client } from '@/lib/types'
 
 interface AppointmentFormProps {
@@ -11,6 +11,7 @@ interface AppointmentFormProps {
   defaultClientId?: string
   onSave: (data: NewAppointment) => Promise<void>
   onClose: () => void
+  onDelete?: () => Promise<void>
 }
 
 const empty = (clientId = ''): NewAppointment => ({
@@ -32,6 +33,7 @@ export function AppointmentForm({
   defaultClientId,
   onSave,
   onClose,
+  onDelete,
 }: AppointmentFormProps) {
   const [form, setForm] = useState<NewAppointment>(
     appointment
@@ -50,6 +52,7 @@ export function AppointmentForm({
       : empty(defaultClientId)
   )
   const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const set = <K extends keyof NewAppointment>(field: K, value: NewAppointment[K]) =>
@@ -77,6 +80,20 @@ export function AppointmentForm({
     }
   }
 
+  const handleDelete = async () => {
+    if (!onDelete) return
+    if (!confirm('Delete this job? This cannot be undone.')) return
+    setDeleting(true)
+    try {
+      await onDelete()
+      onClose()
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Could not delete job.')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   const inputClass = 'w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent bg-white'
 
   return (
@@ -91,9 +108,21 @@ export function AppointmentForm({
           <h2 className="text-[15px] font-semibold text-slate-900">
             {appointment ? 'Edit job' : 'Book a job'}
           </h2>
-          <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors" aria-label="Close">
-            <X className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            {appointment && onDelete && (
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-300 hover:text-red-400 hover:bg-red-50 transition-colors"
+                aria-label="Delete job"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+            <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors" aria-label="Close">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="px-5 py-5 space-y-4">

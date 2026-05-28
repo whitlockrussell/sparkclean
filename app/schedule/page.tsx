@@ -51,7 +51,7 @@ function groupByDate(appointments: Appointment[]) {
 }
 
 export default function SchedulePage() {
-  const { appointments, loading, error, addAppointment, updateAppointment, markDone, cancelAppointment } = useAppointments()
+  const { appointments, loading, error, addAppointment, updateAppointment, markDone, cancelAppointment, deleteAppointment } = useAppointments()
   const { clients } = useClients()
   const [showForm, setShowForm] = useState(false)
   const [editingAppt, setEditingAppt] = useState<Appointment | undefined>()
@@ -65,6 +65,10 @@ export default function SchedulePage() {
 
   const handleEdit = async (data: NewAppointment) => {
     if (editingAppt) await updateAppointment(editingAppt.id, data)
+  }
+
+  const handleDelete = async () => {
+    if (editingAppt) await deleteAppointment(editingAppt.id)
   }
 
   const openEdit = (appt: Appointment) => {
@@ -218,6 +222,7 @@ export default function SchedulePage() {
           appointment={editingAppt}
           onSave={editingAppt ? handleEdit : handleAdd}
           onClose={closeForm}
+          onDelete={editingAppt ? handleDelete : undefined}
         />
       )}
     </AppShell>

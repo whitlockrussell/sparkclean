@@ -124,6 +124,16 @@ export function useAppointments() {
     setAppointments(prev => prev.filter(a => a.id !== id))
   }
 
+  const deleteAppointment = async (id: string) => {
+    const { error } = await supabase
+      .from('appointments')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw new Error(error.message)
+    setAppointments(prev => prev.filter(a => a.id !== id))
+  }
+
   return {
     appointments,
     loading,
@@ -132,7 +142,9 @@ export function useAppointments() {
     updateAppointment,
     markDone,
     cancelAppointment,
+    deleteAppointment,
     fetchToday,
     refetch: fetchAppointments,
   }
 }
+

@@ -71,5 +71,15 @@ export function useClients() {
     setClients(prev => prev.filter(c => c.id !== id))
   }
 
-  return { clients, loading, error, addClient, updateClient, archiveClient, refetch: fetchClients }
+  const deleteClient = async (id: string) => {
+    const { error } = await supabase
+      .from('clients')
+      .delete()
+      .eq('id', id)
+
+    if (error) throw new Error(error.message)
+    setClients(prev => prev.filter(c => c.id !== id))
+  }
+
+  return { clients, loading, error, addClient, updateClient, archiveClient, deleteClient, refetch: fetchClients }
 }
