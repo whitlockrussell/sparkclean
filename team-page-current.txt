@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { PageSkeleton } from '@/components/ui/Skeleton'
-import { useTeam, getWeekStart, formatWeekLabel } from '@/lib/hooks/useTeam'
+import { useTeam, getWeekStart, getWeekEnd, formatWeekLabel } from '@/lib/hooks/useTeam'
 import type { TeamMember, TimeEntry } from '@/lib/hooks/useTeam'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -18,6 +18,8 @@ import {
   Play, Square
 } from 'lucide-react'
 
+
+// Format decimal hours to "2h 15m" display
 function formatHours(hours: number | null | undefined): string {
   if (!hours) return '0m'
   const totalMinutes = Math.round(hours * 60)
@@ -83,17 +85,14 @@ function PermRow({ label, sub, checked, onChange }: {
   label: string; sub?: string; checked: boolean; onChange: (v: boolean) => void
 }) {
   return (
-    <div className="flex items-center py-2.5 border-b border-slate-100 last:border-0 gap-3">
-      <div className="flex-1 min-w-0">
+    <div className="flex items-center justify-between py-2.5 border-b border-slate-100 last:border-0">
+      <div>
         <p className="text-sm text-slate-700">{label}</p>
         {sub && <p className="text-[11px] text-slate-400">{sub}</p>}
       </div>
-      <button
-        type="button"
-        onClick={() => onChange(!checked)}
-        className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${checked ? 'bg-teal-500' : 'bg-slate-300'}`}
-      >
-        <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${checked ? 'translate-x-5' : 'translate-x-0.5'}`} />
+      <button type="button" onClick={() => onChange(!checked)}
+        className={`w-10 h-[22px] rounded-full transition-colors relative flex-shrink-0 mr-1 ${checked ? 'bg-teal-500' : 'bg-slate-300'}`}>
+        <span className={`absolute top-[3px] w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${checked ? 'translate-x-[18px]' : 'translate-x-[3px]'}`} />
       </button>
     </div>
   )
@@ -167,6 +166,7 @@ function LogHoursForm({ members, onLog, onClose }: {
   )
 }
 
+// Owner clock-in/out on behalf of a member
 function MemberClockCard({ member, ownerId, timeEntries, onRefresh }: {
   member: TeamMember
   ownerId: string
@@ -230,9 +230,9 @@ function MemberClockCard({ member, ownerId, timeEntries, onRefresh }: {
     <div className="mt-3 border-t border-slate-100 pt-3">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5">
-          <p className="text-xs font-semibold text-slate-500">Today's clock</p>
-          <span title="Hours are rounded to the nearest 15 minutes." className="w-4 h-4 rounded-full bg-slate-100 text-slate-400 text-[10px] flex items-center justify-center cursor-help font-semibold">?</span>
-        </div>
+        <p className="text-xs font-semibold text-slate-500">Today's clock</p>
+        <span title="Hours are rounded to the nearest 15 minutes. Minimum charge is 15 minutes." className="w-4 h-4 rounded-full bg-slate-100 text-slate-400 text-[10px] flex items-center justify-center cursor-help font-semibold">?</span>
+      </div>
         {todayTotal > 0 && <p className="text-xs font-semibold text-teal-600">{formatHours(todayTotal)} today</p>}
       </div>
 
@@ -251,7 +251,7 @@ function MemberClockCard({ member, ownerId, timeEntries, onRefresh }: {
         <button onClick={clockIn} disabled={loading}
           className="w-full flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors disabled:opacity-50">
           <Play className="w-3.5 h-3.5" />
-          {loading ? 'Clocking in...' : `Clock in ${member.full_name.split(' ')[0]}`}
+          {loading ? 'Clocking inâ€¦' : `Clock in ${member.full_name.split(' ')[0]}`}
         </button>
       )}
 
@@ -259,7 +259,7 @@ function MemberClockCard({ member, ownerId, timeEntries, onRefresh }: {
         <div className="mt-2 space-y-1">
           {completedEntries.map(e => (
             <div key={e.id} className="flex items-center justify-between text-xs text-slate-500 py-1">
-              <span>{formatTs(e.clock_in)} → {formatTs(e.clock_out!)}</span>
+              <span>{formatTs(e.clock_in)} â†’ {formatTs(e.clock_out!)}</span>
               <span className="font-medium text-teal-600">{e.hours?.toFixed(2)} hrs</span>
             </div>
           ))}
@@ -346,7 +346,7 @@ export default function TeamPage() {
           {(['hours', 'members'] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all capitalize ${tab === t ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
-              {t === 'hours' ? '⏱ Hours' : '👥 Members'}
+              {t === 'hours' ? 'â± Hours' : 'ðŸ‘¥ Members'}
             </button>
           ))}
         </div>
@@ -377,13 +377,13 @@ export default function TeamPage() {
                           <div className="flex items-center gap-3 mb-3">
                             <div className="w-9 h-9 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0">
                               <span className="text-sm font-semibold text-teal-600">
-                                {member.full_name.split(' ').map((n: string) => n[0]).join('')}
+                                {member.full_name.split(' ').map(n => n[0]).join('')}
                               </span>
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="font-semibold text-slate-900 text-[15px]">{member.full_name}</p>
                               <div className="flex items-center gap-2">
-                                <p className="text-xs text-slate-400">{!member.invite_accepted ? '⏳ Pending' : '✓ Active'}</p>
+                                <p className="text-xs text-slate-400">{!member.invite_accepted ? 'â³ Pending' : 'âœ“ Active'}</p>
                                 {member.permissions.can_clock_self
                                   ? <span className="text-[10px] bg-teal-50 text-teal-600 px-1.5 py-0.5 rounded-full">Self-clocking</span>
                                   : <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">Owner tracks</span>
@@ -396,6 +396,7 @@ export default function TeamPage() {
                             </div>
                           </div>
 
+                          {/* Day grid */}
                           <div className="grid grid-cols-7 gap-1 mb-2">
                             {weekDates.map((date, i) => {
                               const dayManual = manualEntries.filter(e => e.work_date === date).reduce((s, e) => s + e.hours, 0)
@@ -405,13 +406,14 @@ export default function TeamPage() {
                                 <div key={date} className="text-center">
                                   <p className="text-[10px] text-slate-400 mb-1">{days[i]}</p>
                                   <div className={`text-xs font-medium rounded-lg py-1 ${dayHours > 0 ? 'bg-teal-50 text-teal-700' : 'text-slate-300'}`}>
-                                    {dayHours > 0 ? formatHours(dayHours) : '–'}
+                                    {dayHours > 0 ? formatHours(dayHours) : 'â€“'}
                                   </div>
                                 </div>
                               )
                             })}
                           </div>
 
+                          {/* Owner clock in/out on behalf of member */}
                           <MemberClockCard
                             member={member}
                             ownerId={ownerId}
@@ -419,12 +421,13 @@ export default function TeamPage() {
                             onRefresh={() => fetchHours(weekStart)}
                           />
 
+                          {/* Completed entries this week */}
                           {(clockEntries.length > 0 || manualEntries.length > 0) && (
                             <div className="mt-3 space-y-1 border-t border-slate-100 pt-3">
                               {clockEntries.map(entry => (
                                 <div key={entry.id} className="flex items-center justify-between text-xs text-slate-500 py-0.5">
                                   <span>{new Date(entry.work_date + 'T12:00:00').toLocaleDateString('en-CA', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
-                                  <span>{formatTs(entry.clock_in)} → {entry.clock_out ? formatTs(entry.clock_out) : '…'}</span>
+                                  <span>{formatTs(entry.clock_in)} â†’ {entry.clock_out ? formatTs(entry.clock_out) : 'â€¦'}</span>
                                   <span className="font-medium text-teal-600">{formatHours(entry.hours)}</span>
                                   <button onClick={() => deleteTimeEntry(entry.id)} className="text-slate-200 hover:text-red-400 ml-1"><Trash2 className="w-3 h-3" /></button>
                                 </div>
@@ -470,7 +473,7 @@ export default function TeamPage() {
                             onClick={() => setExpandedMember(isExpanded ? null : member.id)}>
                             <div className="w-9 h-9 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0">
                               <span className="text-sm font-semibold text-teal-600">
-                                {member.full_name.split(' ').map((n: string) => n[0]).join('')}
+                                {member.full_name.split(' ').map(n => n[0]).join('')}
                               </span>
                             </div>
                             <div className="flex-1 text-left min-w-0">
@@ -486,7 +489,7 @@ export default function TeamPage() {
                           {isExpanded && (
                             <div className="px-4 pb-4 border-t border-slate-100 pt-4">
                               <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 mb-4">
-                                <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">⏱ Hours tracking</p>
+                                <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">â± Hours tracking</p>
                                 <PermRow label="Can clock in/out themselves" sub="Helper sees Clock in/Clock out buttons" checked={perms.can_clock_self} onChange={v => setPermField(member.id, 'can_clock_self', v)} />
                                 <PermRow label="Can view own hours" sub="Helper can see their logged hours" checked={perms.view_own_hours} onChange={v => setPermField(member.id, 'view_own_hours', v)} />
                               </div>
@@ -540,3 +543,5 @@ export default function TeamPage() {
     </AppShell>
   )
 }
+
+
