@@ -91,7 +91,7 @@ function PermRow({ label, sub, checked, onChange }: {
       <button
         type="button"
         onClick={() => onChange(!checked)}
-        className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${checked ? 'bg-teal-500' : 'bg-slate-300'}`}
+        className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 overflow-hidden ${checked ? 'bg-teal-500' : 'bg-slate-300'}`}
       >
         <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${checked ? 'translate-x-5' : 'translate-x-0.5'}`} />
       </button>
@@ -540,3 +540,4 @@ export default function TeamPage() {
     </AppShell>
   )
 }
+
