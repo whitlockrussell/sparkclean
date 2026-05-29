@@ -140,10 +140,10 @@ export default function ReportsPage() {
               />
               <StatCard
                 label="HST to remit"
-                value={`$${netHST.toFixed(0)}`}
+                value={`$${netHST.toFixed(2)}`}
                 icon={DollarSign}
                 accent={netHST > 0 ? 'red' : 'slate'}
-                sub="Collected minus credits"
+                sub="For this quarter"
               />
               <StatCard
                 label="Est. profit"

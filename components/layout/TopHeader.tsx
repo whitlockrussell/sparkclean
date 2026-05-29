@@ -1,6 +1,5 @@
 'use client'
 
-import { Bell } from 'lucide-react'
 
 interface TopHeaderProps {
   title: string
@@ -22,12 +21,6 @@ export function TopHeader({ title, subtitle, action }: TopHeaderProps) {
         </div>
         <div className="flex items-center gap-2 flex-shrink-0 ml-3">
           {action}
-          <button
-            className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors relative"
-            aria-label="Notifications"
-          >
-            <Bell className="w-4 h-4" strokeWidth={1.8} />
-          </button>
         </div>
       </div>
     </header>
