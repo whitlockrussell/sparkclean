@@ -187,6 +187,10 @@ export default function SchedulePage() {
                             {appt.notes && (
                               <p className="text-xs text-slate-400 mt-1.5 truncate">{appt.notes}</p>
                             )}
+
+                            {client?.notes && (
+                              <p className="text-xs text-slate-400 mt-1.5 italic truncate">{client.notes}</p>
+                            )}
                           </div>
 
                           <div className="flex-shrink-0 text-right flex flex-col items-end gap-2">
