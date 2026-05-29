@@ -25,7 +25,7 @@ export type Appointment = {
   start_time: string | null
   duration_hours: number | null
   price: number
-  status: 'scheduled' | 'completed' | 'cancelled' | 'no_show'
+  status: 'scheduled' | 'completed' | 'cancelled' | 'no_show' | 'payment_received'
   is_recurring: boolean
   recurrence_rule: 'weekly' | 'biweekly' | 'monthly' | null
   recurrence_end: string | null

@@ -13,7 +13,7 @@ import { AppointmentForm } from '@/components/appointments/AppointmentForm'
 import { useAppointments } from '@/lib/hooks/useAppointments'
 import { useClients } from '@/lib/hooks/useClients'
 import {
-  CalendarDays, Plus, Clock, MapPin, RefreshCw, ChevronRight
+  CalendarDays, Plus, Clock, MapPin, RefreshCw
 } from 'lucide-react'
 import type { Appointment, NewAppointment } from '@/lib/types'
 
@@ -51,7 +51,7 @@ function groupByDate(appointments: Appointment[]) {
 }
 
 export default function SchedulePage() {
-  const { appointments, loading, error, addAppointment, updateAppointment, markDone, cancelAppointment, deleteAppointment } = useAppointments()
+  const { appointments, loading, error, addAppointment, updateAppointment, cancelAppointment, deleteAppointment } = useAppointments()
   const { clients } = useClients()
   const [showForm, setShowForm] = useState(false)
   const [editingAppt, setEditingAppt] = useState<Appointment | undefined>()
@@ -83,7 +83,22 @@ export default function SchedulePage() {
 
   const handleMarkDone = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation()
-    await markDone(id)
+    await updateAppointment(id, { status: 'completed' })
+  }
+
+  const handlePaymentReceived = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation()
+    await updateAppointment(id, { status: 'payment_received' })
+  }
+
+  const handleRevertToScheduled = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation()
+    await updateAppointment(id, { status: 'scheduled' })
+  }
+
+  const handleRevertToDone = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation()
+    await updateAppointment(id, { status: 'completed' })
   }
 
   const handleCancel = async (e: React.MouseEvent, id: string) => {
@@ -141,19 +156,19 @@ export default function SchedulePage() {
                     const address = client?.address
                       ? `${client.address}${client.city ? ', ' + client.city : ''}`
                       : null
-                    const isDone = appt.status === 'completed'
 
                     return (
                       <Card
                         key={appt.id}
-                        className={`p-4 ${isDone ? 'opacity-60' : ''}`}
+                        className={`p-4 ${appt.status !== 'scheduled' ? 'opacity-60' : ''}`}
                         onClick={() => openEdit(appt)}
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 mb-1 flex-wrap">
                               <p className="font-semibold text-slate-900 text-[15px]">{name}</p>
-                              {isDone && <Badge variant="green">Done</Badge>}
+                              {appt.status === 'completed' && <Badge variant="amber">Done</Badge>}
+                              {appt.status === 'payment_received' && <Badge variant="green">Paid</Badge>}
                               {appt.is_recurring && (
                                 <Badge variant="teal">
                                   <RefreshCw className="w-2.5 h-2.5 mr-1" />
@@ -197,7 +212,7 @@ export default function SchedulePage() {
                             <p className="text-lg font-semibold text-amber-600">
                               ${appt.price.toFixed(0)}
                             </p>
-                            {!isDone ? (
+                            {appt.status === 'scheduled' && (
                               <Button
                                 size="sm"
                                 variant="secondary"
@@ -205,8 +220,34 @@ export default function SchedulePage() {
                               >
                                 Mark done
                               </Button>
-                            ) : (
-                              <ChevronRight className="w-4 h-4 text-slate-300" strokeWidth={1.8} />
+                            )}
+                            {appt.status === 'completed' && (
+                              <div className="flex flex-col items-end gap-1.5">
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  onClick={(e) => handlePaymentReceived(e, appt.id)}
+                                >
+                                  Payment received
+                                </Button>
+                                <button
+                                  className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
+                                  onClick={(e) => handleRevertToScheduled(e, appt.id)}
+                                >
+                                  Undo done
+                                </button>
+                              </div>
+                            )}
+                            {appt.status === 'payment_received' && (
+                              <div className="flex flex-col items-end gap-1.5">
+                                <span className="text-xs font-medium text-emerald-600">Paid ✓</span>
+                                <button
+                                  className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
+                                  onClick={(e) => handleRevertToDone(e, appt.id)}
+                                >
+                                  Undo payment
+                                </button>
+                              </div>
                             )}
                           </div>
                         </div>

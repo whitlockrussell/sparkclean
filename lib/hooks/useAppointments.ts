@@ -118,6 +118,24 @@ export function useAppointments() {
     return updateAppointment(id, { status: 'completed' })
   }
 
+  const fetchUnpaid = useCallback(async () => {
+    const { data } = await supabase
+      .from('appointments')
+      .select(`
+        *,
+        clients (
+          first_name,
+          last_name,
+          address,
+          city,
+          notes
+        )
+      `)
+      .eq('status', 'completed')
+      .order('scheduled_date', { ascending: true })
+    return data ?? []
+  }, [])
+
   const cancelAppointment = async (id: string) => {
     const { error } = await supabase
       .from('appointments')
@@ -148,6 +166,7 @@ export function useAppointments() {
     cancelAppointment,
     deleteAppointment,
     fetchToday,
+    fetchUnpaid,
     refetch: fetchAppointments,
   }
 }
