@@ -216,6 +216,9 @@ export default function TodayPage() {
                               )}
                             </div>
                           )}
+                          {client?.notes && (
+                            <p className="text-xs text-slate-400 mt-1.5 italic truncate">{client.notes}</p>
+                          )}
                         </div>
                         <div className="flex-shrink-0 text-right">
                           <p className="text-lg font-semibold text-amber-600">
