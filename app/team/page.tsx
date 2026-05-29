@@ -93,7 +93,7 @@ function PermRow({ label, sub, checked, onChange }: {
         onClick={() => onChange(!checked)}
         className={`w-10 h-[22px] rounded-full transition-colors relative flex-shrink-0 ${checked ? 'bg-teal-500' : 'bg-slate-300'}`}
       >
-        <span className={`absolute top-[3px] w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${checked ? 'translate-x-[14px]' : 'translate-x-0.5'}`} />
+        <span className={`absolute left-0 top-[3px] w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${checked ? 'translate-x-[14px]' : 'translate-x-0.5'}`} />
       </button>
     </div>
   )
