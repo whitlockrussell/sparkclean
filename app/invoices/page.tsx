@@ -14,7 +14,7 @@ import { EditInvoiceForm } from '@/components/invoices/EditInvoiceForm'
 import { useInvoices } from '@/lib/hooks/useInvoices'
 import { useClients } from '@/lib/hooks/useClients'
 import { createClient } from '@/lib/supabase/client'
-import { FileText, Plus, CheckCircle, Send, Download, Pencil } from 'lucide-react'
+import { FileText, Plus, CheckCircle, Send, Download, Pencil, RotateCcw } from 'lucide-react'
 import type { Invoice } from '@/lib/types'
 import type { NewInvoice } from '@/lib/hooks/useInvoices'
 
@@ -30,13 +30,15 @@ const statusVariant: Record<string, 'amber' | 'red' | 'green' | 'gray' | 'teal'>
 
 function formatDate(dateStr: string | null) {
   if (!dateStr) return ''
-  return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-CA', {
+  // Handle full ISO timestamps by extracting just the date part
+  const datePart = dateStr.split('T')[0]
+  return new Date(datePart + 'T12:00:00').toLocaleDateString('en-CA', {
     month: 'short', day: 'numeric',
   })
 }
 
 export default function InvoicesPage() {
-  const { invoices, loading, error, createInvoice, markPaid, markSent, refetch } = useInvoices()
+  const { invoices, loading, error, createInvoice, markPaid, markUnpaid, markSent, refetch } = useInvoices()
   const { clients } = useClients()
   const supabase = createClient()
   const [showForm, setShowForm] = useState(false)
@@ -62,6 +64,12 @@ export default function InvoicesPage() {
     e.stopPropagation()
     setActionId(inv.id)
     try { await markPaid(inv.id) } finally { setActionId(null) }
+  }
+
+  const handleMarkUnpaid = async (e: React.MouseEvent, inv: Invoice) => {
+    e.stopPropagation()
+    setActionId(inv.id)
+    try { await markUnpaid(inv.id) } finally { setActionId(null) }
   }
 
   const handleMarkSent = async (e: React.MouseEvent, inv: Invoice) => {
@@ -169,9 +177,7 @@ export default function InvoicesPage() {
                     </div>
                   </div>
 
-                  {/* Actions row */}
                   <div className="flex gap-2 mt-3 pt-3 border-t border-slate-100 flex-wrap">
-                    {/* View PDF */}
                     <a
                       href={`/invoices/${inv.id}`}
                       target="_blank"
@@ -184,7 +190,6 @@ export default function InvoicesPage() {
                       </Button>
                     </a>
 
-                    {/* Edit — only for draft/sent invoices */}
                     {inv.status !== 'paid' && inv.status !== 'cancelled' && (
                       <Button
                         size="sm"
@@ -193,6 +198,18 @@ export default function InvoicesPage() {
                       >
                         <Pencil className="w-3 h-3" />
                         Edit
+                      </Button>
+                    )}
+
+                    {inv.status === 'paid' && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        loading={isActing}
+                        onClick={(e) => handleMarkUnpaid(e, inv)}
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                        Mark unpaid
                       </Button>
                     )}
 

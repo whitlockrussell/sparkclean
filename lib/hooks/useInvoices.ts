@@ -38,7 +38,6 @@ export function useInvoices() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Not logged in')
 
-    // Get next invoice number
     const { count } = await supabase
       .from('invoices')
       .select('*', { count: 'exact', head: true })
@@ -46,12 +45,10 @@ export function useInvoices() {
 
     const invoiceNumber = `INV-${String((count ?? 0) + 1).padStart(3, '0')}`
 
-    // Calculate totals
     const subtotal = invoice.items.reduce((s, i) => s + i.quantity * i.unit_price, 0)
     const hstAmount = Math.round(subtotal * invoice.hst_rate * 100) / 100
     const total = Math.round((subtotal + hstAmount) * 100) / 100
 
-    // Insert invoice
     const { data: inv, error: invError } = await supabase
       .from('invoices')
       .insert([{
@@ -72,7 +69,6 @@ export function useInvoices() {
 
     if (invError) throw new Error(invError.message)
 
-    // Insert line items
     const { error: itemsError } = await supabase
       .from('invoice_items')
       .insert(
@@ -96,7 +92,20 @@ export function useInvoices() {
   const markPaid = async (id: string) => {
     const { data, error } = await supabase
       .from('invoices')
-      .update({ status: 'paid', paid_at: new Date().toISOString() })
+      .update({ status: 'paid', paid_at: new Date().toISOString().split('T')[0] })
+      .eq('id', id)
+      .select(`*, clients(first_name, last_name, email)`)
+      .single()
+
+    if (error) throw new Error(error.message)
+    setInvoices(prev => prev.map(inv => inv.id === id ? data : inv))
+    return data
+  }
+
+  const markUnpaid = async (id: string) => {
+    const { data, error } = await supabase
+      .from('invoices')
+      .update({ status: 'sent', paid_at: null })
       .eq('id', id)
       .select(`*, clients(first_name, last_name, email)`)
       .single()
@@ -127,7 +136,7 @@ export function useInvoices() {
 
   return {
     invoices, loading, error,
-    createInvoice, markPaid, markSent, deleteInvoice,
+    createInvoice, markPaid, markUnpaid, markSent, deleteInvoice,
     refetch: fetchInvoices,
   }
 }
