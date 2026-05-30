@@ -16,12 +16,15 @@ interface InvoiceFormProps {
   clients: Client[]
   onSave: (data: NewInvoice) => Promise<void>
   onClose: () => void
+  initialClientId?: string
+  initialAppointmentId?: string
+  initialItems?: LineItem[]
 }
 
 const HST_RATE = 0.13
 
-export function InvoiceForm({ clients, onSave, onClose }: InvoiceFormProps) {
-  const [clientId, setClientId] = useState('')
+export function InvoiceForm({ clients, onSave, onClose, initialClientId, initialAppointmentId, initialItems }: InvoiceFormProps) {
+  const [clientId, setClientId] = useState(initialClientId ?? '')
   const [dueDate, setDueDate] = useState(() => {
     const d = new Date()
     d.setDate(d.getDate() + 14)
@@ -29,9 +32,9 @@ export function InvoiceForm({ clients, onSave, onClose }: InvoiceFormProps) {
   })
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'e_transfer' | 'cheque' | ''>('')
   const [notes, setNotes] = useState('')
-  const [items, setItems] = useState<LineItem[]>([
-    { description: 'Standard home cleaning', quantity: 1, unit_price: 0 },
-  ])
+  const [items, setItems] = useState<LineItem[]>(
+    initialItems ?? [{ description: 'Standard home cleaning', quantity: 1, unit_price: 0 }]
+  )
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -59,7 +62,7 @@ export function InvoiceForm({ clients, onSave, onClose }: InvoiceFormProps) {
     setSaving(true)
     setError(null)
     try {
-      await onSave({ client_id: clientId, due_date: dueDate, notes, items, hst_rate: HST_RATE, payment_method: paymentMethod || null })
+      await onSave({ client_id: clientId, appointment_id: initialAppointmentId ?? null, due_date: dueDate, notes, items, hst_rate: HST_RATE, payment_method: paymentMethod || null })
       onClose()
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Something went wrong.')

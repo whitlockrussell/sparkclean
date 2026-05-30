@@ -10,8 +10,11 @@ import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { PageSkeleton } from '@/components/ui/Skeleton'
 import { AppointmentForm } from '@/components/appointments/AppointmentForm'
+import { InvoiceForm } from '@/components/invoices/InvoiceForm'
 import { useAppointments } from '@/lib/hooks/useAppointments'
 import { useClients } from '@/lib/hooks/useClients'
+import { useInvoices } from '@/lib/hooks/useInvoices'
+import type { NewInvoice } from '@/lib/hooks/useInvoices'
 import { createClient } from '@/lib/supabase/client'
 import {
   CalendarDays, Clock, Plus, MapPin, TrendingUp,
@@ -49,11 +52,13 @@ function getWeekRange() {
 export default function TodayPage() {
   const { addAppointment, updateAppointment, fetchToday, fetchUnpaid } = useAppointments()
   const { clients } = useClients()
+  const { createInvoice } = useInvoices()
   const [todayJobs, setTodayJobs] = useState<Appointment[]>([])
   const [unpaidJobs, setUnpaidJobs] = useState<Appointment[]>([])
   const [weekIncome, setWeekIncome] = useState(0)
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
+  const [invoiceJob, setInvoiceJob] = useState<Appointment | undefined>()
   const supabase = createClient()
 
   const todayStr = new Date().toISOString().split('T')[0]
@@ -95,6 +100,10 @@ export default function TodayPage() {
   const handleToggleStatus = async (id: string, newStatus: 'scheduled' | 'completed' | 'payment_received') => {
     await updateAppointment(id, { status: newStatus })
     await refresh()
+  }
+
+  const handleCreateInvoice = async (data: NewInvoice) => {
+    await createInvoice(data)
   }
 
   const scheduledJobs = todayJobs.filter(j => j.status === 'scheduled')
@@ -214,6 +223,15 @@ export default function TodayPage() {
                             <span className={`absolute left-0 top-[3px] w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${isPaid ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
                           </button>
                         </div>
+                        {isPaid && (
+                          <button
+                            type="button"
+                            onClick={() => setInvoiceJob(job)}
+                            className="mt-1 w-full text-xs font-medium text-teal-600 border border-teal-200 bg-teal-50 hover:bg-teal-100 rounded-xl py-2 transition-colors"
+                          >
+                            + Create invoice
+                          </button>
+                        )}
                       </div>
                     </Card>
                   )
@@ -290,6 +308,16 @@ export default function TodayPage() {
           clients={clients}
           onSave={handleAdd}
           onClose={() => setShowForm(false)}
+        />
+      )}
+      {invoiceJob && (
+        <InvoiceForm
+          clients={clients}
+          initialClientId={invoiceJob.client_id}
+          initialAppointmentId={invoiceJob.id}
+          initialItems={[{ description: 'Home cleaning', quantity: 1, unit_price: invoiceJob.price }]}
+          onSave={handleCreateInvoice}
+          onClose={() => setInvoiceJob(undefined)}
         />
       )}
     </AppShell>

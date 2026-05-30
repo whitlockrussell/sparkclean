@@ -10,8 +10,11 @@ import { Badge } from '@/components/ui/Badge'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { PageSkeleton } from '@/components/ui/Skeleton'
 import { AppointmentForm } from '@/components/appointments/AppointmentForm'
+import { InvoiceForm } from '@/components/invoices/InvoiceForm'
 import { useAppointments } from '@/lib/hooks/useAppointments'
 import { useClients } from '@/lib/hooks/useClients'
+import { useInvoices } from '@/lib/hooks/useInvoices'
+import type { NewInvoice } from '@/lib/hooks/useInvoices'
 import {
   CalendarDays, Plus, Clock, MapPin, RefreshCw
 } from 'lucide-react'
@@ -53,8 +56,10 @@ function groupByDate(appointments: Appointment[]) {
 export default function SchedulePage() {
   const { appointments, loading, error, addAppointment, updateAppointment, deleteAppointment } = useAppointments()
   const { clients } = useClients()
+  const { createInvoice } = useInvoices()
   const [showForm, setShowForm] = useState(false)
   const [editingAppt, setEditingAppt] = useState<Appointment | undefined>()
+  const [invoiceAppt, setInvoiceAppt] = useState<Appointment | undefined>()
 
   const grouped = groupByDate(appointments)
   const sortedDates = Object.keys(grouped).sort()
@@ -83,6 +88,10 @@ export default function SchedulePage() {
 
   const handleToggleStatus = async (id: string, newStatus: 'scheduled' | 'completed' | 'payment_received') => {
     await updateAppointment(id, { status: newStatus })
+  }
+
+  const handleCreateInvoice = async (data: NewInvoice) => {
+    await createInvoice(data)
   }
 
   return (
@@ -211,6 +220,15 @@ export default function SchedulePage() {
                               <span className={`absolute left-0 top-[3px] w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${isPaid ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
                             </button>
                           </div>
+                          {isPaid && (
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); setInvoiceAppt(appt) }}
+                              className="mt-1 w-full text-xs font-medium text-teal-600 border border-teal-200 bg-teal-50 hover:bg-teal-100 rounded-xl py-2 transition-colors"
+                            >
+                              + Create invoice
+                            </button>
+                          )}
                         </div>
                       </Card>
                     )
@@ -229,6 +247,16 @@ export default function SchedulePage() {
           onSave={editingAppt ? handleEdit : handleAdd}
           onClose={closeForm}
           onDelete={editingAppt ? handleDelete : undefined}
+        />
+      )}
+      {invoiceAppt && (
+        <InvoiceForm
+          clients={clients}
+          initialClientId={invoiceAppt.client_id}
+          initialAppointmentId={invoiceAppt.id}
+          initialItems={[{ description: 'Home cleaning', quantity: 1, unit_price: invoiceAppt.price }]}
+          onSave={handleCreateInvoice}
+          onClose={() => setInvoiceAppt(undefined)}
         />
       )}
     </AppShell>
