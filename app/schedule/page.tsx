@@ -6,7 +6,6 @@ import {
   PointerSensor, TouchSensor, useDroppable, useDraggable,
   useSensors, useSensor,
 } from '@dnd-kit/core'
-import { CSS } from '@dnd-kit/utilities'
 import { AppShell } from '@/components/layout/AppShell'
 import { TopHeader } from '@/components/layout/TopHeader'
 import { PageContainer } from '@/components/layout/PageContainer'
@@ -32,7 +31,11 @@ function getWeekStart(date: Date = new Date()): string {
   const d = new Date(date)
   const day = d.getDay()
   d.setDate(d.getDate() - (day === 0 ? 6 : day - 1))
-  return d.toISOString().split('T')[0]
+  // Use local date parts — toISOString() converts to UTC and can shift the day
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${dd}`
 }
 
 function getWeekDates(weekStart: string): string[] {
@@ -82,7 +85,8 @@ function groupByDate(appointments: Appointment[]) {
 // ── week-view sub-components ──────────────────────────────────────────────────
 
 function WeekJobCard({ appt, onTap }: { appt: Appointment; onTap: () => void }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: appt.id })
+  // No transform applied here — DragOverlay handles the moving visual
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: appt.id })
   const client = appt.clients
   const name = client ? client.first_name : '?'
   const isDone = appt.status === 'completed' || appt.status === 'payment_received'
@@ -97,13 +101,12 @@ function WeekJobCard({ appt, onTap }: { appt: Appointment; onTap: () => void }) 
   return (
     <div
       ref={setNodeRef}
-      style={{ transform: CSS.Translate.toString(transform) }}
       {...listeners}
       {...attributes}
       onClick={onTap}
       className={`rounded-lg px-1.5 py-1 border cursor-grab active:cursor-grabbing touch-none select-none transition-opacity
         ${cardClass}
-        ${isDragging ? 'opacity-30' : isDone ? 'opacity-60' : 'opacity-100'}`}
+        ${isDragging ? 'opacity-20' : isDone ? 'opacity-60' : 'opacity-100'}`}
     >
       <p className="text-[11px] font-semibold truncate leading-tight">{name}</p>
       {appt.start_time && (
