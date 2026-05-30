@@ -40,10 +40,17 @@ const WEEK_DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 function getWeekStart(): string {
   const now = new Date()
   const dow = now.getDay() // 0=Sun, 1=Mon, …, 6=Sat
-  // (dow + 6) % 7 → Mon=0, Tue=1, …, Sat=5, Sun=6
-  const daysSinceMonday = (dow + 6) % 7
+  // Sun(0)→6, Mon(1)→0, Tue(2)→1, Wed(3)→2, Thu(4)→3, Fri(5)→4, Sat(6)→5
+  const daysSinceMonday = dow === 0 ? 6 : dow - 1
   const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysSinceMonday)
-  return localStr(monday)
+  const result = localStr(monday)
+  console.log(
+    '[week] localDate:', localStr(now),
+    'getDay():', dow,
+    'daysSinceMonday:', daysSinceMonday,
+    'weekStart:', result,
+  )
+  return result
 }
 
 function getWeekDates(weekStart: string): string[] {
