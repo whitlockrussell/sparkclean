@@ -44,9 +44,9 @@ export function AppointmentForm({
           duration_hours: appointment.duration_hours ?? 2,
           price: appointment.price,
           status: appointment.status,
-          is_recurring: appointment.is_recurring,
-          recurrence_rule: appointment.recurrence_rule,
-          recurrence_end: appointment.recurrence_end,
+          is_recurring: appointment.is_recurring ?? false,
+          recurrence_rule: appointment.recurrence_rule ?? null,
+          recurrence_end: appointment.recurrence_end ?? null,
           notes: appointment.notes ?? '',
         }
       : empty(defaultClientId)
@@ -210,6 +210,7 @@ export function AppointmentForm({
                 <p className="text-sm font-medium text-slate-700">Recurring job</p>
                 <p className="text-xs text-slate-400">Repeats automatically</p>
               </div>
+              {/* Exact toggle from app/team/page.tsx PermRow */}
               <button
                 type="button"
                 onClick={() => {
@@ -220,13 +221,9 @@ export function AppointmentForm({
                     recurrence_rule: next && !prev.recurrence_rule ? 'weekly' : prev.recurrence_rule,
                   }))
                 }}
-                className={`w-10 h-[22px] rounded-full transition-colors relative flex-shrink-0 ${
-                  form.is_recurring ? 'bg-teal-500' : 'bg-slate-300'
-                }`}
+                className={`w-10 h-[22px] rounded-full transition-colors relative flex-shrink-0 ${form.is_recurring ? 'bg-teal-500' : 'bg-slate-300'}`}
               >
-                <span className={`absolute left-0 top-[3px] w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${
-                  form.is_recurring ? 'translate-x-[20px]' : 'translate-x-0.5'
-                }`} />
+                <span className={`absolute left-0 top-[3px] w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${form.is_recurring ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
               </button>
             </div>
 
