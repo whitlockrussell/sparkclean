@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   DndContext, DragEndEvent,
   PointerSensor, TouchSensor, useDroppable, useDraggable,
@@ -39,18 +39,10 @@ const WEEK_DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 function getWeekStart(): string {
   const now = new Date()
-  const dow = now.getDay() // 0=Sun, 1=Mon, …, 6=Sat
-  // Sun(0)→6, Mon(1)→0, Tue(2)→1, Wed(3)→2, Thu(4)→3, Fri(5)→4, Sat(6)→5
+  const dow = now.getDay() // 0=Sun, 1=Mon, …, 6=Sat — always local time
+  // Sun(0)→6, Mon(1)→0, Tue(2)→1, …, Sat(6)→5
   const daysSinceMonday = dow === 0 ? 6 : dow - 1
-  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysSinceMonday)
-  const result = localStr(monday)
-  console.log(
-    '[week] localDate:', localStr(now),
-    'getDay():', dow,
-    'daysSinceMonday:', daysSinceMonday,
-    'weekStart:', result,
-  )
-  return result
+  return localStr(new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysSinceMonday))
 }
 
 function getWeekDates(weekStart: string): string[] {
@@ -156,14 +148,19 @@ export default function SchedulePage() {
   const { createInvoice } = useInvoices()
 
   const [view, setView] = useState<'list' | 'week'>('list')
+  // Initialize from server (may be UTC), then correct to client's local timezone after hydration
   const [weekStart, setWeekStart] = useState(getWeekStart)
+  const [today, setToday] = useState(todayLocalStr)
+  useEffect(() => {
+    setWeekStart(getWeekStart())
+    setToday(todayLocalStr())
+  }, [])
   const [showForm, setShowForm] = useState(false)
   const [editingAppt, setEditingAppt] = useState<Appointment | undefined>()
   const [invoiceAppt, setInvoiceAppt] = useState<Appointment | undefined>()
   const [pendingReschedule, setPendingReschedule] = useState<{ apptId: string; newDate: string } | null>(null)
   const [newTime, setNewTime] = useState('')
 
-  const today = todayLocalStr()
   const weekDates = getWeekDates(weekStart)
   const grouped = groupByDate(appointments)
   const sortedDates = Object.keys(grouped).sort()
