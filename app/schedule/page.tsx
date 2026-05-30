@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import {
-  DndContext, DragEndEvent, DragOverlay, DragStartEvent,
+  DndContext, DragEndEvent,
   PointerSensor, TouchSensor, useDroppable, useDraggable,
   useSensors, useSensor,
 } from '@dnd-kit/core'
@@ -25,43 +25,53 @@ import {
 } from 'lucide-react'
 import type { Appointment, NewAppointment } from '@/lib/types'
 
-// ── helpers ──────────────────────────────────────────────────────────────────
+// ── date helpers — all local-time, never toISOString() ───────────────────────
 
-function getWeekStart(date: Date = new Date()): string {
-  const d = new Date(date)
-  const day = d.getDay()
-  d.setDate(d.getDate() - (day === 0 ? 6 : day - 1))
-  // Use local date parts — toISOString() converts to UTC and can shift the day
+function localStr(d: Date): string {
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, '0')
-  const dd = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${dd}`
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+function getWeekStart(): string {
+  const now = new Date()
+  const dow = now.getDay() // 0 = Sun, 1 = Mon … 6 = Sat
+  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (dow === 0 ? 6 : dow - 1))
+  return localStr(monday)
 }
 
 function getWeekDates(weekStart: string): string[] {
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(weekStart + 'T12:00:00')
-    d.setDate(d.getDate() + i)
-    return d.toISOString().split('T')[0]
-  })
+  const [y, m, d] = weekStart.split('-').map(Number)
+  return Array.from({ length: 7 }, (_, i) => localStr(new Date(y, m - 1, d + i)))
+}
+
+function shiftWeek(weekStart: string, delta: number): string {
+  const [y, m, d] = weekStart.split('-').map(Number)
+  return localStr(new Date(y, m - 1, d + delta))
 }
 
 function formatWeekLabel(weekStart: string): string {
-  const start = new Date(weekStart + 'T12:00:00')
-  const end = new Date(weekStart + 'T12:00:00')
-  end.setDate(end.getDate() + 6)
+  const [y, m, d] = weekStart.split('-').map(Number)
+  const start = new Date(y, m - 1, d)
+  const end   = new Date(y, m - 1, d + 6)
   const s = start.toLocaleDateString('en-CA', { month: 'short', day: 'numeric' })
-  const e = end.toLocaleDateString('en-CA', { month: 'short', day: 'numeric' })
+  const e = end.toLocaleDateString('en-CA',   { month: 'short', day: 'numeric' })
   return `${s} – ${e}`
 }
 
+function todayLocalStr(): string {
+  return localStr(new Date())
+}
+
 function formatDate(dateStr: string) {
-  const date = new Date(dateStr + 'T12:00:00')
-  const today = new Date()
-  const tomorrow = new Date()
-  tomorrow.setDate(today.getDate() + 1)
-  if (dateStr === today.toISOString().split('T')[0]) return 'Today'
-  if (dateStr === tomorrow.toISOString().split('T')[0]) return 'Tomorrow'
+  const [y, m, d] = dateStr.split('-').map(Number)
+  const date = new Date(y, m - 1, d)
+  const t = todayLocalStr()
+  const [ty, tm, td] = t.split('-').map(Number)
+  const tomorrow = localStr(new Date(ty, tm - 1, td + 1))
+  if (dateStr === t) return 'Today'
+  if (dateStr === tomorrow) return 'Tomorrow'
   return date.toLocaleDateString('en-CA', { weekday: 'short', month: 'short', day: 'numeric' })
 }
 
@@ -85,7 +95,6 @@ function groupByDate(appointments: Appointment[]) {
 // ── week-view sub-components ──────────────────────────────────────────────────
 
 function WeekJobCard({ appt, onTap }: { appt: Appointment; onTap: () => void }) {
-  // No transform applied here — DragOverlay handles the moving visual
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: appt.id })
   const client = appt.clients
   const name = client ? client.first_name : '?'
@@ -93,10 +102,10 @@ function WeekJobCard({ appt, onTap }: { appt: Appointment; onTap: () => void }) 
   const isPaid = appt.status === 'payment_received'
 
   const cardClass = isPaid
-    ? 'bg-green-50 border-green-200 text-green-900'
+    ? 'bg-green-50 border-green-200'
     : isDone
-    ? 'bg-slate-100 border-slate-200 text-slate-500'
-    : 'bg-teal-50 border-teal-200 text-teal-900'
+    ? 'bg-slate-100 border-slate-200'
+    : 'bg-teal-50 border-teal-200'
 
   return (
     <div
@@ -105,18 +114,17 @@ function WeekJobCard({ appt, onTap }: { appt: Appointment; onTap: () => void }) 
       {...attributes}
       onClick={onTap}
       className={`rounded-lg px-1.5 py-1 border cursor-grab active:cursor-grabbing touch-none select-none transition-opacity
-        ${cardClass}
-        ${isDragging ? 'opacity-20' : isDone ? 'opacity-60' : 'opacity-100'}`}
+        ${cardClass} ${isDragging ? 'opacity-20' : isDone ? 'opacity-60' : 'opacity-100'}`}
     >
-      <p className="text-[11px] font-semibold truncate leading-tight">{name}</p>
+      <p className="text-[11px] font-semibold text-slate-800 truncate leading-tight">{name}</p>
       {appt.start_time && (
-        <p className="text-[10px] opacity-70 leading-tight mt-0.5">{formatTime(appt.start_time)}</p>
+        <p className="text-[10px] text-slate-500 mt-0.5 leading-tight">{formatTime(appt.start_time)}</p>
       )}
     </div>
   )
 }
 
-function DayColumn({ date, children, isToday }: { date: string; children: React.ReactNode; isToday: boolean }) {
+function DayColumn({ date, children }: { date: string; children: React.ReactNode }) {
   const { isOver, setNodeRef } = useDroppable({ id: date })
   return (
     <div
@@ -140,11 +148,10 @@ export default function SchedulePage() {
   const [showForm, setShowForm] = useState(false)
   const [editingAppt, setEditingAppt] = useState<Appointment | undefined>()
   const [invoiceAppt, setInvoiceAppt] = useState<Appointment | undefined>()
-  const [draggingAppt, setDraggingAppt] = useState<Appointment | null>(null)
   const [pendingReschedule, setPendingReschedule] = useState<{ apptId: string; newDate: string } | null>(null)
   const [newTime, setNewTime] = useState('')
 
-  const today = new Date().toISOString().split('T')[0]
+  const today = todayLocalStr()
   const weekDates = getWeekDates(weekStart)
   const grouped = groupByDate(appointments)
   const sortedDates = Object.keys(grouped).sort()
@@ -154,7 +161,6 @@ export default function SchedulePage() {
     useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 8 } }),
   )
 
-  // list-view handlers
   const handleAdd = async (data: NewAppointment) => { await addAppointment(data) }
   const handleEdit = async (data: NewAppointment) => { if (editingAppt) await updateAppointment(editingAppt.id, data) }
   const handleDelete = async () => { if (editingAppt) await deleteAppointment(editingAppt.id) }
@@ -166,29 +172,11 @@ export default function SchedulePage() {
   }
   const handleCreateInvoice = async (data: NewInvoice) => { await createInvoice(data) }
 
-  // week navigation
-  const prevWeek = () => {
-    const d = new Date(weekStart + 'T12:00:00'); d.setDate(d.getDate() - 7)
-    setWeekStart(d.toISOString().split('T')[0])
-  }
-  const nextWeek = () => {
-    const d = new Date(weekStart + 'T12:00:00'); d.setDate(d.getDate() + 7)
-    setWeekStart(d.toISOString().split('T')[0])
-  }
-
-  // drag handlers
-  const handleDragStart = (event: DragStartEvent) => {
-    const appt = appointments.find(a => a.id === event.active.id)
-    setDraggingAppt(appt ?? null)
-  }
-
   const handleDragEnd = (event: DragEndEvent) => {
-    setDraggingAppt(null)
     const { active, over } = event
     if (!over) return
     const appt = appointments.find(a => a.id === active.id)
     if (!appt || appt.scheduled_date === over.id) return
-    // different day — prompt for new time
     setPendingReschedule({ apptId: appt.id, newDate: over.id as string })
     setNewTime(appt.start_time ?? '')
   }
@@ -202,24 +190,6 @@ export default function SchedulePage() {
     setPendingReschedule(null)
   }
 
-  // overlay card (follows cursor while dragging)
-  const OverlayCard = draggingAppt ? (() => {
-    const client = draggingAppt.clients
-    const name = client ? client.first_name : '?'
-    const isDone = draggingAppt.status === 'completed' || draggingAppt.status === 'payment_received'
-    const isPaid = draggingAppt.status === 'payment_received'
-    const cardClass = isPaid ? 'bg-green-50 border-green-300' : isDone ? 'bg-slate-100 border-slate-300' : 'bg-teal-50 border-teal-300'
-    return (
-      <div className={`rounded-lg px-1.5 py-1 border shadow-lg w-20 ${cardClass}`}>
-        <p className="text-[11px] font-semibold truncate leading-tight">{name}</p>
-        {draggingAppt.start_time && (
-          <p className="text-[10px] opacity-70 leading-tight mt-0.5">{formatTime(draggingAppt.start_time)}</p>
-        )}
-      </div>
-    )
-  })() : null
-
-  // list-view full card
   const renderCard = (appt: Appointment) => {
     const client = appt.clients
     const name = client ? `${client.first_name} ${client.last_name}` : 'Unknown client'
@@ -232,9 +202,7 @@ export default function SchedulePage() {
         <div className="flex items-start justify-between gap-3 mb-1">
           <div className="flex items-center gap-2 flex-wrap min-w-0">
             <p className="font-semibold text-slate-900 text-[15px]">{name}</p>
-            {appt.is_recurring && (
-              <Badge variant="teal"><RefreshCw className="w-2.5 h-2.5 mr-1" />{appt.recurrence_rule}</Badge>
-            )}
+            {appt.is_recurring && <Badge variant="teal"><RefreshCw className="w-2.5 h-2.5 mr-1" />{appt.recurrence_rule}</Badge>}
           </div>
           <p className="text-lg font-semibold text-amber-600 flex-shrink-0">${appt.price.toFixed(0)}</p>
         </div>
@@ -252,14 +220,16 @@ export default function SchedulePage() {
         <div className="mt-3 pt-3 border-t border-slate-100">
           <div className="flex items-center py-1.5 gap-3">
             <p className="text-sm text-slate-700 flex-1">Job done</p>
-            <button type="button" onClick={(e) => { e.stopPropagation(); handleToggleStatus(appt.id, isDone ? 'scheduled' : 'completed') }}
+            <button type="button"
+              onClick={(e) => { e.stopPropagation(); handleToggleStatus(appt.id, isDone ? 'scheduled' : 'completed') }}
               className={`w-10 h-[22px] rounded-full transition-colors relative flex-shrink-0 ${isDone ? 'bg-teal-500' : 'bg-slate-300'}`}>
               <span className={`absolute left-0 top-[3px] w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${isDone ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
             </button>
           </div>
           <div className="flex items-center py-1.5 gap-3">
             <p className={`text-sm flex-1 ${isDone ? 'text-slate-700' : 'text-slate-400'}`}>Payment received</p>
-            <button type="button" disabled={!isDone} onClick={(e) => { e.stopPropagation(); handleToggleStatus(appt.id, isPaid ? 'completed' : 'payment_received') }}
+            <button type="button" disabled={!isDone}
+              onClick={(e) => { e.stopPropagation(); handleToggleStatus(appt.id, isPaid ? 'completed' : 'payment_received') }}
               className={`w-10 h-[22px] rounded-full transition-colors relative flex-shrink-0 ${isPaid ? 'bg-teal-500' : 'bg-slate-300'} disabled:opacity-40 disabled:cursor-not-allowed`}>
               <span className={`absolute left-0 top-[3px] w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${isPaid ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
             </button>
@@ -319,14 +289,15 @@ export default function SchedulePage() {
               )
             ) : (
               /* ── Week view ── */
-              <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-                {/* Week navigation */}
+              <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
                 <div className="flex items-center justify-between mb-4">
-                  <button onClick={prevWeek} className="w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors">
+                  <button onClick={() => setWeekStart(shiftWeek(weekStart, -7))}
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors">
                     <ChevronLeft className="w-4 h-4" />
                   </button>
                   <p className="text-sm font-semibold text-slate-900">{formatWeekLabel(weekStart)}</p>
-                  <button onClick={nextWeek} className="w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors">
+                  <button onClick={() => setWeekStart(shiftWeek(weekStart, 7))}
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors">
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -337,7 +308,8 @@ export default function SchedulePage() {
                     <div className="grid grid-cols-7 gap-1.5 mb-2 pb-3 border-b border-slate-100">
                       {weekDates.map(date => {
                         const isToday = date === today
-                        const d = new Date(date + 'T12:00:00')
+                        const [dy, dm, dd] = date.split('-').map(Number)
+                        const d = new Date(dy, dm - 1, dd)
                         return (
                           <div key={date} className="text-center">
                             <p className={`text-[10px] font-bold uppercase tracking-wider mb-1 ${isToday ? 'text-teal-500' : 'text-slate-400'}`}>
@@ -357,9 +329,8 @@ export default function SchedulePage() {
                         const dayJobs = (grouped[date] ?? []).slice().sort((a, b) =>
                           (a.start_time ?? '').localeCompare(b.start_time ?? '')
                         )
-                        const isToday = date === today
                         return (
-                          <DayColumn key={date} date={date} isToday={isToday}>
+                          <DayColumn key={date} date={date}>
                             {dayJobs.length === 0
                               ? <div className="h-0.5 rounded bg-slate-100 mt-2" />
                               : dayJobs.map(appt => (
@@ -372,8 +343,6 @@ export default function SchedulePage() {
                     </div>
                   </div>
                 </div>
-
-                <DragOverlay>{OverlayCard}</DragOverlay>
               </DndContext>
             )}
           </>
@@ -381,32 +350,30 @@ export default function SchedulePage() {
       </PageContainer>
 
       {/* Reschedule time prompt */}
-      {pendingReschedule && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.45)' }}>
-          <div className="bg-white rounded-2xl p-5 w-[320px] mx-4 shadow-xl">
-            <div className="flex items-center justify-between mb-1">
-              <h3 className="text-[15px] font-semibold text-slate-900">Move job</h3>
-              <button onClick={() => setPendingReschedule(null)} className="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <p className="text-sm text-slate-400 mb-4">
-              Moving to {new Date(pendingReschedule.newDate + 'T12:00:00').toLocaleDateString('en-CA', { weekday: 'long', month: 'short', day: 'numeric' })}
-            </p>
-            <label className="block text-xs font-medium text-slate-500 mb-1.5">Start time (optional)</label>
-            <input
-              type="time"
-              value={newTime}
-              onChange={e => setNewTime(e.target.value)}
-              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white"
-            />
-            <div className="flex gap-3 mt-4">
-              <Button type="button" variant="ghost" size="lg" className="flex-1" onClick={() => setPendingReschedule(null)}>Cancel</Button>
-              <Button type="button" size="lg" className="flex-1" onClick={confirmReschedule}>Move job</Button>
+      {pendingReschedule && (() => {
+        const [dy, dm, dd] = pendingReschedule.newDate.split('-').map(Number)
+        const label = new Date(dy, dm - 1, dd).toLocaleDateString('en-CA', { weekday: 'long', month: 'short', day: 'numeric' })
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.45)' }}>
+            <div className="bg-white rounded-2xl p-5 w-[320px] mx-4 shadow-xl">
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-[15px] font-semibold text-slate-900">Move job</h3>
+                <button onClick={() => setPendingReschedule(null)} className="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <p className="text-sm text-slate-400 mb-4">Moving to {label}</p>
+              <label className="block text-xs font-medium text-slate-500 mb-1.5">Start time (optional)</label>
+              <input type="time" value={newTime} onChange={e => setNewTime(e.target.value)}
+                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white" />
+              <div className="flex gap-3 mt-4">
+                <Button type="button" variant="ghost" size="lg" className="flex-1" onClick={() => setPendingReschedule(null)}>Cancel</Button>
+                <Button type="button" size="lg" className="flex-1" onClick={confirmReschedule}>Move job</Button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
 
       {showForm && (
         <AppointmentForm clients={clients} appointment={editingAppt}
