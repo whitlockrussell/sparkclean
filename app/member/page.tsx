@@ -358,7 +358,7 @@ export default function MemberDashboard() {
                           )}
                         </div>
                         {permissions.view_job_price && (
-                          <p className="text-base font-semibold text-amber-600 flex-shrink-0">${job.price}</p>
+                          <p className={`text-base font-semibold flex-shrink-0 ${job.price === 0 ? 'text-slate-400' : 'text-amber-600'}`}>{job.price === 0 ? 'TBD' : `$${job.price}`}</p>
                         )}
                       </div>
                       <div className="mt-3 pt-3 border-t border-slate-100">

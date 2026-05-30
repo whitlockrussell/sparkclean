@@ -178,8 +178,8 @@ export default function TodayPage() {
                     <Card key={job.id} className={`p-4 ${job.status !== 'scheduled' ? 'opacity-60' : ''}`}>
                       <div className="flex items-start justify-between gap-3 mb-1">
                         <p className="font-semibold text-slate-900 text-[15px] truncate">{name}</p>
-                        <p className="text-lg font-semibold text-amber-600 flex-shrink-0">
-                          ${job.price.toFixed(0)}
+                        <p className={`text-lg font-semibold flex-shrink-0 ${job.price === 0 ? 'text-slate-400' : 'text-amber-600'}`}>
+                          {job.price === 0 ? 'TBD' : `$${job.price.toFixed(0)}`}
                         </p>
                       </div>
                       {address && (
@@ -265,7 +265,7 @@ export default function TodayPage() {
                     <Card key={job.id} className="p-4 opacity-60">
                       <div className="flex items-start justify-between gap-3 mb-1">
                         <p className="font-semibold text-slate-900 text-[15px] truncate">{name}</p>
-                        <p className="text-lg font-semibold text-amber-600 flex-shrink-0">${job.price.toFixed(0)}</p>
+                        <p className={`text-lg font-semibold flex-shrink-0 ${job.price === 0 ? 'text-slate-400' : 'text-amber-600'}`}>{job.price === 0 ? 'TBD' : `$${job.price.toFixed(0)}`}</p>
                       </div>
                       {!isToday && (
                         <p className="text-xs text-slate-400 mb-1">

@@ -62,7 +62,6 @@ export function AppointmentForm({
     e.preventDefault()
     if (!form.client_id) { setError('Please select a client.'); return }
     if (!form.scheduled_date) { setError('Please choose a date.'); return }
-    if (form.price <= 0) { setError('Please enter the job price.'); return }
 
     setSaving(true)
     setError(null)
@@ -191,16 +190,14 @@ export function AppointmentForm({
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1.5">
-                Price ($) <span className="text-red-400">*</span>
-              </label>
+              <label className="block text-xs font-medium text-slate-500 mb-1.5">Price ($)</label>
               <input
                 type="number"
                 min="0"
                 step="5"
-                value={form.price}
-                onChange={e => set('price', parseFloat(e.target.value))}
-                placeholder="150"
+                value={form.price || ''}
+                onChange={e => set('price', parseFloat(e.target.value) || 0)}
+                placeholder="TBD"
                 className={inputClass}
               />
             </div>

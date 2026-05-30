@@ -72,8 +72,11 @@ function formatTime(t: string | null): string {
   return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`
 }
 function formatHourLabel(h: number): string {
-  if (h === 12) return '12p'
-  return h > 12 ? `${h - 12}p` : `${h}a`
+  if (h === 12) return '12pm'
+  return h > 12 ? `${h - 12}pm` : `${h}am`
+}
+function fmtPrice(price: number): string {
+  return price === 0 ? 'TBD' : `$${price.toFixed(0)}`
 }
 
 // ── calendar helpers ──────────────────────────────────────────────────────────
@@ -277,7 +280,7 @@ export default function SchedulePage() {
             <p className="font-semibold text-slate-900 text-[15px]">{name}</p>
             {appt.is_recurring && <Badge variant="teal"><RefreshCw className="w-2.5 h-2.5 mr-1" />{appt.recurrence_rule}</Badge>}
           </div>
-          <p className="text-lg font-semibold text-amber-600 flex-shrink-0">${appt.price.toFixed(0)}</p>
+          <p className={`text-lg font-semibold flex-shrink-0 ${appt.price === 0 ? 'text-slate-400' : 'text-amber-600'}`}>{fmtPrice(appt.price)}</p>
         </div>
         {address && (
           <div className="flex items-center gap-1 text-xs text-slate-400 mb-1">
@@ -395,6 +398,33 @@ export default function SchedulePage() {
                       )
                     })}
                   </div>
+
+                  {/* Unscheduled jobs row — only shown when at least one day has timeless jobs */}
+                  {weekDates.some(date => (grouped[date] ?? []).some(a => !a.start_time)) && (
+                    <div className="flex border-b border-slate-100 bg-slate-50/70">
+                      <div className="w-8 flex-shrink-0 flex items-start justify-end pt-1.5 pr-1.5">
+                        <span className="text-[8px] text-slate-400 uppercase tracking-wider leading-tight text-right">No time</span>
+                      </div>
+                      {weekDates.map(date => {
+                        const timeless = (grouped[date] ?? []).filter(a => !a.start_time)
+                        return (
+                          <div key={date} className="flex-1 py-1 px-0.5 border-r border-slate-100 last:border-r-0 min-h-[28px]">
+                            {timeless.map(appt => {
+                              const name  = appt.clients?.first_name ?? '?'
+                              const isDone = appt.status === 'completed' || appt.status === 'payment_received'
+                              return (
+                                <button key={appt.id} onClick={() => openEdit(appt)}
+                                  className={`w-full text-left text-[9px] font-semibold px-1 py-0.5 rounded mb-0.5 truncate border
+                                    ${isDone ? 'bg-slate-100 border-slate-200 text-slate-500' : 'bg-teal-50 border-teal-200 text-teal-800'}`}>
+                                  {name}
+                                </button>
+                              )
+                            })}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
 
                   {/* Time grid */}
                   <div className="flex" style={{ height: TOTAL_H }}>
