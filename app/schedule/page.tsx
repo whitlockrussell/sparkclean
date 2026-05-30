@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   DndContext, DragEndEvent,
   PointerSensor, TouchSensor, useDroppable, useDraggable,
-  useSensors, useSensor,
+  useSensors, useSensor, closestCenter,
 } from '@dnd-kit/core'
 import { AppShell } from '@/components/layout/AppShell'
 import { TopHeader } from '@/components/layout/TopHeader'
@@ -20,174 +20,238 @@ import { useAppointments } from '@/lib/hooks/useAppointments'
 import { useClients } from '@/lib/hooks/useClients'
 import { useInvoices } from '@/lib/hooks/useInvoices'
 import type { NewInvoice } from '@/lib/hooks/useInvoices'
-import {
-  CalendarDays, Plus, Clock, MapPin, RefreshCw, ChevronLeft, ChevronRight, X,
-} from 'lucide-react'
+import { CalendarDays, Plus, Clock, MapPin, RefreshCw, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import type { Appointment, NewAppointment } from '@/lib/types'
 
-// ── date helpers — all local-time, never toISOString() ───────────────────────
+// ── calendar constants ────────────────────────────────────────────────────────
+
+const HOUR_H = 60          // px per hour
+const START_H = 7          // 7 AM
+const END_H   = 19         // 7 PM
+const TOTAL_H = (END_H - START_H) * HOUR_H   // 720px
+const HOURS   = Array.from({ length: END_H - START_H + 1 }, (_, i) => START_H + i)
+const WEEK_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+
+// ── date helpers — local time only, never toISOString() ──────────────────────
 
 function localStr(d: Date): string {
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
-
-// Day labels always fixed Mon→Sun by column index — never derived from locale
-const WEEK_DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-
+function todayStr(): string { return localStr(new Date()) }
 function getWeekStart(): string {
   const now = new Date()
-  const dow = now.getDay() // 0=Sun, 1=Mon, …, 6=Sat — always local time
-  // Sun(0)→6, Mon(1)→0, Tue(2)→1, …, Sat(6)→5
-  const daysSinceMonday = dow === 0 ? 6 : dow - 1
-  return localStr(new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysSinceMonday))
+  const dow = now.getDay()
+  return localStr(new Date(now.getFullYear(), now.getMonth(), now.getDate() - (dow === 0 ? 6 : dow - 1)))
 }
-
-function getWeekDates(weekStart: string): string[] {
-  const [y, m, d] = weekStart.split('-').map(Number)
+function getWeekDates(ws: string): string[] {
+  const [y, m, d] = ws.split('-').map(Number)
   return Array.from({ length: 7 }, (_, i) => localStr(new Date(y, m - 1, d + i)))
 }
-
-function shiftWeek(weekStart: string, delta: number): string {
-  const [y, m, d] = weekStart.split('-').map(Number)
+function shiftWeek(ws: string, delta: number): string {
+  const [y, m, d] = ws.split('-').map(Number)
   return localStr(new Date(y, m - 1, d + delta))
 }
-
-function formatWeekLabel(weekStart: string): string {
-  const [y, m, d] = weekStart.split('-').map(Number)
-  const start = new Date(y, m - 1, d)
-  const end   = new Date(y, m - 1, d + 6)
-  const s = start.toLocaleDateString('en-CA', { month: 'short', day: 'numeric' })
-  const e = end.toLocaleDateString('en-CA',   { month: 'short', day: 'numeric' })
+function formatWeekLabel(ws: string): string {
+  const [y, m, d] = ws.split('-').map(Number)
+  const s = new Date(y, m - 1, d).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' })
+  const e = new Date(y, m - 1, d + 6).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' })
   return `${s} – ${e}`
 }
-
-function todayLocalStr(): string {
-  return localStr(new Date())
+function formatDate(ds: string): string {
+  const [y, m, d] = ds.split('-').map(Number)
+  const today = todayStr()
+  const tomorrow = localStr(new Date(y, m - 1, d + 1))
+  if (ds === today) return 'Today'
+  if (ds === localStr(new Date(...today.split('-').map(Number) as [number, number, number]))) return 'Tomorrow'
+  if (ds === tomorrow) return 'Tomorrow'
+  return new Date(y, m - 1, d).toLocaleDateString('en-CA', { weekday: 'short', month: 'short', day: 'numeric' })
+}
+function formatTime(t: string | null): string {
+  if (!t) return ''
+  const [h, m] = t.split(':').map(Number)
+  return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`
+}
+function formatHourLabel(h: number): string {
+  if (h === 12) return '12p'
+  return h > 12 ? `${h - 12}p` : `${h}a`
 }
 
-function formatDate(dateStr: string) {
-  const [y, m, d] = dateStr.split('-').map(Number)
-  const date = new Date(y, m - 1, d)
-  const t = todayLocalStr()
-  const [ty, tm, td] = t.split('-').map(Number)
-  const tomorrow = localStr(new Date(ty, tm - 1, td + 1))
-  if (dateStr === t) return 'Today'
-  if (dateStr === tomorrow) return 'Tomorrow'
-  return date.toLocaleDateString('en-CA', { weekday: 'short', month: 'short', day: 'numeric' })
-}
+// ── calendar helpers ──────────────────────────────────────────────────────────
 
-function formatTime(time: string | null) {
-  if (!time) return ''
+function timeToY(time: string): number {
   const [h, m] = time.split(':').map(Number)
-  const ampm = h >= 12 ? 'PM' : 'AM'
-  const hour = h % 12 || 12
-  return `${hour}:${m.toString().padStart(2, '0')} ${ampm}`
+  return Math.max(0, (h * 60 + m - START_H * 60) / 60 * HOUR_H)
+}
+function yToTime(y: number): string {
+  const raw = (y / HOUR_H) * 60 + START_H * 60
+  const snapped = Math.round(raw / 30) * 30
+  const clamped = Math.max(START_H * 60, Math.min(END_H * 60 - 30, snapped))
+  const hh = Math.floor(clamped / 60), mm = clamped % 60
+  return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`
 }
 
-function groupByDate(appointments: Appointment[]) {
-  return appointments.reduce((groups, appt) => {
-    const date = appt.scheduled_date
-    if (!groups[date]) groups[date] = []
-    groups[date].push(appt)
-    return groups
+function groupByDate(appts: Appointment[]): Record<string, Appointment[]> {
+  return appts.reduce((g, a) => {
+    if (!g[a.scheduled_date]) g[a.scheduled_date] = []
+    g[a.scheduled_date].push(a)
+    return g
   }, {} as Record<string, Appointment[]>)
 }
 
-// ── week-view sub-components ──────────────────────────────────────────────────
+// ── week-view draggable job block ─────────────────────────────────────────────
 
-function WeekJobCard({ appt, onTap }: { appt: Appointment; onTap: () => void }) {
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: appt.id })
-  const client = appt.clients
-  const name = client ? client.first_name : '?'
-  const isDone = appt.status === 'completed' || appt.status === 'payment_received'
-  const isPaid = appt.status === 'payment_received'
+type JobBlockProps = { appt: Appointment; onTap: () => void }
 
-  const cardClass = isPaid
-    ? 'bg-green-50 border-green-200'
-    : isDone
-    ? 'bg-slate-100 border-slate-200'
-    : 'bg-teal-50 border-teal-200'
+function JobBlock({ appt, onTap }: JobBlockProps) {
+  if (!appt.start_time) return null
+
+  const top    = timeToY(appt.start_time)
+  const height = Math.max(appt.duration_hours ? appt.duration_hours * HOUR_H : HOUR_H / 2, 28)
+
+  const { attributes, listeners, setNodeRef, isDragging, transform } = useDraggable({
+    id: appt.id,
+    data: { initialTop: top },
+  })
+
+  const snapPx  = HOUR_H / 2
+  const snapY   = transform ? Math.round(transform.y / snapPx) * snapPx : 0
+  const isDone  = appt.status === 'completed' || appt.status === 'payment_received'
+  const isPaid  = appt.status === 'payment_received'
+  const name    = appt.clients?.first_name ?? '?'
+
+  const bg = isPaid ? 'bg-green-100 border-green-400 text-green-900'
+    : isDone ? 'bg-slate-100 border-slate-400 text-slate-500'
+    : 'bg-teal-100 border-teal-500 text-teal-900'
 
   return (
     <div
       ref={setNodeRef}
+      onClick={onTap}
       {...listeners}
       {...attributes}
-      onClick={onTap}
-      className={`rounded-lg px-1.5 py-1 border cursor-grab active:cursor-grabbing touch-none select-none transition-opacity
-        ${cardClass} ${isDragging ? 'opacity-20' : isDone ? 'opacity-60' : 'opacity-100'}`}
+      style={{
+        position: 'absolute',
+        top,
+        left: 1,
+        right: 1,
+        height,
+        transform: transform ? `translate(${transform.x}px, ${snapY}px)` : undefined,
+        zIndex: isDragging ? 30 : 2,
+      }}
+      className={`rounded border-l-2 px-1 py-0.5 overflow-hidden cursor-grab active:cursor-grabbing touch-none select-none
+        ${bg} ${isDone ? 'opacity-60' : ''} ${isDragging ? 'shadow-lg opacity-90 ring-1 ring-teal-400' : ''}`}
     >
-      <p className="text-[11px] font-semibold text-slate-800 truncate leading-tight">{name}</p>
-      {appt.start_time && (
-        <p className="text-[10px] text-slate-500 mt-0.5 leading-tight">{formatTime(appt.start_time)}</p>
+      <p className="text-[10px] font-semibold leading-tight truncate">{name}</p>
+      {height >= 36 && (
+        <p className="text-[9px] leading-tight opacity-70">{formatTime(appt.start_time)}</p>
       )}
     </div>
   )
 }
 
-function DayColumn({ date, children }: { date: string; children: React.ReactNode }) {
+// ── droppable day column ──────────────────────────────────────────────────────
+
+function TimeColumn({ date, isToday, children }: { date: string; isToday: boolean; children: React.ReactNode }) {
   const { isOver, setNodeRef } = useDroppable({ id: date })
   return (
     <div
       ref={setNodeRef}
-      className={`space-y-1.5 min-h-[48px] rounded-lg p-1 -m-1 transition-colors ${isOver ? 'bg-teal-50 ring-1 ring-teal-300' : ''}`}
+      className={`relative flex-1 border-r border-slate-100 transition-colors
+        ${isToday ? 'bg-teal-50/30' : ''}
+        ${isOver ? 'bg-teal-100/50' : ''}`}
+      style={{ height: TOTAL_H }}
     >
       {children}
     </div>
   )
 }
 
-// ── main page ────────────────────────────────────────────────────────────────
+// ── main page ─────────────────────────────────────────────────────────────────
 
 export default function SchedulePage() {
   const { appointments, loading, error, addAppointment, updateAppointment, deleteAppointment } = useAppointments()
   const { clients } = useClients()
   const { createInvoice } = useInvoices()
 
-  const [view, setView] = useState<'list' | 'week'>('list')
-  // Initialize from server (may be UTC), then correct to client's local timezone after hydration
+  const [view, setView]           = useState<'list' | 'week'>('list')
   const [weekStart, setWeekStart] = useState(getWeekStart)
-  const [today, setToday] = useState(todayLocalStr)
+  const [today, setToday]         = useState(todayStr)
+  const [showForm, setShowForm]   = useState(false)
+  const [editingAppt, setEditingAppt]   = useState<Appointment | undefined>()
+  const [invoiceAppt, setInvoiceAppt]   = useState<Appointment | undefined>()
+  const [pendingReschedule, setPendingReschedule] = useState<{ apptId: string; newDate: string } | null>(null)
+  const [newTime, setNewTime]     = useState('')
+  const [currentTimeY, setCurrentTimeY] = useState<number | null>(null)
+  const gridRef = useRef<HTMLDivElement>(null)
+
+  // Correct SSR UTC offset on client
   useEffect(() => {
     setWeekStart(getWeekStart())
-    setToday(todayLocalStr())
+    setToday(todayStr())
   }, [])
-  const [showForm, setShowForm] = useState(false)
-  const [editingAppt, setEditingAppt] = useState<Appointment | undefined>()
-  const [invoiceAppt, setInvoiceAppt] = useState<Appointment | undefined>()
-  const [pendingReschedule, setPendingReschedule] = useState<{ apptId: string; newDate: string } | null>(null)
-  const [newTime, setNewTime] = useState('')
 
-  const weekDates = getWeekDates(weekStart)
-  const grouped = groupByDate(appointments)
-  const sortedDates = Object.keys(grouped).sort()
+  // Current time line
+  useEffect(() => {
+    function update() {
+      const now = new Date()
+      const mins = now.getHours() * 60 + now.getMinutes()
+      const y = (mins - START_H * 60) / 60 * HOUR_H
+      setCurrentTimeY(mins >= START_H * 60 && mins <= END_H * 60 ? y : null)
+    }
+    update()
+    const t = setInterval(update, 60_000)
+    return () => clearInterval(t)
+  }, [])
+
+  // Auto-scroll to current time when entering week view
+  useEffect(() => {
+    if (view === 'week' && gridRef.current) {
+      const target = currentTimeY != null ? Math.max(0, currentTimeY - 80) : 0
+      gridRef.current.scrollTo({ top: target, behavior: 'smooth' })
+    }
+  }, [view, weekStart])
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 8 } }),
+    useSensor(TouchSensor,   { activationConstraint: { delay: 300, tolerance: 8 } }),
   )
 
-  const handleAdd = async (data: NewAppointment) => { await addAppointment(data) }
-  const handleEdit = async (data: NewAppointment) => { if (editingAppt) await updateAppointment(editingAppt.id, data) }
-  const handleDelete = async () => { if (editingAppt) await deleteAppointment(editingAppt.id) }
-  const openEdit = (appt: Appointment) => { setEditingAppt(appt); setShowForm(true) }
-  const closeForm = () => { setShowForm(false); setEditingAppt(undefined) }
+  const weekDates = getWeekDates(weekStart)
+  const grouped   = groupByDate(appointments)
+  const sortedDates = Object.keys(grouped).sort()
 
-  const handleToggleStatus = async (id: string, newStatus: 'scheduled' | 'completed' | 'payment_received') => {
-    await updateAppointment(id, { status: newStatus })
+  // list-view handlers
+  const handleAdd    = async (d: NewAppointment) => { await addAppointment(d) }
+  const handleEdit   = async (d: NewAppointment) => { if (editingAppt) await updateAppointment(editingAppt.id, d) }
+  const handleDelete = async ()                   => { if (editingAppt) await deleteAppointment(editingAppt.id) }
+  const openEdit  = (a: Appointment) => { setEditingAppt(a); setShowForm(true) }
+  const closeForm = ()                => { setShowForm(false); setEditingAppt(undefined) }
+
+  const handleToggleStatus = async (id: string, s: 'scheduled' | 'completed' | 'payment_received') => {
+    await updateAppointment(id, { status: s })
   }
-  const handleCreateInvoice = async (data: NewInvoice) => { await createInvoice(data) }
+  const handleCreateInvoice = async (d: NewInvoice) => { await createInvoice(d) }
 
+  // dnd
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
+    const { active, over, delta } = event
     if (!over) return
     const appt = appointments.find(a => a.id === active.id)
-    if (!appt || appt.scheduled_date === over.id) return
-    setPendingReschedule({ apptId: appt.id, newDate: over.id as string })
-    setNewTime(appt.start_time ?? '')
+    if (!appt) return
+
+    const initialTop = (active.data.current as { initialTop: number }).initialTop
+    const newDate    = over.id as string
+    const rawY       = initialTop + (delta.y ?? 0)
+    const snappedTime = yToTime(rawY)
+
+    if (appt.scheduled_date === newDate) {
+      if (snappedTime !== appt.start_time) {
+        updateAppointment(appt.id, { start_time: snappedTime })
+      }
+    } else {
+      setPendingReschedule({ apptId: appt.id, newDate })
+      setNewTime(snappedTime)
+    }
   }
 
   const confirmReschedule = async () => {
@@ -199,13 +263,13 @@ export default function SchedulePage() {
     setPendingReschedule(null)
   }
 
+  // list-view card
   const renderCard = (appt: Appointment) => {
-    const client = appt.clients
-    const name = client ? `${client.first_name} ${client.last_name}` : 'Unknown client'
+    const client  = appt.clients
+    const name    = client ? `${client.first_name} ${client.last_name}` : 'Unknown client'
     const address = client?.address ? `${client.address}${client.city ? ', ' + client.city : ''}` : null
-    const isDone = appt.status === 'completed' || appt.status === 'payment_received'
-    const isPaid = appt.status === 'payment_received'
-
+    const isDone  = appt.status === 'completed' || appt.status === 'payment_received'
+    const isPaid  = appt.status === 'payment_received'
     return (
       <Card key={appt.id} className={`p-4 ${appt.status !== 'scheduled' ? 'opacity-60' : ''}`} onClick={() => openEdit(appt)}>
         <div className="flex items-start justify-between gap-3 mb-1">
@@ -224,27 +288,25 @@ export default function SchedulePage() {
           {appt.start_time && <span className="flex items-center gap-1"><Clock className="w-3 h-3" strokeWidth={1.8} />{formatTime(appt.start_time)}</span>}
           {appt.duration_hours && <><span>·</span><span>{appt.duration_hours} hrs</span></>}
         </div>
-        {appt.notes && <p className="text-xs text-slate-400 mt-1.5 truncate">{appt.notes}</p>}
-        {client?.notes && <p className="text-xs text-slate-400 mt-1.5 italic truncate">{client.notes}</p>}
+        {appt.notes      && <p className="text-xs text-slate-400 mt-1.5 truncate">{appt.notes}</p>}
+        {client?.notes   && <p className="text-xs text-slate-400 mt-1.5 italic truncate">{client.notes}</p>}
         <div className="mt-3 pt-3 border-t border-slate-100">
           <div className="flex items-center py-1.5 gap-3">
             <p className="text-sm text-slate-700 flex-1">Job done</p>
-            <button type="button"
-              onClick={(e) => { e.stopPropagation(); handleToggleStatus(appt.id, isDone ? 'scheduled' : 'completed') }}
+            <button type="button" onClick={e => { e.stopPropagation(); handleToggleStatus(appt.id, isDone ? 'scheduled' : 'completed') }}
               className={`w-10 h-[22px] rounded-full transition-colors relative flex-shrink-0 ${isDone ? 'bg-teal-500' : 'bg-slate-300'}`}>
               <span className={`absolute left-0 top-[3px] w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${isDone ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
             </button>
           </div>
           <div className="flex items-center py-1.5 gap-3">
             <p className={`text-sm flex-1 ${isDone ? 'text-slate-700' : 'text-slate-400'}`}>Payment received</p>
-            <button type="button" disabled={!isDone}
-              onClick={(e) => { e.stopPropagation(); handleToggleStatus(appt.id, isPaid ? 'completed' : 'payment_received') }}
+            <button type="button" disabled={!isDone} onClick={e => { e.stopPropagation(); handleToggleStatus(appt.id, isPaid ? 'completed' : 'payment_received') }}
               className={`w-10 h-[22px] rounded-full transition-colors relative flex-shrink-0 ${isPaid ? 'bg-teal-500' : 'bg-slate-300'} disabled:opacity-40 disabled:cursor-not-allowed`}>
               <span className={`absolute left-0 top-[3px] w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${isPaid ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
             </button>
           </div>
           {isPaid && (
-            <button type="button" onClick={(e) => { e.stopPropagation(); setInvoiceAppt(appt) }}
+            <button type="button" onClick={e => { e.stopPropagation(); setInvoiceAppt(appt) }}
               className="mt-1 w-full text-xs font-medium text-teal-600 border border-teal-200 bg-teal-50 hover:bg-teal-100 rounded-xl py-2 transition-colors">
               + Create invoice
             </button>
@@ -268,7 +330,7 @@ export default function SchedulePage() {
         ) : (
           <>
             {/* View toggle */}
-            <div className="flex gap-1 bg-slate-100 rounded-xl p-1 mb-5">
+            <div className="flex gap-1 bg-slate-100 rounded-xl p-1 mb-4">
               {(['list', 'week'] as const).map(v => (
                 <button key={v} onClick={() => setView(v)}
                   className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${view === v ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
@@ -291,15 +353,16 @@ export default function SchedulePage() {
                         <div className="flex-1 h-px bg-slate-100" />
                         <span className="text-xs text-slate-400">{grouped[date].length} job{grouped[date].length !== 1 ? 's' : ''}</span>
                       </div>
-                      <div className="space-y-3">{grouped[date].map(appt => renderCard(appt))}</div>
+                      <div className="space-y-3">{grouped[date].map(a => renderCard(a))}</div>
                     </div>
                   ))}
                 </div>
               )
             ) : (
-              /* ── Week view ── */
-              <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-                <div className="flex items-center justify-between mb-4">
+              /* ── Week / calendar view ── */
+              <DndContext sensors={sensors} onDragEnd={handleDragEnd} collisionDetection={closestCenter}>
+                {/* Week navigation */}
+                <div className="flex items-center justify-between mb-3">
                   <button onClick={() => setWeekStart(shiftWeek(weekStart, -7))}
                     className="w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors">
                     <ChevronLeft className="w-4 h-4" />
@@ -311,44 +374,78 @@ export default function SchedulePage() {
                   </button>
                 </div>
 
-                <div className="overflow-x-auto -mx-4 px-4 pb-4">
-                  <div className="min-w-[560px]">
-                    {/* Day headers — labels hardcoded by position, never from locale */}
-                    <div className="grid grid-cols-7 gap-1.5 mb-2 pb-3 border-b border-slate-100">
-                      {weekDates.map((date, idx) => {
-                        const isToday = date === today
-                        const dayNum = Number(date.split('-')[2])
-                        return (
-                          <div key={date} className="text-center">
-                            <p className={`text-[10px] font-bold uppercase tracking-wider mb-1 ${isToday ? 'text-teal-500' : 'text-slate-400'}`}>
-                              {WEEK_DAY_LABELS[idx]}
-                            </p>
-                            <div className={`w-7 h-7 rounded-full flex items-center justify-center mx-auto ${isToday ? 'bg-teal-500' : ''}`}>
-                              <span className={`text-sm font-bold ${isToday ? 'text-white' : 'text-slate-600'}`}>{dayNum}</span>
-                            </div>
+                {/* Scrollable calendar grid */}
+                <div ref={gridRef} className="overflow-y-auto rounded-xl border border-slate-100" style={{ maxHeight: '68vh' }}>
+
+                  {/* Sticky day headers */}
+                  <div className="flex sticky top-0 z-20 bg-white border-b border-slate-200">
+                    <div className="w-8 flex-shrink-0" />
+                    {weekDates.map((date, idx) => {
+                      const isToday = date === today
+                      const dayNum  = Number(date.split('-')[2])
+                      return (
+                        <div key={date} className="flex-1 text-center py-2 border-r border-slate-100 last:border-r-0">
+                          <p className={`text-[9px] font-bold uppercase tracking-widest ${isToday ? 'text-teal-500' : 'text-slate-400'}`}>
+                            {WEEK_LABELS[idx]}
+                          </p>
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center mx-auto mt-0.5 ${isToday ? 'bg-teal-500' : ''}`}>
+                            <span className={`text-xs font-bold ${isToday ? 'text-white' : 'text-slate-600'}`}>{dayNum}</span>
                           </div>
-                        )
-                      })}
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  {/* Time grid */}
+                  <div className="flex" style={{ height: TOTAL_H }}>
+
+                    {/* Hour labels */}
+                    <div className="w-8 flex-shrink-0 relative border-r border-slate-100">
+                      {HOURS.slice(1).map(h => (
+                        <div key={h}
+                          style={{ position: 'absolute', top: (h - START_H) * HOUR_H - 7, right: 4 }}
+                          className="text-[9px] text-slate-400 leading-none">
+                          {formatHourLabel(h)}
+                        </div>
+                      ))}
                     </div>
 
-                    {/* Job columns */}
-                    <div className="grid grid-cols-7 gap-1.5 items-start">
+                    {/* Day columns + grid lines */}
+                    <div className="flex-1 relative flex">
+
+                      {/* Horizontal hour lines (behind everything) */}
+                      {HOURS.map(h => (
+                        <div key={h}
+                          style={{ position: 'absolute', top: (h - START_H) * HOUR_H, left: 0, right: 0, zIndex: 0 }}
+                          className="border-t border-slate-100 pointer-events-none" />
+                      ))}
+                      {/* Half-hour lines */}
+                      {HOURS.slice(0, -1).map(h => (
+                        <div key={h}
+                          style={{ position: 'absolute', top: (h - START_H) * HOUR_H + HOUR_H / 2, left: 0, right: 0, zIndex: 0 }}
+                          className="border-t border-slate-50 pointer-events-none" />
+                      ))}
+
+                      {/* Current time line */}
+                      {currentTimeY != null && (
+                        <div style={{ position: 'absolute', top: currentTimeY, left: 0, right: 0, zIndex: 10 }}
+                          className="pointer-events-none flex items-center">
+                          <div className="w-2 h-2 rounded-full bg-red-400 flex-shrink-0 -ml-1" />
+                          <div className="flex-1 border-t-2 border-red-400" />
+                        </div>
+                      )}
+
+                      {/* 7 droppable day columns */}
                       {weekDates.map(date => {
-                        const dayJobs = (grouped[date] ?? []).slice().sort((a, b) => {
-                          if (!a.start_time && !b.start_time) return 0
-                          if (!a.start_time) return 1   // no time → bottom
-                          if (!b.start_time) return -1
-                          return a.start_time.localeCompare(b.start_time)
-                        })
+                        const dayJobs = (grouped[date] ?? [])
+                          .filter(a => a.start_time)
+                          .sort((a, b) => (a.start_time ?? '').localeCompare(b.start_time ?? ''))
                         return (
-                          <DayColumn key={date} date={date}>
-                            {dayJobs.length === 0
-                              ? <div className="h-0.5 rounded bg-slate-100 mt-2" />
-                              : dayJobs.map(appt => (
-                                <WeekJobCard key={appt.id} appt={appt} onTap={() => openEdit(appt)} />
-                              ))
-                            }
-                          </DayColumn>
+                          <TimeColumn key={date} date={date} isToday={date === today}>
+                            {dayJobs.map(appt => (
+                              <JobBlock key={appt.id} appt={appt} onTap={() => openEdit(appt)} />
+                            ))}
+                          </TimeColumn>
                         )
                       })}
                     </div>
@@ -360,7 +457,7 @@ export default function SchedulePage() {
         )}
       </PageContainer>
 
-      {/* Reschedule time prompt */}
+      {/* Reschedule confirm */}
       {pendingReschedule && (() => {
         const [dy, dm, dd] = pendingReschedule.newDate.split('-').map(Number)
         const label = new Date(dy, dm - 1, dd).toLocaleDateString('en-CA', { weekday: 'long', month: 'short', day: 'numeric' })
@@ -374,7 +471,7 @@ export default function SchedulePage() {
                 </button>
               </div>
               <p className="text-sm text-slate-400 mb-4">Moving to {label}</p>
-              <label className="block text-xs font-medium text-slate-500 mb-1.5">Start time (optional)</label>
+              <label className="block text-xs font-medium text-slate-500 mb-1.5">Start time</label>
               <input type="time" value={newTime} onChange={e => setNewTime(e.target.value)}
                 className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white" />
               <div className="flex gap-3 mt-4">
