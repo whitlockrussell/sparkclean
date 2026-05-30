@@ -34,10 +34,15 @@ function localStr(d: Date): string {
   return `${y}-${m}-${day}`
 }
 
+// Day labels always fixed Mon→Sun by column index — never derived from locale
+const WEEK_DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+
 function getWeekStart(): string {
   const now = new Date()
-  const dow = now.getDay() // 0 = Sun, 1 = Mon … 6 = Sat
-  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (dow === 0 ? 6 : dow - 1))
+  const dow = now.getDay() // 0=Sun, 1=Mon, …, 6=Sat
+  // (dow + 6) % 7 → Mon=0, Tue=1, …, Sat=5, Sun=6
+  const daysSinceMonday = (dow + 6) % 7
+  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysSinceMonday)
   return localStr(monday)
 }
 
@@ -304,19 +309,18 @@ export default function SchedulePage() {
 
                 <div className="overflow-x-auto -mx-4 px-4 pb-4">
                   <div className="min-w-[560px]">
-                    {/* Day headers */}
+                    {/* Day headers — labels hardcoded by position, never from locale */}
                     <div className="grid grid-cols-7 gap-1.5 mb-2 pb-3 border-b border-slate-100">
-                      {weekDates.map(date => {
+                      {weekDates.map((date, idx) => {
                         const isToday = date === today
-                        const [dy, dm, dd] = date.split('-').map(Number)
-                        const d = new Date(dy, dm - 1, dd)
+                        const dayNum = Number(date.split('-')[2])
                         return (
                           <div key={date} className="text-center">
                             <p className={`text-[10px] font-bold uppercase tracking-wider mb-1 ${isToday ? 'text-teal-500' : 'text-slate-400'}`}>
-                              {d.toLocaleDateString('en-CA', { weekday: 'short' })}
+                              {WEEK_DAY_LABELS[idx]}
                             </p>
                             <div className={`w-7 h-7 rounded-full flex items-center justify-center mx-auto ${isToday ? 'bg-teal-500' : ''}`}>
-                              <span className={`text-sm font-bold ${isToday ? 'text-white' : 'text-slate-600'}`}>{d.getDate()}</span>
+                              <span className={`text-sm font-bold ${isToday ? 'text-white' : 'text-slate-600'}`}>{dayNum}</span>
                             </div>
                           </div>
                         )
@@ -326,9 +330,12 @@ export default function SchedulePage() {
                     {/* Job columns */}
                     <div className="grid grid-cols-7 gap-1.5 items-start">
                       {weekDates.map(date => {
-                        const dayJobs = (grouped[date] ?? []).slice().sort((a, b) =>
-                          (a.start_time ?? '').localeCompare(b.start_time ?? '')
-                        )
+                        const dayJobs = (grouped[date] ?? []).slice().sort((a, b) => {
+                          if (!a.start_time && !b.start_time) return 0
+                          if (!a.start_time) return 1   // no time → bottom
+                          if (!b.start_time) return -1
+                          return a.start_time.localeCompare(b.start_time)
+                        })
                         return (
                           <DayColumn key={date} date={date}>
                             {dayJobs.length === 0
