@@ -14,6 +14,7 @@ type InvoiceData = {
   hst_amount: number
   total: number
   notes: string | null
+  payment_method: 'cash' | 'e_transfer' | 'cheque' | null
   paid_at: string | null
   clients: {
     first_name: string
@@ -47,6 +48,13 @@ type BusinessData = {
   email: string | null
   invoice_notes: string | null
   logo_url: string | null
+}
+
+function paymentMethodLabel(method: string | null) {
+  if (method === 'cash') return 'Cash'
+  if (method === 'e_transfer') return 'E-transfer'
+  if (method === 'cheque') return 'Cheque'
+  return null
 }
 
 function fmt(date: string | null) {
@@ -228,6 +236,11 @@ export default function InvoicePDFPage({ params }: { params: Promise<{ id: strin
               {isPaid && (
                 <div className="flex justify-between text-sm text-green-600 font-medium">
                   <span>Amount paid</span><span>${invoice.total.toFixed(2)}</span>
+                </div>
+              )}
+              {paymentMethodLabel(invoice.payment_method) && (
+                <div className="flex justify-between text-sm text-slate-500">
+                  <span>Payment method</span><span>{paymentMethodLabel(invoice.payment_method)}</span>
                 </div>
               )}
             </div>

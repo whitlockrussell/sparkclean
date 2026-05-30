@@ -9,6 +9,7 @@ export type NewInvoice = {
   appointment_id?: string | null
   due_date?: string | null
   notes?: string | null
+  payment_method?: 'cash' | 'e_transfer' | 'cheque' | null
   items: { description: string; quantity: number; unit_price: number }[]
   hst_rate: number
 }
@@ -63,6 +64,7 @@ export function useInvoices() {
         hst_amount: hstAmount,
         total,
         notes: invoice.notes ?? null,
+        payment_method: invoice.payment_method ?? null,
       }])
       .select(`*, clients(first_name, last_name, email)`)
       .single()

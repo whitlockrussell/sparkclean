@@ -26,6 +26,7 @@ const HST_RATE = 0.13
 export function EditInvoiceForm({ invoice, clients, onSave, onClose, onDelete }: EditInvoiceFormProps) {
   const [clientId, setClientId] = useState(invoice.client_id)
   const [dueDate, setDueDate] = useState(invoice.due_date ?? '')
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'e_transfer' | 'cheque' | ''>(invoice.payment_method ?? '')
   const [notes, setNotes] = useState(invoice.notes ?? '')
   const [items, setItems] = useState<LineItem[]>([])
   const [saving, setSaving] = useState(false)
@@ -85,6 +86,7 @@ export function EditInvoiceForm({ invoice, clients, onSave, onClose, onDelete }:
           client_id: clientId,
           due_date: dueDate || null,
           notes: notes || null,
+          payment_method: paymentMethod || null,
           subtotal: Math.round(subtotal * 100) / 100,
           hst_amount: Math.round(hst * 100) / 100,
           total: Math.round(total * 100) / 100,
@@ -178,6 +180,17 @@ export function EditInvoiceForm({ invoice, clients, onSave, onClose, onDelete }:
             <div>
               <label className="block text-xs font-medium text-slate-500 mb-1.5">Due date</label>
               <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} className={inputClass} />
+            </div>
+
+            {/* Payment method */}
+            <div>
+              <label className="block text-xs font-medium text-slate-500 mb-1.5">Payment method</label>
+              <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value as typeof paymentMethod)} className={inputClass}>
+                <option value="">Not specified</option>
+                <option value="cash">Cash</option>
+                <option value="e_transfer">E-transfer</option>
+                <option value="cheque">Cheque</option>
+              </select>
             </div>
 
             {/* Line items */}

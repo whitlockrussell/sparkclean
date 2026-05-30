@@ -50,6 +50,7 @@ export type Invoice = {
   hst_amount: number
   total: number
   notes: string | null
+  payment_method: 'cash' | 'e_transfer' | 'cheque' | null
   sent_at: string | null
   paid_at: string | null
   created_at: string

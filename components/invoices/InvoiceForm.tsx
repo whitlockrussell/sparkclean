@@ -27,6 +27,7 @@ export function InvoiceForm({ clients, onSave, onClose }: InvoiceFormProps) {
     d.setDate(d.getDate() + 14)
     return d.toISOString().split('T')[0]
   })
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'e_transfer' | 'cheque' | ''>('')
   const [notes, setNotes] = useState('')
   const [items, setItems] = useState<LineItem[]>([
     { description: 'Standard home cleaning', quantity: 1, unit_price: 0 },
@@ -58,7 +59,7 @@ export function InvoiceForm({ clients, onSave, onClose }: InvoiceFormProps) {
     setSaving(true)
     setError(null)
     try {
-      await onSave({ client_id: clientId, due_date: dueDate, notes, items, hst_rate: HST_RATE })
+      await onSave({ client_id: clientId, due_date: dueDate, notes, items, hst_rate: HST_RATE, payment_method: paymentMethod || null })
       onClose()
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Something went wrong.')
@@ -101,6 +102,17 @@ export function InvoiceForm({ clients, onSave, onClose }: InvoiceFormProps) {
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1.5">Due date</label>
             <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} className={inputClass} />
+          </div>
+
+          {/* Payment method */}
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1.5">Payment method</label>
+            <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value as typeof paymentMethod)} className={inputClass}>
+              <option value="">Not specified</option>
+              <option value="cash">Cash</option>
+              <option value="e_transfer">E-transfer</option>
+              <option value="cheque">Cheque</option>
+            </select>
           </div>
 
           {/* Line items */}
