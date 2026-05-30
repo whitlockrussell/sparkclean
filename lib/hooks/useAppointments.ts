@@ -4,6 +4,30 @@ import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Appointment, NewAppointment } from '@/lib/types'
 
+const CLIENT_SELECT = `*, clients(first_name, last_name, address, city, notes)`
+
+function generateOccurrenceDates(
+  start: string,
+  rule: 'weekly' | 'biweekly' | 'monthly',
+  end: string | null,
+): string[] {
+  const [sy, sm, sd] = start.split('-').map(Number)
+  let cur = new Date(sy, sm - 1, sd)
+  const endDate = end
+    ? (() => { const [y, m, d] = end.split('-').map(Number); return new Date(y, m - 1, d) })()
+    : new Date(sy + 1, sm - 1, sd) // default 1 year ahead
+  const fmt = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  const dates: string[] = []
+  while (cur <= endDate && dates.length < 52) {
+    dates.push(fmt(cur))
+    if (rule === 'weekly')    cur.setDate(cur.getDate() + 7)
+    else if (rule === 'biweekly') cur.setDate(cur.getDate() + 14)
+    else cur.setMonth(cur.getMonth() + 1)
+  }
+  return dates
+}
+
 export function useAppointments() {
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [loading, setLoading] = useState(true)
@@ -68,26 +92,27 @@ export function useAppointments() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Not logged in')
 
+    if (appt.is_recurring && appt.recurrence_rule) {
+      const dates = generateOccurrenceDates(appt.scheduled_date, appt.recurrence_rule, appt.recurrence_end ?? null)
+      const records = dates.map(date => ({ ...appt, user_id: user.id, scheduled_date: date }))
+      const { data, error } = await supabase.from('appointments').insert(records).select(CLIENT_SELECT)
+      if (error) throw new Error(error.message)
+      const newAppts = (data ?? []) as Appointment[]
+      setAppointments(prev =>
+        [...prev, ...newAppts].sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date))
+      )
+      return newAppts[0] ?? null
+    }
+
     const { data, error } = await supabase
       .from('appointments')
       .insert([{ ...appt, user_id: user.id }])
-      .select(`
-        *,
-        clients (
-          first_name,
-          last_name,
-          address,
-          city,
-          notes
-        )
-      `)
+      .select(CLIENT_SELECT)
       .single()
 
     if (error) throw new Error(error.message)
     setAppointments(prev =>
-      [...prev, data].sort((a, b) =>
-        a.scheduled_date.localeCompare(b.scheduled_date)
-      )
+      [...prev, data].sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date))
     )
     return data
   }

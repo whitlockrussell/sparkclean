@@ -59,6 +59,8 @@ export default function TodayPage() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [invoiceJob, setInvoiceJob] = useState<Appointment | undefined>()
+  const [expiringRecurring, setExpiringRecurring] = useState<{ clientName: string; clientId: string; endDate: string }[]>([])
+  const [renewClientId, setRenewClientId] = useState<string | null>(null)
   const supabase = createClient()
 
   const todayStr = new Date().toISOString().split('T')[0]
@@ -68,7 +70,12 @@ export default function TodayPage() {
 
   const refresh = async () => {
     const { weekStart, weekEnd } = getWeekRange()
-    const [jobs, unpaid, weekJobs] = await Promise.all([
+    const now = new Date()
+    const localToday   = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`
+    const twoWeeksOut  = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 14)
+    const localTwoWeeks = `${twoWeeksOut.getFullYear()}-${String(twoWeeksOut.getMonth()+1).padStart(2,'0')}-${String(twoWeeksOut.getDate()).padStart(2,'0')}`
+
+    const [jobs, unpaid, weekJobs, expiring] = await Promise.all([
       fetchToday(),
       fetchUnpaid(),
       supabase
@@ -77,10 +84,29 @@ export default function TodayPage() {
         .eq('status', 'payment_received')
         .gte('scheduled_date', weekStart)
         .lte('scheduled_date', weekEnd),
+      supabase
+        .from('appointments')
+        .select('client_id, recurrence_end, clients(first_name, last_name)')
+        .eq('is_recurring', true)
+        .not('recurrence_end', 'is', null)
+        .gte('recurrence_end', localToday)
+        .lte('recurrence_end', localTwoWeeks)
+        .neq('status', 'cancelled'),
     ])
+
     setTodayJobs(jobs)
     setUnpaidJobs(unpaid)
     setWeekIncome((weekJobs.data ?? []).reduce((s, j) => s + j.price, 0))
+
+    const seen = new Set<string>()
+    const banners: { clientName: string; clientId: string; endDate: string }[] = []
+    for (const item of (expiring.data ?? []) as { client_id: string; recurrence_end: string; clients: { first_name: string; last_name: string } | null }[]) {
+      if (!seen.has(item.client_id) && item.clients) {
+        seen.add(item.client_id)
+        banners.push({ clientName: `${item.clients.first_name} ${item.clients.last_name}`, clientId: item.client_id, endDate: item.recurrence_end })
+      }
+    }
+    setExpiringRecurring(banners)
   }
 
   useEffect(() => {
@@ -148,6 +174,23 @@ export default function TodayPage() {
                 sub="Payment received"
               />
             </div>
+
+            {/* Renewal banners */}
+            {expiringRecurring.map(job => {
+              const [y, m, d] = job.endDate.split('-').map(Number)
+              const label = new Date(y, m - 1, d).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' })
+              return (
+                <div key={job.clientId}
+                  className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-3 flex items-center gap-3 cursor-pointer"
+                  onClick={() => setRenewClientId(job.clientId)}>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-amber-800 truncate">{job.clientName}'s recurring clean ends soon</p>
+                    <p className="text-xs text-amber-600 mt-0.5">Last occurrence: {label}</p>
+                  </div>
+                  <span className="text-xs font-semibold text-amber-700 bg-amber-100 rounded-lg px-2.5 py-1.5 flex-shrink-0">Renew →</span>
+                </div>
+              )
+            })}
 
             {/* Today's jobs */}
             <div className="flex items-center justify-between bg-slate-100 rounded-xl px-4 py-2.5 mb-4">
@@ -307,10 +350,14 @@ export default function TodayPage() {
       </PageContainer>
 
       {showForm && (
+        <AppointmentForm clients={clients} onSave={handleAdd} onClose={() => setShowForm(false)} />
+      )}
+      {renewClientId && (
         <AppointmentForm
           clients={clients}
-          onSave={handleAdd}
-          onClose={() => setShowForm(false)}
+          defaultClientId={renewClientId}
+          onSave={async (data) => { await handleAdd(data); setRenewClientId(null) }}
+          onClose={() => setRenewClientId(null)}
         />
       )}
       {invoiceJob && (

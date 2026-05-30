@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import {
-  DndContext, DragEndEvent,
+  DndContext, DragEndEvent, DragOverEvent,
   PointerSensor, TouchSensor, useDroppable, useDraggable,
   useSensors, useSensor, closestCenter,
 } from '@dnd-kit/core'
@@ -46,6 +46,12 @@ function getWeekStart(): string {
 function getWeekDates(ws: string): string[] {
   const [y, m, d] = ws.split('-').map(Number)
   return Array.from({ length: 7 }, (_, i) => localStr(new Date(y, m - 1, d + i)))
+}
+function getEndOfWeek(): string {
+  const now = new Date()
+  const dow = now.getDay()
+  const daysToSunday = dow === 0 ? 0 : 7 - dow
+  return localStr(new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysToSunday))
 }
 function shiftWeek(ws: string, delta: number): string {
   const [y, m, d] = ws.split('-').map(Number)
@@ -179,7 +185,10 @@ export default function SchedulePage() {
   const [view, setView]           = useState<'list' | 'week'>('list')
   const [weekStart, setWeekStart] = useState(getWeekStart)
   const [today, setToday]         = useState(todayStr)
+  const [endOfWeek, setEndOfWeek] = useState(getEndOfWeek)
   const [showForm, setShowForm]   = useState(false)
+  const weekStartRef      = useRef(weekStart)
+  const weekChangeTimer   = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [editingAppt, setEditingAppt]   = useState<Appointment | undefined>()
   const [invoiceAppt, setInvoiceAppt]   = useState<Appointment | undefined>()
   const [pendingReschedule, setPendingReschedule] = useState<{ apptId: string; newDate: string } | null>(null)
@@ -191,7 +200,11 @@ export default function SchedulePage() {
   useEffect(() => {
     setWeekStart(getWeekStart())
     setToday(todayStr())
+    setEndOfWeek(getEndOfWeek())
   }, [])
+
+  // Keep ref in sync for drag-over handler (avoids stale closure)
+  useEffect(() => { weekStartRef.current = weekStart }, [weekStart])
 
   // Current time line
   useEffect(() => {
@@ -236,7 +249,26 @@ export default function SchedulePage() {
   const handleCreateInvoice = async (d: NewInvoice) => { await createInvoice(d) }
 
   // dnd
+  const handleDragOver = (event: DragOverEvent) => {
+    const overDate = event.over?.id as string | undefined
+    const monDate  = weekDates[0]   // Monday of current view
+    const sunDate  = weekDates[6]   // Sunday of current view
+
+    if (overDate === sunDate || overDate === monDate) {
+      if (!weekChangeTimer.current) {
+        const direction = overDate === sunDate ? 7 : -7
+        weekChangeTimer.current = setTimeout(() => {
+          weekChangeTimer.current = null
+          setWeekStart(shiftWeek(weekStartRef.current, direction))
+        }, 700)
+      }
+    } else {
+      if (weekChangeTimer.current) { clearTimeout(weekChangeTimer.current); weekChangeTimer.current = null }
+    }
+  }
+
   const handleDragEnd = (event: DragEndEvent) => {
+    if (weekChangeTimer.current) { clearTimeout(weekChangeTimer.current); weekChangeTimer.current = null }
     const { active, over, delta } = event
     if (!over) return
     const appt = appointments.find(a => a.id === active.id)
@@ -342,14 +374,15 @@ export default function SchedulePage() {
               ))}
             </div>
 
-            {view === 'list' ? (
-              appointments.length === 0 ? (
-                <EmptyState icon={CalendarDays} title="No upcoming jobs"
-                  description="Book a recurring or one-off cleaning job for any of your clients."
-                  actionLabel="Book first job" onAction={() => setShowForm(true)} />
+            {view === 'list' ? (() => {
+              const listDates = sortedDates.filter(d => d >= today && d <= endOfWeek)
+              return listDates.length === 0 ? (
+                <EmptyState icon={CalendarDays} title="No jobs this week"
+                  description="Nothing scheduled through Sunday. Switch to Week view to see further ahead or book a new job."
+                  actionLabel="Book job" onAction={() => setShowForm(true)} />
               ) : (
                 <div className="space-y-6">
-                  {sortedDates.map(date => (
+                  {listDates.map(date => (
                     <div key={date}>
                       <div className="flex items-center gap-2 mb-3">
                         <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{formatDate(date)}</p>
@@ -361,9 +394,10 @@ export default function SchedulePage() {
                   ))}
                 </div>
               )
+            })()
             ) : (
               /* ── Week / calendar view ── */
-              <DndContext sensors={sensors} onDragEnd={handleDragEnd} collisionDetection={closestCenter}>
+              <DndContext sensors={sensors} onDragEnd={handleDragEnd} onDragOver={handleDragOver} collisionDetection={closestCenter}>
                 {/* Week navigation */}
                 <div className="flex items-center justify-between mb-3">
                   <button onClick={() => setWeekStart(shiftWeek(weekStart, -7))}
