@@ -51,7 +51,7 @@ function groupByDate(appointments: Appointment[]) {
 }
 
 export default function SchedulePage() {
-  const { appointments, loading, error, addAppointment, updateAppointment, cancelAppointment, deleteAppointment } = useAppointments()
+  const { appointments, loading, error, addAppointment, updateAppointment, deleteAppointment } = useAppointments()
   const { clients } = useClients()
   const [showForm, setShowForm] = useState(false)
   const [editingAppt, setEditingAppt] = useState<Appointment | undefined>()
@@ -81,29 +81,8 @@ export default function SchedulePage() {
     setEditingAppt(undefined)
   }
 
-  const handleMarkDone = async (e: React.MouseEvent, id: string) => {
-    e.stopPropagation()
-    await updateAppointment(id, { status: 'completed' })
-  }
-
-  const handlePaymentReceived = async (e: React.MouseEvent, id: string) => {
-    e.stopPropagation()
-    await updateAppointment(id, { status: 'payment_received' })
-  }
-
-  const handleRevertToScheduled = async (e: React.MouseEvent, id: string) => {
-    e.stopPropagation()
-    await updateAppointment(id, { status: 'scheduled' })
-  }
-
-  const handleRevertToDone = async (e: React.MouseEvent, id: string) => {
-    e.stopPropagation()
-    await updateAppointment(id, { status: 'completed' })
-  }
-
-  const handleCancel = async (e: React.MouseEvent, id: string) => {
-    e.stopPropagation()
-    if (confirm('Cancel this job?')) await cancelAppointment(id)
+  const handleToggleStatus = async (id: string, newStatus: 'scheduled' | 'completed' | 'payment_received') => {
+    await updateAppointment(id, { status: newStatus })
   }
 
   return (
@@ -156,6 +135,8 @@ export default function SchedulePage() {
                     const address = client?.address
                       ? `${client.address}${client.city ? ', ' + client.city : ''}`
                       : null
+                    const isDone = appt.status === 'completed' || appt.status === 'payment_received'
+                    const isPaid = appt.status === 'payment_received'
 
                     return (
                       <Card
@@ -163,92 +144,71 @@ export default function SchedulePage() {
                         className={`p-4 ${appt.status !== 'scheduled' ? 'opacity-60' : ''}`}
                         onClick={() => openEdit(appt)}
                       >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2 mb-1 flex-wrap">
-                              <p className="font-semibold text-slate-900 text-[15px]">{name}</p>
-                              {appt.status === 'completed' && <Badge variant="amber">Done</Badge>}
-                              {appt.status === 'payment_received' && <Badge variant="green">Paid</Badge>}
-                              {appt.is_recurring && (
-                                <Badge variant="teal">
-                                  <RefreshCw className="w-2.5 h-2.5 mr-1" />
-                                  {appt.recurrence_rule}
-                                </Badge>
-                              )}
-                            </div>
-
-                            {address && (
-                              <div className="flex items-center gap-1 text-xs text-slate-400 mb-1">
-                                <MapPin className="w-3 h-3 flex-shrink-0" strokeWidth={1.8} />
-                                <span className="truncate">{address}</span>
-                              </div>
-                            )}
-
-                            <div className="flex items-center gap-3 text-xs text-slate-500">
-                              {appt.start_time && (
-                                <span className="flex items-center gap-1">
-                                  <Clock className="w-3 h-3" strokeWidth={1.8} />
-                                  {formatTime(appt.start_time)}
-                                </span>
-                              )}
-                              {appt.duration_hours && (
-                                <>
-                                  <span>·</span>
-                                  <span>{appt.duration_hours} hrs</span>
-                                </>
-                              )}
-                            </div>
-
-                            {appt.notes && (
-                              <p className="text-xs text-slate-400 mt-1.5 truncate">{appt.notes}</p>
-                            )}
-
-                            {client?.notes && (
-                              <p className="text-xs text-slate-400 mt-1.5 italic truncate">{client.notes}</p>
+                        <div className="flex items-start justify-between gap-3 mb-1">
+                          <div className="flex items-center gap-2 flex-wrap min-w-0">
+                            <p className="font-semibold text-slate-900 text-[15px]">{name}</p>
+                            {appt.is_recurring && (
+                              <Badge variant="teal">
+                                <RefreshCw className="w-2.5 h-2.5 mr-1" />
+                                {appt.recurrence_rule}
+                              </Badge>
                             )}
                           </div>
+                          <p className="text-lg font-semibold text-amber-600 flex-shrink-0">
+                            ${appt.price.toFixed(0)}
+                          </p>
+                        </div>
 
-                          <div className="flex-shrink-0 text-right flex flex-col items-end gap-2">
-                            <p className="text-lg font-semibold text-amber-600">
-                              ${appt.price.toFixed(0)}
-                            </p>
-                            {appt.status === 'scheduled' && (
-                              <Button
-                                size="sm"
-                                variant="secondary"
-                                onClick={(e) => handleMarkDone(e, appt.id)}
-                              >
-                                Mark done
-                              </Button>
-                            )}
-                            {appt.status === 'completed' && (
-                              <div className="flex flex-col items-end gap-1.5">
-                                <Button
-                                  size="sm"
-                                  variant="secondary"
-                                  onClick={(e) => handlePaymentReceived(e, appt.id)}
-                                >
-                                  Payment received
-                                </Button>
-                                <button
-                                  className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
-                                  onClick={(e) => handleRevertToScheduled(e, appt.id)}
-                                >
-                                  Undo done
-                                </button>
-                              </div>
-                            )}
-                            {appt.status === 'payment_received' && (
-                              <div className="flex flex-col items-end gap-1.5">
-                                <span className="text-xs font-medium text-emerald-600">Paid ✓</span>
-                                <button
-                                  className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
-                                  onClick={(e) => handleRevertToDone(e, appt.id)}
-                                >
-                                  Undo payment
-                                </button>
-                              </div>
-                            )}
+                        {address && (
+                          <div className="flex items-center gap-1 text-xs text-slate-400 mb-1">
+                            <MapPin className="w-3 h-3 flex-shrink-0" strokeWidth={1.8} />
+                            <span className="truncate">{address}</span>
+                          </div>
+                        )}
+
+                        <div className="flex items-center gap-3 text-xs text-slate-500">
+                          {appt.start_time && (
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" strokeWidth={1.8} />
+                              {formatTime(appt.start_time)}
+                            </span>
+                          )}
+                          {appt.duration_hours && (
+                            <>
+                              <span>·</span>
+                              <span>{appt.duration_hours} hrs</span>
+                            </>
+                          )}
+                        </div>
+
+                        {appt.notes && (
+                          <p className="text-xs text-slate-400 mt-1.5 truncate">{appt.notes}</p>
+                        )}
+
+                        {client?.notes && (
+                          <p className="text-xs text-slate-400 mt-1.5 italic truncate">{client.notes}</p>
+                        )}
+
+                        <div className="mt-3 pt-3 border-t border-slate-100">
+                          <div className="flex items-center py-1.5 gap-3">
+                            <p className="text-sm text-slate-700 flex-1">Job done</p>
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); handleToggleStatus(appt.id, isDone ? 'scheduled' : 'completed') }}
+                              className={`w-10 h-[22px] rounded-full transition-colors relative flex-shrink-0 ${isDone ? 'bg-teal-500' : 'bg-slate-300'}`}
+                            >
+                              <span className={`absolute left-0 top-[3px] w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${isDone ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
+                            </button>
+                          </div>
+                          <div className="flex items-center py-1.5 gap-3">
+                            <p className="text-sm text-slate-700 flex-1">Payment received</p>
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); handleToggleStatus(appt.id, isPaid ? 'completed' : 'payment_received') }}
+                              className={`w-10 h-[22px] rounded-full transition-colors relative flex-shrink-0 ${isPaid ? 'bg-teal-500' : 'bg-slate-300'}`}
+                            >
+                              <span className={`absolute left-0 top-[3px] w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${isPaid ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
+                            </button>
                           </div>
                         </div>
                       </Card>
