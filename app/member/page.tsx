@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { CalendarDays, Clock, MapPin, CheckCircle, LogOut } from 'lucide-react'
+import { CalendarDays, Clock, MapPin, LogOut } from 'lucide-react'
 
 type MemberPermissions = {
   view_today: boolean
@@ -69,7 +69,7 @@ export default function MemberDashboard() {
   const [memberId, setMemberId] = useState('')
   const [ownerId, setOwnerId] = useState('')
   const [loading, setLoading] = useState(true)
-  const [markingDone, setMarkingDone] = useState<string | null>(null)
+
 
   const [activeEntry, setActiveEntry] = useState<TimeEntry | null>(null)
   const [todayEntries, setTodayEntries] = useState<TimeEntry[]>([])
@@ -199,11 +199,9 @@ export default function MemberDashboard() {
     }
   }
 
-  const handleMarkDone = async (jobId: string) => {
-    setMarkingDone(jobId)
-    await supabase.from('appointments').update({ status: 'completed' }).eq('id', jobId)
-    setTodayJobs(prev => prev.map(j => j.id === jobId ? { ...j, status: 'completed' } : j))
-    setMarkingDone(null)
+  const handleToggleStatus = async (jobId: string, newStatus: 'scheduled' | 'completed') => {
+    setTodayJobs(prev => prev.map(j => j.id === jobId ? { ...j, status: newStatus } : j))
+    await supabase.from('appointments').update({ status: newStatus }).eq('id', jobId)
   }
 
   const handleSignOut = async () => {
@@ -332,7 +330,8 @@ export default function MemberDashboard() {
             ) : (
               <div className="space-y-3">
                 {todayJobs.map(job => {
-                  const isDone = job.status === 'completed'
+                  const isDone = job.status === 'completed' || job.status === 'payment_received'
+                  const isPaid = job.status === 'payment_received'
                   const client = job.clients
                   return (
                     <div key={job.id} className={`bg-white rounded-2xl border border-slate-100 p-4 ${isDone ? 'opacity-60' : ''}`}>
@@ -362,20 +361,29 @@ export default function MemberDashboard() {
                           <p className="text-base font-semibold text-amber-600 flex-shrink-0">${job.price}</p>
                         )}
                       </div>
-                      {permissions.mark_job_done && !isDone && (
-                        <button onClick={() => handleMarkDone(job.id)} disabled={markingDone === job.id}
-                          className="mt-3 w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-teal-50 border border-teal-200 text-teal-700 text-sm font-medium hover:bg-teal-100 transition-colors disabled:opacity-50">
-                          {markingDone === job.id
-                            ? <div className="w-4 h-4 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
-                            : <><CheckCircle className="w-4 h-4" /> Mark as done</>
-                          }
-                        </button>
-                      )}
-                      {isDone && (
-                        <div className="mt-3 flex items-center justify-center gap-1 text-xs text-green-600 font-medium">
-                          <CheckCircle className="w-3.5 h-3.5" /> Completed
+                      <div className="mt-3 pt-3 border-t border-slate-100">
+                        <div className="flex items-center py-1.5 gap-3">
+                          <p className="text-sm text-slate-700 flex-1">Job done</p>
+                          <button
+                            type="button"
+                            disabled={!permissions.mark_job_done}
+                            onClick={() => handleToggleStatus(job.id, isDone ? 'scheduled' : 'completed')}
+                            className={`w-10 h-[22px] rounded-full transition-colors relative flex-shrink-0 ${isDone ? 'bg-teal-500' : 'bg-slate-300'} disabled:opacity-40 disabled:cursor-not-allowed`}
+                          >
+                            <span className={`absolute left-0 top-[3px] w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${isDone ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
+                          </button>
                         </div>
-                      )}
+                        <div className="flex items-center py-1.5 gap-3">
+                          <p className={`text-sm flex-1 ${isDone ? 'text-slate-400' : 'text-slate-400'}`}>Payment received</p>
+                          <button
+                            type="button"
+                            disabled
+                            className={`w-10 h-[22px] rounded-full relative flex-shrink-0 opacity-40 cursor-not-allowed ${isPaid ? 'bg-teal-500' : 'bg-slate-300'}`}
+                          >
+                            <span className={`absolute left-0 top-[3px] w-4 h-4 bg-white rounded-full shadow-sm ${isPaid ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   )
                 })}

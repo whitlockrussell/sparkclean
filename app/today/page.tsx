@@ -97,11 +97,6 @@ export default function TodayPage() {
     await refresh()
   }
 
-  const handleUnpaidJobPaid = async (id: string) => {
-    await updateAppointment(id, { status: 'payment_received' })
-    await refresh()
-  }
-
   const scheduledJobs = todayJobs.filter(j => j.status === 'scheduled')
   const completedJobs = todayJobs.filter(j => j.status === 'completed')
   const paidJobs = todayJobs.filter(j => j.status === 'payment_received')
@@ -209,11 +204,12 @@ export default function TodayPage() {
                           </button>
                         </div>
                         <div className="flex items-center py-1.5 gap-3">
-                          <p className="text-sm text-slate-700 flex-1">Payment received</p>
+                          <p className={`text-sm flex-1 ${isDone ? 'text-slate-700' : 'text-slate-400'}`}>Payment received</p>
                           <button
                             type="button"
+                            disabled={!isDone}
                             onClick={() => handleToggleStatus(job.id, isPaid ? 'completed' : 'payment_received')}
-                            className={`w-10 h-[22px] rounded-full transition-colors relative flex-shrink-0 ${isPaid ? 'bg-teal-500' : 'bg-slate-300'}`}
+                            className={`w-10 h-[22px] rounded-full transition-colors relative flex-shrink-0 ${isPaid ? 'bg-teal-500' : 'bg-slate-300'} disabled:opacity-40 disabled:cursor-not-allowed`}
                           >
                             <span className={`absolute left-0 top-[3px] w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${isPaid ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
                           </button>
@@ -243,11 +239,7 @@ export default function TodayPage() {
                     : 'Unknown client'
                   const isToday = job.scheduled_date === todayStr
                   return (
-                    <Card
-                      key={job.id}
-                      className="p-3 cursor-pointer"
-                      onClick={() => handleUnpaidJobPaid(job.id)}
-                    >
+                    <Card key={job.id} className="p-3">
                       <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
                           <p className="font-medium text-slate-900 text-sm truncate">{name}</p>
@@ -259,10 +251,7 @@ export default function TodayPage() {
                             </p>
                           )}
                         </div>
-                        <div className="flex items-center gap-3 flex-shrink-0">
-                          <p className="font-semibold text-amber-600">${job.price.toFixed(0)}</p>
-                          <span className="text-xs text-teal-600 font-medium whitespace-nowrap">Mark paid →</span>
-                        </div>
+                        <p className="font-semibold text-amber-600 flex-shrink-0">${job.price.toFixed(0)}</p>
                       </div>
                     </Card>
                   )

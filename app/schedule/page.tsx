@@ -201,11 +201,12 @@ export default function SchedulePage() {
                             </button>
                           </div>
                           <div className="flex items-center py-1.5 gap-3">
-                            <p className="text-sm text-slate-700 flex-1">Payment received</p>
+                            <p className={`text-sm flex-1 ${isDone ? 'text-slate-700' : 'text-slate-400'}`}>Payment received</p>
                             <button
                               type="button"
+                              disabled={!isDone}
                               onClick={(e) => { e.stopPropagation(); handleToggleStatus(appt.id, isPaid ? 'completed' : 'payment_received') }}
-                              className={`w-10 h-[22px] rounded-full transition-colors relative flex-shrink-0 ${isPaid ? 'bg-teal-500' : 'bg-slate-300'}`}
+                              className={`w-10 h-[22px] rounded-full transition-colors relative flex-shrink-0 ${isPaid ? 'bg-teal-500' : 'bg-slate-300'} disabled:opacity-40 disabled:cursor-not-allowed`}
                             >
                               <span className={`absolute left-0 top-[3px] w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${isPaid ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
                             </button>
