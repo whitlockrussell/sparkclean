@@ -11,6 +11,7 @@ function generateOccurrenceDates(
   rule: 'weekly' | 'biweekly' | 'monthly',
   end: string | null,
 ): string[] {
+  console.log('[recurring] generateOccurrenceDates called — start:', start, 'rule:', rule, 'end:', end)
   const [sy, sm, sd] = start.split('-').map(Number)
   let cur = new Date(sy, sm - 1, sd)
   const endDate = end
@@ -25,6 +26,7 @@ function generateOccurrenceDates(
     else if (rule === 'biweekly') cur.setDate(cur.getDate() + 14)
     else cur.setMonth(cur.getMonth() + 1)
   }
+  console.log('[recurring] generated', dates.length, 'dates — first:', dates[0], 'last:', dates[dates.length - 1])
   return dates
 }
 
@@ -94,8 +96,10 @@ export function useAppointments() {
 
     if (appt.is_recurring && appt.recurrence_rule) {
       const dates = generateOccurrenceDates(appt.scheduled_date, appt.recurrence_rule, appt.recurrence_end ?? null)
+      console.log('[recurring] inserting', dates.length, 'records into Supabase')
       const records = dates.map(date => ({ ...appt, user_id: user.id, scheduled_date: date }))
       const { data, error } = await supabase.from('appointments').insert(records).select(CLIENT_SELECT)
+      console.log('[recurring] insert result — inserted:', data?.length ?? 0, 'error:', error?.message ?? null)
       if (error) throw new Error(error.message)
       const newAppts = (data ?? []) as Appointment[]
       setAppointments(prev =>

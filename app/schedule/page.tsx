@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import {
-  DndContext, DragEndEvent, DragOverEvent, DragMoveEvent,
+  DndContext, DragEndEvent,
   PointerSensor, TouchSensor, useDroppable, useDraggable,
   useSensors, useSensor, closestCenter,
 } from '@dnd-kit/core'
@@ -187,8 +187,7 @@ export default function SchedulePage() {
   const [today, setToday]         = useState(todayStr)
   const [endOfWeek, setEndOfWeek] = useState(getEndOfWeek)
   const [showForm, setShowForm]   = useState(false)
-  const weekStartRef      = useRef(weekStart)
-  const weekChangeTimer   = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
   const [editingAppt, setEditingAppt]   = useState<Appointment | undefined>()
   const [invoiceAppt, setInvoiceAppt]   = useState<Appointment | undefined>()
   const [pendingReschedule, setPendingReschedule] = useState<{ apptId: string; newDate: string } | null>(null)
@@ -202,9 +201,6 @@ export default function SchedulePage() {
     setToday(todayStr())
     setEndOfWeek(getEndOfWeek())
   }, [])
-
-  // Keep ref in sync for drag-over handler (avoids stale closure)
-  useEffect(() => { weekStartRef.current = weekStart }, [weekStart])
 
   // Current time line
   useEffect(() => {
@@ -248,28 +244,9 @@ export default function SchedulePage() {
   }
   const handleCreateInvoice = async (d: NewInvoice) => { await createInvoice(d) }
 
-  // dnd — shared edge-detection: fires from both onDragOver and onDragMove
-  const handleEdgeDrag = (overDate: string | undefined) => {
-    const monDate = weekDates[0]
-    const sunDate = weekDates[6]
-    if (overDate === sunDate || overDate === monDate) {
-      if (!weekChangeTimer.current) {
-        const direction = overDate === sunDate ? 7 : -7
-        weekChangeTimer.current = setTimeout(() => {
-          weekChangeTimer.current = null
-          setWeekStart(shiftWeek(weekStartRef.current, direction))
-        }, 700)
-      }
-    } else {
-      if (weekChangeTimer.current) { clearTimeout(weekChangeTimer.current); weekChangeTimer.current = null }
-    }
-  }
-
-  const handleDragOver = (event: DragOverEvent) => handleEdgeDrag(event.over?.id as string | undefined)
-  const handleDragMove = (event: DragMoveEvent) => handleEdgeDrag(event.over?.id as string | undefined)
-
+  // dnd
   const handleDragEnd = (event: DragEndEvent) => {
-    if (weekChangeTimer.current) { clearTimeout(weekChangeTimer.current); weekChangeTimer.current = null }
+    setIsDragging(false)
     const { active, over, delta } = event
     if (!over) return
     const appt = appointments.find(a => a.id === active.id)
@@ -398,7 +375,13 @@ export default function SchedulePage() {
             })()
             ) : (
               /* ── Week / calendar view ── */
-              <DndContext sensors={sensors} onDragEnd={handleDragEnd} onDragOver={handleDragOver} onDragMove={handleDragMove} collisionDetection={closestCenter}>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragStart={() => setIsDragging(true)}
+                onDragEnd={handleDragEnd}
+                onDragCancel={() => setIsDragging(false)}
+              >
                 {/* Week navigation */}
                 <div className="flex items-center justify-between mb-3">
                   <button onClick={() => setWeekStart(shiftWeek(weekStart, -7))}
@@ -411,6 +394,28 @@ export default function SchedulePage() {
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
+
+                {/* Drag week navigation — tap with free finger while holding a card */}
+                {isDragging && (
+                  <div className="flex gap-2 mb-2">
+                    <button
+                      type="button"
+                      onClick={() => setWeekStart(shiftWeek(weekStart, -7))}
+                      className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-slate-100 active:bg-slate-200 text-slate-700 font-medium text-sm"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Prev week
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setWeekStart(shiftWeek(weekStart, 7))}
+                      className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-slate-100 active:bg-slate-200 text-slate-700 font-medium text-sm"
+                    >
+                      Next week
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
 
                 {/* Scrollable calendar grid */}
                 <div ref={gridRef} className="overflow-y-auto rounded-xl border border-slate-100" style={{ maxHeight: '68vh' }}>
