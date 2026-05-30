@@ -150,9 +150,10 @@ export default function TodayPage() {
             </div>
 
             {/* Today's jobs */}
-            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
-              Today&apos;s jobs
-            </h2>
+            <div className="flex items-center justify-between bg-slate-100 rounded-xl px-4 py-2.5 mb-4">
+              <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wide">Today&apos;s Jobs</h2>
+              <span className="text-xs font-semibold text-slate-400">{todayJobs.length} job{todayJobs.length !== 1 ? 's' : ''}</span>
+            </div>
 
             {todayJobs.length === 0 ? (
               <EmptyState
@@ -240,11 +241,13 @@ export default function TodayPage() {
             )}
 
             {/* Money Owed */}
-            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+            <div className="flex items-center justify-between bg-amber-50 rounded-xl px-4 py-2.5 mb-4 mt-2">
+              <h2 className="text-sm font-bold text-amber-800 uppercase tracking-wide">Money Owed</h2>
               {unpaidTotal > 0
-                ? `Money Owed · $${unpaidTotal.toFixed(0)}`
-                : 'Money Owed'}
-            </h2>
+                ? <span className="text-sm font-bold text-amber-600">${unpaidTotal.toFixed(0)}</span>
+                : <span className="text-xs font-semibold text-amber-400">All paid up</span>
+              }
+            </div>
 
             {unpaidJobs.length === 0 ? (
               <p className="text-sm text-slate-400 text-center py-4">All jobs paid up</p>
