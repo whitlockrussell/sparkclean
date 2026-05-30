@@ -231,27 +231,50 @@ export default function TodayPage() {
             {unpaidJobs.length === 0 ? (
               <p className="text-sm text-slate-400 text-center py-4">All jobs paid up</p>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {unpaidJobs.map(job => {
                   const client = job.clients
                   const name = client
                     ? `${client.first_name} ${client.last_name}`
                     : 'Unknown client'
                   const isToday = job.scheduled_date === todayStr
+                  const isDone = job.status === 'completed' || job.status === 'payment_received'
+                  const isPaid = job.status === 'payment_received'
                   return (
-                    <Card key={job.id} className="p-3">
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="font-medium text-slate-900 text-sm truncate">{name}</p>
-                          {!isToday && (
-                            <p className="text-xs text-slate-400">
-                              {new Date(job.scheduled_date + 'T12:00:00').toLocaleDateString('en-CA', {
-                                weekday: 'short', month: 'short', day: 'numeric',
-                              })}
-                            </p>
-                          )}
+                    <Card key={job.id} className="p-4 opacity-60">
+                      <div className="flex items-start justify-between gap-3 mb-1">
+                        <p className="font-semibold text-slate-900 text-[15px] truncate">{name}</p>
+                        <p className="text-lg font-semibold text-amber-600 flex-shrink-0">${job.price.toFixed(0)}</p>
+                      </div>
+                      {!isToday && (
+                        <p className="text-xs text-slate-400 mb-1">
+                          {new Date(job.scheduled_date + 'T12:00:00').toLocaleDateString('en-CA', {
+                            weekday: 'short', month: 'short', day: 'numeric',
+                          })}
+                        </p>
+                      )}
+                      <div className="mt-3 pt-3 border-t border-slate-100">
+                        <div className="flex items-center py-1.5 gap-3">
+                          <p className="text-sm text-slate-700 flex-1">Job done</p>
+                          <button
+                            type="button"
+                            onClick={() => handleToggleStatus(job.id, isDone ? 'scheduled' : 'completed')}
+                            className={`w-10 h-[22px] rounded-full transition-colors relative flex-shrink-0 ${isDone ? 'bg-teal-500' : 'bg-slate-300'}`}
+                          >
+                            <span className={`absolute left-0 top-[3px] w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${isDone ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
+                          </button>
                         </div>
-                        <p className="font-semibold text-amber-600 flex-shrink-0">${job.price.toFixed(0)}</p>
+                        <div className="flex items-center py-1.5 gap-3">
+                          <p className={`text-sm flex-1 ${isDone ? 'text-slate-700' : 'text-slate-400'}`}>Payment received</p>
+                          <button
+                            type="button"
+                            disabled={!isDone}
+                            onClick={() => handleToggleStatus(job.id, isPaid ? 'completed' : 'payment_received')}
+                            className={`w-10 h-[22px] rounded-full transition-colors relative flex-shrink-0 ${isPaid ? 'bg-teal-500' : 'bg-slate-300'} disabled:opacity-40 disabled:cursor-not-allowed`}
+                          >
+                            <span className={`absolute left-0 top-[3px] w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${isPaid ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
+                          </button>
+                        </div>
                       </div>
                     </Card>
                   )
