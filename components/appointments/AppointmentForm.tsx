@@ -212,13 +212,20 @@ export function AppointmentForm({
               </div>
               <button
                 type="button"
-                onClick={() => set('is_recurring', !form.is_recurring)}
-                className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${
+                onClick={() => {
+                  const next = !form.is_recurring
+                  setForm(prev => ({
+                    ...prev,
+                    is_recurring: next,
+                    recurrence_rule: next && !prev.recurrence_rule ? 'weekly' : prev.recurrence_rule,
+                  }))
+                }}
+                className={`w-10 h-[22px] rounded-full transition-colors relative flex-shrink-0 ${
                   form.is_recurring ? 'bg-teal-500' : 'bg-slate-300'
                 }`}
               >
-                <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${
-                  form.is_recurring ? 'translate-x-5' : 'translate-x-0.5'
+                <span className={`absolute left-0 top-[3px] w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${
+                  form.is_recurring ? 'translate-x-[20px]' : 'translate-x-0.5'
                 }`} />
               </button>
             </div>

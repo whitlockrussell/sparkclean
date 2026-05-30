@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import {
-  DndContext, DragEndEvent, DragOverEvent,
+  DndContext, DragEndEvent, DragOverEvent, DragMoveEvent,
   PointerSensor, TouchSensor, useDroppable, useDraggable,
   useSensors, useSensor, closestCenter,
 } from '@dnd-kit/core'
@@ -248,12 +248,10 @@ export default function SchedulePage() {
   }
   const handleCreateInvoice = async (d: NewInvoice) => { await createInvoice(d) }
 
-  // dnd
-  const handleDragOver = (event: DragOverEvent) => {
-    const overDate = event.over?.id as string | undefined
-    const monDate  = weekDates[0]   // Monday of current view
-    const sunDate  = weekDates[6]   // Sunday of current view
-
+  // dnd — shared edge-detection: fires from both onDragOver and onDragMove
+  const handleEdgeDrag = (overDate: string | undefined) => {
+    const monDate = weekDates[0]
+    const sunDate = weekDates[6]
     if (overDate === sunDate || overDate === monDate) {
       if (!weekChangeTimer.current) {
         const direction = overDate === sunDate ? 7 : -7
@@ -266,6 +264,9 @@ export default function SchedulePage() {
       if (weekChangeTimer.current) { clearTimeout(weekChangeTimer.current); weekChangeTimer.current = null }
     }
   }
+
+  const handleDragOver = (event: DragOverEvent) => handleEdgeDrag(event.over?.id as string | undefined)
+  const handleDragMove = (event: DragMoveEvent) => handleEdgeDrag(event.over?.id as string | undefined)
 
   const handleDragEnd = (event: DragEndEvent) => {
     if (weekChangeTimer.current) { clearTimeout(weekChangeTimer.current); weekChangeTimer.current = null }
@@ -397,7 +398,7 @@ export default function SchedulePage() {
             })()
             ) : (
               /* ── Week / calendar view ── */
-              <DndContext sensors={sensors} onDragEnd={handleDragEnd} onDragOver={handleDragOver} collisionDetection={closestCenter}>
+              <DndContext sensors={sensors} onDragEnd={handleDragEnd} onDragOver={handleDragOver} onDragMove={handleDragMove} collisionDetection={closestCenter}>
                 {/* Week navigation */}
                 <div className="flex items-center justify-between mb-3">
                   <button onClick={() => setWeekStart(shiftWeek(weekStart, -7))}
