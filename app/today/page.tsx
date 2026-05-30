@@ -6,7 +6,6 @@ import { TopHeader } from '@/components/layout/TopHeader'
 import { PageContainer } from '@/components/layout/PageContainer'
 import { StatCard } from '@/components/ui/StatCard'
 import { Card } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { PageSkeleton } from '@/components/ui/Skeleton'
@@ -93,27 +92,8 @@ export default function TodayPage() {
     await refresh()
   }
 
-  const handleMarkDone = async (e: React.MouseEvent, id: string) => {
-    e.stopPropagation()
-    await updateAppointment(id, { status: 'completed' })
-    await refresh()
-  }
-
-  const handlePaymentReceived = async (e: React.MouseEvent, id: string) => {
-    e.stopPropagation()
-    await updateAppointment(id, { status: 'payment_received' })
-    await refresh()
-  }
-
-  const handleRevertToScheduled = async (e: React.MouseEvent, id: string) => {
-    e.stopPropagation()
-    await updateAppointment(id, { status: 'scheduled' })
-    await refresh()
-  }
-
-  const handleRevertToDone = async (e: React.MouseEvent, id: string) => {
-    e.stopPropagation()
-    await updateAppointment(id, { status: 'completed' })
+  const handleToggleStatus = async (id: string, newStatus: 'scheduled' | 'completed' | 'payment_received') => {
+    await updateAppointment(id, { status: newStatus })
     await refresh()
   }
 
@@ -186,81 +166,57 @@ export default function TodayPage() {
                     ? `${client.first_name} ${client.last_name}`
                     : 'Unknown client'
                   const address = client?.address ?? null
+                  const isDone = job.status === 'completed' || job.status === 'payment_received'
+                  const isPaid = job.status === 'payment_received'
 
                   return (
                     <Card key={job.id} className={`p-4 ${job.status !== 'scheduled' ? 'opacity-60' : ''}`}>
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <p className="font-semibold text-slate-900 text-[15px] truncate">
-                              {name}
-                            </p>
-                            {job.status === 'scheduled' && <Badge variant="teal">Upcoming</Badge>}
-                            {job.status === 'completed' && <Badge variant="amber">Done</Badge>}
-                            {job.status === 'payment_received' && <Badge variant="green">Paid</Badge>}
-                          </div>
-                          {address && (
-                            <div className="flex items-center gap-1 text-slate-400 text-xs mb-1">
-                              <MapPin className="w-3 h-3 flex-shrink-0" strokeWidth={1.8} />
-                              <span className="truncate">{address}</span>
-                            </div>
-                          )}
-                          {job.start_time && (
-                            <div className="flex items-center gap-3 text-xs text-slate-500">
-                              <span className="flex items-center gap-1">
-                                <Clock className="w-3 h-3" strokeWidth={1.8} />
-                                {formatTime(job.start_time)}
-                              </span>
-                              {job.duration_hours && (
-                                <><span>·</span><span>{job.duration_hours} hrs</span></>
-                              )}
-                            </div>
-                          )}
-                          {client?.notes && (
-                            <p className="text-xs text-slate-400 mt-1.5 italic truncate">{client.notes}</p>
+                      <div className="flex items-start justify-between gap-3 mb-1">
+                        <p className="font-semibold text-slate-900 text-[15px] truncate">{name}</p>
+                        <p className="text-lg font-semibold text-amber-600 flex-shrink-0">
+                          ${job.price.toFixed(0)}
+                        </p>
+                      </div>
+                      {address && (
+                        <div className="flex items-center gap-1 text-slate-400 text-xs mb-1">
+                          <MapPin className="w-3 h-3 flex-shrink-0" strokeWidth={1.8} />
+                          <span className="truncate">{address}</span>
+                        </div>
+                      )}
+                      {job.start_time && (
+                        <div className="flex items-center gap-3 text-xs text-slate-500">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" strokeWidth={1.8} />
+                            {formatTime(job.start_time)}
+                          </span>
+                          {job.duration_hours && (
+                            <><span>·</span><span>{job.duration_hours} hrs</span></>
                           )}
                         </div>
-                        <div className="flex-shrink-0 text-right flex flex-col items-end gap-2">
-                          <p className="text-lg font-semibold text-amber-600">
-                            ${job.price.toFixed(0)}
-                          </p>
-                          {job.status === 'scheduled' && (
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              onClick={(e) => handleMarkDone(e, job.id)}
-                            >
-                              Mark done
-                            </Button>
-                          )}
-                          {job.status === 'completed' && (
-                            <div className="flex flex-col items-end gap-1.5">
-                              <Button
-                                size="sm"
-                                variant="secondary"
-                                onClick={(e) => handlePaymentReceived(e, job.id)}
-                              >
-                                Payment received
-                              </Button>
-                              <button
-                                className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
-                                onClick={(e) => handleRevertToScheduled(e, job.id)}
-                              >
-                                Undo done
-                              </button>
-                            </div>
-                          )}
-                          {job.status === 'payment_received' && (
-                            <div className="flex flex-col items-end gap-1.5">
-                              <span className="text-xs font-medium text-emerald-600">Paid ✓</span>
-                              <button
-                                className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
-                                onClick={(e) => handleRevertToDone(e, job.id)}
-                              >
-                                Undo payment
-                              </button>
-                            </div>
-                          )}
+                      )}
+                      {client?.notes && (
+                        <p className="text-xs text-slate-400 mt-1.5 italic truncate">{client.notes}</p>
+                      )}
+                      <div className="mt-3 pt-3 border-t border-slate-100">
+                        <div className="flex items-center py-1.5 gap-3">
+                          <p className="text-sm text-slate-700 flex-1">Job done</p>
+                          <button
+                            type="button"
+                            onClick={() => handleToggleStatus(job.id, isDone ? 'scheduled' : 'completed')}
+                            className={`w-10 h-[22px] rounded-full transition-colors relative flex-shrink-0 ${isDone ? 'bg-teal-500' : 'bg-slate-300'}`}
+                          >
+                            <span className={`absolute left-0 top-[3px] w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${isDone ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
+                          </button>
+                        </div>
+                        <div className="flex items-center py-1.5 gap-3">
+                          <p className="text-sm text-slate-700 flex-1">Payment received</p>
+                          <button
+                            type="button"
+                            onClick={() => handleToggleStatus(job.id, isPaid ? 'completed' : 'payment_received')}
+                            className={`w-10 h-[22px] rounded-full transition-colors relative flex-shrink-0 ${isPaid ? 'bg-teal-500' : 'bg-slate-300'}`}
+                          >
+                            <span className={`absolute left-0 top-[3px] w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${isPaid ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
+                          </button>
                         </div>
                       </div>
                     </Card>
