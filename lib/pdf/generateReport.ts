@@ -257,8 +257,8 @@ export async function generateReport(d: ReportData): Promise<void> {
 
   // ── HST summary ───────────────────────────────────────────────────────────
   y = sectionTitle(doc, 'HST Summary', y)
-  y = row(doc, 'HST collected on invoices', `+${fmt(d.revenue.hstCollected)}`, y, { color: C.teal })
-  y = row(doc, 'HST paid on expenses (ITC)', `−${fmt(d.expenses.hstPaid)}`, y, { color: C.slate5 })
+  y = row(doc, 'HST collected on invoices', fmt(d.revenue.hstCollected), y, { color: C.teal })
+  y = row(doc, 'HST paid on expenses (ITC)', `-${fmt(d.expenses.hstPaid)}`, y, { color: C.slate5 })
   y = row(doc, 'Net HST to remit to CRA', fmt(d.netHST), y,
     { bold: true, color: d.netHST > 0 ? C.red : C.green })
   y += 4
@@ -266,8 +266,8 @@ export async function generateReport(d: ReportData): Promise<void> {
   // ── income summary ────────────────────────────────────────────────────────
   y = sectionTitle(doc, 'Income Summary', y)
   y = row(doc, 'Gross revenue (excl. HST)', fmt(d.revenue.totalPaid), y)
-  y = row(doc, 'Business expenses', `−${fmt(d.expenses.total)}`, y, { color: C.slate5 })
-  y = row(doc, 'HST remittance', `−${fmt(d.netHST)}`, y, { color: C.slate5 })
+  y = row(doc, 'Business expenses', `-${fmt(d.expenses.total)}`, y, { color: C.slate5 })
+  y = row(doc, 'HST remittance', `-${fmt(d.netHST)}`, y, { color: C.slate5 })
   y = row(doc, 'Estimated net profit', fmt(d.profit), y,
     { bold: true, color: d.profit >= 0 ? C.teal : C.red })
   y += 6

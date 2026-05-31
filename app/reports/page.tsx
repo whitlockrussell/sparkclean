@@ -134,7 +134,7 @@ export default function ReportsPage() {
         income:           paidInvoices.reduce((s, i) => s + i.subtotal, 0),
         totalInvoiced:    invoices.reduce((s, i) => s + i.subtotal, 0),
         expenses:         expenses.reduce((s, e) => s + e.amount, 0),
-        hstCollected:     invoices.reduce((s, i) => s + i.hst_amount, 0),
+        hstCollected:     paidInvoices.reduce((s, i) => s + i.hst_amount, 0),
         hstPaid:          expenses.reduce((s, e) => s + e.hst_paid, 0),
         invoiceCount:     invoices.length,
         expenseCount:     expenses.length,
