@@ -220,10 +220,11 @@ export default function SchedulePage() {
   const [pendingDelete, setPendingDelete] = useState<Appointment | null>(null)
   const [currentTimeY, setCurrentTimeY] = useState<number | null>(null)
   const gridRef       = useRef<HTMLDivElement>(null)
-  const navBarRef     = useRef<HTMLDivElement>(null)
-  const navRectCache  = useRef<DOMRect | null>(null)
-  const weekNavTimer  = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const weekNavDir    = useRef<number>(0)
+  const navBarRef        = useRef<HTMLDivElement>(null)
+  const navRectCache     = useRef<DOMRect | null>(null)
+  const weekNavTimer     = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const weekNavDir       = useRef<number>(0)
+  const activeDragApptId = useRef<string | null>(null)
 
   // Correct SSR UTC offset on client
   useEffect(() => {
@@ -387,6 +388,7 @@ export default function SchedulePage() {
   // dnd
   const handleDragEnd = (event: DragEndEvent) => {
     cancelWeekNavTimer()
+    activeDragApptId.current = null
     setIsDragging(false)
     const { active, over, delta } = event
     if (!over) return
@@ -525,9 +527,10 @@ export default function SchedulePage() {
               /* ── Week / calendar view ── */
               <DndContext
                 sensors={sensors}
-                onDragStart={() => {
+                onDragStart={(event) => {
                   setIsDragging(true)
                   navRectCache.current = navBarRef.current?.getBoundingClientRect() ?? null
+                  activeDragApptId.current = event.active.id as string
                 }}
                 collisionDetection={args => {
                   // Block drops when the pointer is in the nav-bar zone so the user
@@ -540,7 +543,7 @@ export default function SchedulePage() {
                 }}
                 onDragMove={handleDragMove}
                 onDragEnd={handleDragEnd}
-                onDragCancel={() => { cancelWeekNavTimer(); setIsDragging(false) }}
+                onDragCancel={() => { cancelWeekNavTimer(); activeDragApptId.current = null; setIsDragging(false) }}
               >
                 {/* Week navigation */}
                 <div ref={navBarRef} className="flex items-center justify-between mb-3">
@@ -673,13 +676,32 @@ export default function SchedulePage() {
                         </div>
                       )}
 
-                      {/* 7 droppable day columns */}
-                      {weekDates.map(date => {
-                        const dayJobs = (grouped[date] ?? [])
+                      {/* 7 droppable day columns — keyed by weekday index (not date) so
+                          the TimeColumn instances stay mounted across week changes, which
+                          keeps the dnd-kit drag active while the user navigates weeks. */}
+                      {weekDates.map((date, idx) => {
+                        const base = (grouped[date] ?? [])
                           .filter(a => a.start_time)
                           .sort((a, b) => (a.start_time ?? '').localeCompare(b.start_time ?? ''))
+
+                        // If a drag is active and the dragged card's date is not in this
+                        // week, inject it into the column whose weekday matches the card's
+                        // original weekday. This keeps the JobBlock mounted so dnd-kit's
+                        // drag state survives the re-render triggered by week navigation.
+                        let dayJobs = base
+                        if (activeDragApptId.current) {
+                          const dragged = appointments.find(a => a.id === activeDragApptId.current)
+                          if (dragged?.start_time && !weekDates.includes(dragged.scheduled_date)) {
+                            const [dy, dm, dd] = dragged.scheduled_date.split('-').map(Number)
+                            const draggedDow = new Date(dy, dm - 1, dd).getDay()
+                            const [cy, cm, cd] = date.split('-').map(Number)
+                            const colDow = new Date(cy, cm - 1, cd).getDay()
+                            if (draggedDow === colDow) dayJobs = [dragged, ...base]
+                          }
+                        }
+
                         return (
-                          <TimeColumn key={date} date={date} isToday={date === today}>
+                          <TimeColumn key={idx} date={date} isToday={date === today}>
                             {dayJobs.map(appt => (
                               <JobBlock key={appt.id} appt={appt} onTap={() => openEdit(appt)} />
                             ))}
