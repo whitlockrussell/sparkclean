@@ -199,7 +199,12 @@ function MemberClockCard({ member, timeEntries, manualEntries, onLog, onDeleteTi
   }
 
   function fmtTime(ts: string) {
-    return new Date(ts).toLocaleTimeString('en-CA', { hour: 'numeric', minute: '2-digit', hour12: true })
+    // Timestamps are stored as local time without a timezone suffix (e.g. '2026-06-01T09:00:00').
+    // Parsing via new Date() treats them as UTC and shifts by the local offset.
+    // Slice HH:MM directly from the string to display exactly what was entered.
+    const [hStr, mStr] = ts.slice(11, 16).split(':')
+    const h = parseInt(hStr, 10), m = parseInt(mStr, 10)
+    return `${h % 12 || 12}:${m.toString().padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`
   }
   function fmtDate(ds: string) {
     return new Date(ds + 'T12:00:00').toLocaleDateString('en-CA', { weekday: 'short', month: 'short', day: 'numeric' })
