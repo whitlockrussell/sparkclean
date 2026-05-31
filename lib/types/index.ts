@@ -72,3 +72,17 @@ export type Expense = {
 }
 
 export type NewExpense = Omit<Expense, 'id' | 'user_id' | 'created_at' | 'updated_at'>
+
+export type MileageLog = {
+  id: string
+  user_id: string
+  trip_date: string
+  start_location: string | null
+  end_location: string | null
+  km: number
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type NewMileageLog = Omit<MileageLog, 'id' | 'user_id' | 'created_at' | 'updated_at'>

@@ -7,6 +7,7 @@ import {
   BarChart2,
   Settings,
   UsersRound,
+  Car,
 } from 'lucide-react'
 
 export const navItems = [
@@ -53,9 +54,15 @@ export const navItems = [
     mobileOrder: 7,
   },
   {
+    label: 'Mileage',
+    href: '/mileage',
+    icon: Car,
+    mobileOrder: 8,
+  },
+  {
     label: 'Settings',
     href: '/settings',
     icon: Settings,
-    mobileOrder: 8,
+    mobileOrder: 9,
   },
 ]
