@@ -203,7 +203,7 @@ function TimeColumn({ date, isToday, children }: { date: string; isToday: boolea
 // ── main page ─────────────────────────────────────────────────────────────────
 
 export default function SchedulePage() {
-  const { appointments, loading, error, addAppointment, updateAppointment, updateFutureAppointments, moveFutureAppointments, deleteAppointment, deleteFutureAppointments } = useAppointments()
+  const { appointments, loading, error, addAppointment, updateAppointment, convertToRecurring, updateFutureAppointments, moveFutureAppointments, deleteAppointment, deleteFutureAppointments } = useAppointments()
   const { clients } = useClients()
   const { createInvoice } = useInvoices()
 
@@ -268,11 +268,18 @@ export default function SchedulePage() {
   const handleAdd  = async (d: NewAppointment) => { await addAppointment(d) }
   const handleEdit = async (d: NewAppointment) => {
     if (!editingAppt) return
-    // Check both the stored appointment AND the form data — the form toggle may
-    // have changed is_recurring, so use either source as the signal.
-    if (editingAppt.is_recurring || d.is_recurring) {
-      // Defer save — AppointmentForm calls onClose() after onSave() returns,
-      // closing the form. The scope modal shows based on pendingEdit state.
+
+    // Non-recurring → recurring: generate all occurrences starting from this date.
+    // Must be handled before the generic recurring branch because the existing row
+    // still has is_recurring=false in the DB, so updateFutureAppointments would
+    // match nothing (it filters on is_recurring=true).
+    if (!editingAppt.is_recurring && d.is_recurring) {
+      await convertToRecurring(editingAppt.id, d)
+      return
+    }
+
+    // Already recurring (either stored or form): defer to scope modal.
+    if (editingAppt.is_recurring) {
       setPendingEdit({ appt: editingAppt, data: d })
     } else {
       await updateAppointment(editingAppt.id, d)

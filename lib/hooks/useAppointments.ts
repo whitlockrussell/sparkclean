@@ -121,6 +121,48 @@ export function useAppointments() {
     return data
   }
 
+  // Convert a single non-recurring appointment into the first occurrence of a
+  // recurring series. Updates the existing row and bulk-inserts all future dates.
+  const convertToRecurring = async (id: string, data: NewAppointment) => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Not logged in')
+    if (!data.recurrence_rule) throw new Error('recurrence_rule is required')
+
+    // Update the existing row to be the first occurrence
+    const { data: updated, error: updateErr } = await supabase
+      .from('appointments')
+      .update({ ...data, is_recurring: true })
+      .eq('id', id)
+      .select(CLIENT_SELECT)
+      .single()
+    if (updateErr) throw new Error(updateErr.message)
+
+    // Generate all dates, skip the first (the existing row covers it)
+    const dates = generateOccurrenceDates(data.scheduled_date, data.recurrence_rule, data.recurrence_end ?? null)
+    const future = dates.slice(1).map(date => ({
+      ...data,
+      user_id: user.id,
+      scheduled_date: date,
+      is_recurring: true,
+      status: 'scheduled' as const,
+    }))
+
+    if (future.length > 0) {
+      const { data: inserted, error: insertErr } = await supabase
+        .from('appointments')
+        .insert(future)
+        .select(CLIENT_SELECT)
+      if (insertErr) throw new Error(insertErr.message)
+      const newAppts = (inserted ?? []) as Appointment[]
+      setAppointments(prev =>
+        [...prev.map(a => (a.id === id ? updated : a)), ...newAppts]
+          .sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date))
+      )
+    } else {
+      setAppointments(prev => prev.map(a => (a.id === id ? updated : a)))
+    }
+  }
+
   const updateAppointment = async (id: string, updates: Partial<NewAppointment>) => {
     const { data, error } = await supabase
       .from('appointments')
@@ -292,6 +334,7 @@ export function useAppointments() {
     error,
     addAppointment,
     updateAppointment,
+    convertToRecurring,
     updateFutureAppointments,
     moveFutureAppointments,
     deleteFutureAppointments,
