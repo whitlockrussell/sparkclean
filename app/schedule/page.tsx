@@ -221,6 +221,7 @@ export default function SchedulePage() {
   const [currentTimeY, setCurrentTimeY] = useState<number | null>(null)
   const gridRef       = useRef<HTMLDivElement>(null)
   const navBarRef     = useRef<HTMLDivElement>(null)
+  const navRectCache  = useRef<DOMRect | null>(null)
   const weekNavTimer  = useRef<ReturnType<typeof setTimeout> | null>(null)
   const weekNavDir    = useRef<number>(0)
 
@@ -253,8 +254,8 @@ export default function SchedulePage() {
   }, [view, weekStart])
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor,   { activationConstraint: { delay: 300, tolerance: 8 } }),
+    useSensor(PointerSensor, { activationConstraint: { distance: 15 } }),
+    useSensor(TouchSensor,   { activationConstraint: { delay: 500, tolerance: 8 } }),
   )
 
   const weekDates = getWeekDates(weekStart)
@@ -524,8 +525,19 @@ export default function SchedulePage() {
               /* ── Week / calendar view ── */
               <DndContext
                 sensors={sensors}
-                collisionDetection={args => pointerWithin(args).length > 0 ? pointerWithin(args) : rectIntersection(args)}
-                onDragStart={() => setIsDragging(true)}
+                onDragStart={() => {
+                  setIsDragging(true)
+                  navRectCache.current = navBarRef.current?.getBoundingClientRect() ?? null
+                }}
+                collisionDetection={args => {
+                  // Block drops when the pointer is in the nav-bar zone so the user
+                  // can navigate weeks without accidentally dropping the card there.
+                  if (navRectCache.current && args.pointerCoordinates &&
+                      args.pointerCoordinates.y <= navRectCache.current.bottom) {
+                    return []
+                  }
+                  return pointerWithin(args).length > 0 ? pointerWithin(args) : rectIntersection(args)
+                }}
                 onDragMove={handleDragMove}
                 onDragEnd={handleDragEnd}
                 onDragCancel={() => { cancelWeekNavTimer(); setIsDragging(false) }}
@@ -548,6 +560,8 @@ export default function SchedulePage() {
                   <div className="flex gap-2 mb-2">
                     <button
                       type="button"
+                      onPointerDown={e => e.nativeEvent.stopImmediatePropagation()}
+                      onTouchStart={e => e.nativeEvent.stopImmediatePropagation()}
                       onClick={() => setWeekStart(shiftWeek(weekStart, -7))}
                       className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-slate-100 active:bg-slate-200 text-slate-700 font-medium text-sm"
                     >
@@ -556,6 +570,8 @@ export default function SchedulePage() {
                     </button>
                     <button
                       type="button"
+                      onPointerDown={e => e.nativeEvent.stopImmediatePropagation()}
+                      onTouchStart={e => e.nativeEvent.stopImmediatePropagation()}
                       onClick={() => setWeekStart(shiftWeek(weekStart, 7))}
                       className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-slate-100 active:bg-slate-200 text-slate-700 font-medium text-sm"
                     >
