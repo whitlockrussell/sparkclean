@@ -238,9 +238,11 @@ export default function SchedulePage() {
   const handleAdd  = async (d: NewAppointment) => { await addAppointment(d) }
   const handleEdit = async (d: NewAppointment) => {
     if (!editingAppt) return
-    if (editingAppt.is_recurring) {
-      // Defer save — AppointmentForm will call onClose() after onSave() returns,
-      // closing the form. The scope modal then shows based on pendingEdit state.
+    // Check both the stored appointment AND the form data — the form toggle may
+    // have changed is_recurring, so use either source as the signal.
+    if (editingAppt.is_recurring || d.is_recurring) {
+      // Defer save — AppointmentForm calls onClose() after onSave() returns,
+      // closing the form. The scope modal shows based on pendingEdit state.
       setPendingEdit({ appt: editingAppt, data: d })
     } else {
       await updateAppointment(editingAppt.id, d)
@@ -260,21 +262,32 @@ export default function SchedulePage() {
 
   const confirmEditSingle = async () => {
     if (!pendingEdit) return
-    await updateAppointment(pendingEdit.appt.id, pendingEdit.data)
-    setPendingEdit(null)
+    try {
+      await updateAppointment(pendingEdit.appt.id, pendingEdit.data)
+      setPendingEdit(null)
+    } catch (err) {
+      console.error('[confirmEditSingle]', err)
+    }
   }
   const confirmEditAllFuture = async () => {
     if (!pendingEdit) return
-    const updates: Partial<NewAppointment> = {
-      start_time:      pendingEdit.data.start_time,
-      duration_hours:  pendingEdit.data.duration_hours,
-      price:           pendingEdit.data.price,
-      notes:           pendingEdit.data.notes,
-      recurrence_rule: pendingEdit.data.recurrence_rule,
-      recurrence_end:  pendingEdit.data.recurrence_end,
+    try {
+      // Always update this occurrence with the full form data so date changes are saved
+      await updateAppointment(pendingEdit.appt.id, pendingEdit.data)
+      // Then push non-date fields (time, price, notes, recurrence settings) to all
+      // future occurrences in the series
+      await updateFutureAppointments(pendingEdit.appt.client_id, today, {
+        start_time:      pendingEdit.data.start_time,
+        duration_hours:  pendingEdit.data.duration_hours,
+        price:           pendingEdit.data.price,
+        notes:           pendingEdit.data.notes,
+        recurrence_rule: pendingEdit.data.recurrence_rule,
+        recurrence_end:  pendingEdit.data.recurrence_end,
+      })
+      setPendingEdit(null)
+    } catch (err) {
+      console.error('[confirmEditAllFuture]', err)
     }
-    await updateFutureAppointments(pendingEdit.appt.client_id, today, updates)
-    setPendingEdit(null)
   }
 
   const confirmDeleteSingle = async () => {
