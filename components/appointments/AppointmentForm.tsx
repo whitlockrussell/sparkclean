@@ -210,13 +210,18 @@ export function AppointmentForm({
                 <p className="text-sm font-medium text-slate-700">Recurring job</p>
                 <p className="text-xs text-slate-400">Repeats automatically</p>
               </div>
-              <button
-                type="button"
-                onClick={() => { const next = !form.is_recurring; setForm(prev => ({ ...prev, is_recurring: next, recurrence_rule: next && !prev.recurrence_rule ? 'weekly' : prev.recurrence_rule })) }}
-                className={`relative inline-block w-[40px] h-[24px] rounded-full transition-all duration-200 ${form.is_recurring ? 'bg-teal-500' : 'bg-slate-300'}`}
-              >
-                <span className={`absolute w-[20px] h-[20px] bg-white rounded-full top-[2px] transition-all duration-200 ${form.is_recurring ? 'left-[18px]' : 'left-[2px]'}`} />
-              </button>
+              <label className="relative inline-block w-11 h-6 flex-shrink-0 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="sr-only peer"
+                  checked={!!form.is_recurring}
+                  onChange={() => {
+                    const next = !form.is_recurring
+                    setForm(prev => ({ ...prev, is_recurring: next, recurrence_rule: next && !prev.recurrence_rule ? 'weekly' : prev.recurrence_rule }))
+                  }}
+                />
+                <span className="absolute inset-0 rounded-full bg-slate-300 transition-all duration-200 peer-checked:bg-teal-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:w-5 after:h-5 after:bg-white after:rounded-full after:shadow-sm after:transition-all after:duration-200 peer-checked:after:translate-x-full" />
+              </label>
             </div>
 
             {form.is_recurring && (
