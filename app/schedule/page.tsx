@@ -178,7 +178,7 @@ function TimeColumn({ date, isToday, children }: { date: string; isToday: boolea
 // ── main page ─────────────────────────────────────────────────────────────────
 
 export default function SchedulePage() {
-  const { appointments, loading, error, addAppointment, updateAppointment, updateFutureAppointments, deleteAppointment, deleteFutureAppointments } = useAppointments()
+  const { appointments, loading, error, addAppointment, updateAppointment, updateFutureAppointments, moveFutureAppointments, deleteAppointment, deleteFutureAppointments } = useAppointments()
   const { clients } = useClients()
   const { createInvoice } = useInvoices()
 
@@ -325,13 +325,12 @@ export default function SchedulePage() {
   }
   const confirmMoveAllFuture = async () => {
     if (!pendingReschedule) return
-    await updateAppointment(pendingReschedule.appt.id, {
-      scheduled_date: pendingReschedule.newDate,
-      start_time: pendingReschedule.newTime,
-    })
-    await updateFutureAppointments(pendingReschedule.appt.client_id, today, {
-      start_time: pendingReschedule.newTime,
-    })
+    await moveFutureAppointments(
+      pendingReschedule.appt.client_id,
+      pendingReschedule.appt.scheduled_date,
+      pendingReschedule.newDate,
+      pendingReschedule.newTime,
+    )
     setPendingReschedule(null)
   }
 

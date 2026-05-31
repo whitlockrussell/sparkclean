@@ -185,6 +185,56 @@ export function useAppointments() {
     setAppointments(prev => prev.filter(a => a.id !== id))
   }
 
+  const moveFutureAppointments = async (
+    clientId: string,
+    originalDate: string,
+    newDate: string,
+    newTime: string,
+  ) => {
+    const parse = (ds: string) => {
+      const [y, m, d] = ds.split('-').map(Number)
+      return new Date(y, m - 1, d)
+    }
+    const fmt = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+
+    const deltaDays = Math.round(
+      (parse(newDate).getTime() - parse(originalDate).getTime()) / 86400000
+    )
+
+    // Fetch every future occurrence for this recurring series (no join — plain columns only)
+    const { data: rows, error: fetchErr } = await supabase
+      .from('appointments')
+      .select('*')
+      .eq('client_id', clientId)
+      .eq('is_recurring', true)
+      .gte('scheduled_date', originalDate)
+      .neq('status', 'cancelled')
+
+    if (fetchErr) throw new Error(fetchErr.message)
+    if (!rows?.length) return
+
+    // Shift each occurrence's date by deltaDays and apply the new start time
+    const shifted = rows.map(r => {
+      const [ry, rm, rd] = r.scheduled_date.split('-').map(Number)
+      return { ...r, scheduled_date: fmt(new Date(ry, rm - 1, rd + deltaDays)), start_time: newTime }
+    })
+
+    const { data, error } = await supabase
+      .from('appointments')
+      .upsert(shifted)
+      .select(CLIENT_SELECT)
+
+    if (error) throw new Error(error.message)
+
+    const updated = (data ?? []) as Appointment[]
+    setAppointments(prev => {
+      const ids = new Set(updated.map(a => a.id))
+      return [...prev.filter(a => !ids.has(a.id)), ...updated]
+        .sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date))
+    })
+  }
+
   const deleteFutureAppointments = async (clientId: string, fromDate: string) => {
     const { error } = await supabase
       .from('appointments')
@@ -237,6 +287,7 @@ export function useAppointments() {
     addAppointment,
     updateAppointment,
     updateFutureAppointments,
+    moveFutureAppointments,
     deleteFutureAppointments,
     markDone,
     cancelAppointment,
