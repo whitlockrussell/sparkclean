@@ -210,10 +210,12 @@ export function AppointmentForm({
                 <p className="text-sm font-medium text-slate-700">Recurring job</p>
                 <p className="text-xs text-slate-400">Repeats automatically</p>
               </div>
-              {/* Copied verbatim from schedule page job card toggles */}
-              <button type="button" onClick={() => { const next = !form.is_recurring; setForm(prev => ({ ...prev, is_recurring: next, recurrence_rule: next && !prev.recurrence_rule ? 'weekly' : prev.recurrence_rule })) }}
-                className={`w-10 h-[22px] rounded-full transition-colors relative flex-shrink-0 ${form.is_recurring ? 'bg-teal-500' : 'bg-slate-300'}`}>
-                <span className={`absolute left-0 top-[3px] w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${form.is_recurring ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
+              <button
+                type="button"
+                onClick={() => { const next = !form.is_recurring; setForm(prev => ({ ...prev, is_recurring: next, recurrence_rule: next && !prev.recurrence_rule ? 'weekly' : prev.recurrence_rule })) }}
+                className={`relative inline-block w-[40px] h-[24px] rounded-full transition-all duration-200 ${form.is_recurring ? 'bg-teal-500' : 'bg-slate-300'}`}
+              >
+                <span className={`absolute w-[20px] h-[20px] bg-white rounded-full top-[2px] transition-all duration-200 ${form.is_recurring ? 'left-[18px]' : 'left-[2px]'}`} />
               </button>
             </div>
 
