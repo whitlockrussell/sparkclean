@@ -272,18 +272,37 @@ export default function SchedulePage() {
   const confirmEditAllFuture = async () => {
     if (!pendingEdit) return
     try {
-      // Always update this occurrence with the full form data so date changes are saved
-      await updateAppointment(pendingEdit.appt.id, pendingEdit.data)
-      // Then push non-date fields (time, price, notes, recurrence settings) to all
-      // future occurrences in the series
-      await updateFutureAppointments(pendingEdit.appt.client_id, today, {
-        start_time:      pendingEdit.data.start_time,
+      const originalDate = pendingEdit.appt.scheduled_date
+      const newDate      = pendingEdit.data.scheduled_date
+      const nonDateFields: Partial<NewAppointment> = {
         duration_hours:  pendingEdit.data.duration_hours,
         price:           pendingEdit.data.price,
         notes:           pendingEdit.data.notes,
         recurrence_rule: pendingEdit.data.recurrence_rule,
         recurrence_end:  pendingEdit.data.recurrence_end,
-      })
+      }
+
+      if (originalDate !== newDate) {
+        // Date shifted — use moveFutureAppointments so every occurrence is shifted by
+        // the same delta. Pass extra fields so the upsert applies them in the same call.
+        // Do NOT call updateAppointment first: moveFutureAppointments fetches rows
+        // from the DB and would re-fetch the already-moved occurrence, shifting it twice.
+        await moveFutureAppointments(
+          pendingEdit.appt.client_id,
+          originalDate,
+          newDate,
+          pendingEdit.data.start_time ?? '09:00',
+          nonDateFields,
+        )
+      } else {
+        // Date unchanged — bulk-update time and other fields on all future occurrences
+        await updateFutureAppointments(
+          pendingEdit.appt.client_id,
+          originalDate,
+          { start_time: pendingEdit.data.start_time, ...nonDateFields },
+        )
+      }
+
       setPendingEdit(null)
     } catch (err) {
       console.error('[confirmEditAllFuture]', err)

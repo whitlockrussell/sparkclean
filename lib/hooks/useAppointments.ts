@@ -190,6 +190,7 @@ export function useAppointments() {
     originalDate: string,
     newDate: string,
     newTime: string,
+    extraUpdates: Partial<NewAppointment> = {},
   ) => {
     const parse = (ds: string) => {
       const [y, m, d] = ds.split('-').map(Number)
@@ -214,10 +215,15 @@ export function useAppointments() {
     if (fetchErr) throw new Error(fetchErr.message)
     if (!rows?.length) return
 
-    // Shift each occurrence's date by deltaDays and apply the new start time
+    // Shift each occurrence's date by deltaDays; apply time and any extra field updates
     const shifted = rows.map(r => {
       const [ry, rm, rd] = r.scheduled_date.split('-').map(Number)
-      return { ...r, scheduled_date: fmt(new Date(ry, rm - 1, rd + deltaDays)), start_time: newTime }
+      return {
+        ...r,
+        ...extraUpdates,
+        scheduled_date: fmt(new Date(ry, rm - 1, rd + deltaDays)),
+        start_time: newTime,
+      }
     })
 
     const { data, error } = await supabase
