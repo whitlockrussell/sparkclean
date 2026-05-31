@@ -118,8 +118,8 @@ export default function ReportsPage() {
       const d = new Date(now.getFullYear(), now.getMonth() - i * 3, 1)
       return `${d.getFullYear()}-Q${Math.floor(d.getMonth() / 3) + 1}`
     })
-  )]
-  const availableYears = [now.getFullYear(), now.getFullYear() - 1, now.getFullYear() - 2]
+  )].reverse()
+  const availableYears = [now.getFullYear() - 2, now.getFullYear() - 1, now.getFullYear()]
 
   // ── quarterly data load ────────────────────────────────────────────────────
   useEffect(() => {
