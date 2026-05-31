@@ -205,6 +205,42 @@ export function useTeam() {
     setTimeEntries(prev => prev.filter(e => e.id !== id))
   }
 
+  const logTimeEntry = async (
+    memberId: string,
+    date: string,
+    startTime: string,
+    endTime: string,
+    notes?: string | null,
+  ) => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Not logged in')
+
+    const clockIn  = `${date}T${startTime}:00`
+    const clockOut = `${date}T${endTime}:00`
+    const diffMs   = new Date(clockOut).getTime() - new Date(clockIn).getTime()
+    const hours    = Math.max(0, Math.round((diffMs / 3_600_000) * 4) / 4)
+
+    const { data, error } = await supabase
+      .from('time_entries')
+      .insert([{
+        owner_id: user.id,
+        team_member_id: memberId,
+        clock_in: clockIn,
+        clock_out: clockOut,
+        hours,
+        work_date: date,
+        notes: notes ?? null,
+      }])
+      .select('*, team_members(full_name)')
+      .single()
+
+    if (error) throw new Error(error.message)
+    setTimeEntries(prev =>
+      [...prev, data].sort((a, b) => a.work_date.localeCompare(b.work_date) || a.clock_in.localeCompare(b.clock_in))
+    )
+    return data
+  }
+
   const editTimeEntry = async (id: string, clockIn: string, clockOut: string) => {
     const { data, error } = await supabase
       .from('time_entries')
@@ -221,7 +257,7 @@ export function useTeam() {
   return {
     members, hoursLog, timeEntries, loading, error,
     inviteMember, updatePermissions, deactivateMember,
-    logHours, deleteHours, deleteTimeEntry, editTimeEntry,
+    logHours, deleteHours, logTimeEntry, deleteTimeEntry, editTimeEntry,
     fetchTeam, fetchHours,
   }
 }

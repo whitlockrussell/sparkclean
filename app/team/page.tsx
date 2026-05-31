@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
 import { TopHeader } from '@/components/layout/TopHeader'
 import { PageContainer } from '@/components/layout/PageContainer'
@@ -10,12 +10,10 @@ import { Badge } from '@/components/ui/Badge'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { PageSkeleton } from '@/components/ui/Skeleton'
 import { useTeam, getWeekStart, formatWeekLabel } from '@/lib/hooks/useTeam'
-import type { TeamMember, TimeEntry } from '@/lib/hooks/useTeam'
-import { createClient } from '@/lib/supabase/client'
+import type { TeamMember, TimeEntry, HoursLog } from '@/lib/hooks/useTeam'
 import {
   Users, Plus, ChevronDown, ChevronUp, Clock,
   Trash2, Mail, Check, X, ChevronLeft, ChevronRight,
-  Play, Square
 } from 'lucide-react'
 
 function formatHours(hours: number | null | undefined): string {
@@ -167,102 +165,115 @@ function LogHoursForm({ members, onLog, onClose }: {
   )
 }
 
-function MemberClockCard({ member, ownerId, timeEntries, onRefresh }: {
+function MemberClockCard({ member, timeEntries, manualEntries, onLog, onDeleteTime, onDeleteManual }: {
   member: TeamMember
-  ownerId: string
   timeEntries: TimeEntry[]
-  onRefresh: () => void
+  manualEntries: HoursLog[]
+  onLog: (memberId: string, date: string, startTime: string, endTime: string) => Promise<void>
+  onDeleteTime: (id: string) => void
+  onDeleteManual: (id: string) => void
 }) {
-  const supabase = createClient()
-  const [loading, setLoading] = useState(false)
-  const [elapsed, setElapsed] = useState(0)
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-
   const today = new Date().toISOString().split('T')[0]
-  const todayEntries = timeEntries.filter(e => e.team_member_id === member.id && e.work_date === today)
-  const activeEntry = todayEntries.find(e => !e.clock_out)
-  const completedEntries = todayEntries.filter(e => e.clock_out)
-  const todayTotal = completedEntries.reduce((s, e) => s + (e.hours ?? 0), 0)
+  const [date, setDate]           = useState(today)
+  const [startTime, setStartTime] = useState('')
+  const [endTime, setEndTime]     = useState('')
+  const [saving, setSaving]       = useState(false)
+  const [error, setError]         = useState<string | null>(null)
 
-  useEffect(() => {
-    if (activeEntry) {
-      const secs = Math.floor((Date.now() - new Date(activeEntry.clock_in).getTime()) / 1000)
-      setElapsed(secs)
-      timerRef.current = setInterval(() => setElapsed(e => e + 1), 1000)
-    } else {
-      if (timerRef.current) clearInterval(timerRef.current)
-    }
-    return () => { if (timerRef.current) clearInterval(timerRef.current) }
-  }, [activeEntry?.id])
-
-  const clockIn = async () => {
-    setLoading(true)
-    await supabase.from('time_entries').insert([{
-      owner_id: ownerId,
-      team_member_id: member.id,
-      clock_in: new Date().toISOString(),
-      work_date: today,
-    }])
-    setLoading(false)
-    window.location.reload()
+  // Auto-calculate hours when both times are filled (rounded to nearest 15 min)
+  let calculatedHours: number | null = null
+  if (startTime && endTime) {
+    const diff = new Date(`${date}T${endTime}`).getTime() - new Date(`${date}T${startTime}`).getTime()
+    if (diff > 0) calculatedHours = Math.round((diff / 3_600_000) * 4) / 4
   }
 
-  const clockOut = async () => {
-    if (!activeEntry) return
-    setLoading(true)
-    await supabase.from('time_entries').update({ clock_out: new Date().toISOString() }).eq('id', activeEntry.id)
-    setLoading(false)
-    window.location.reload()
+  const handleLog = async () => {
+    if (!calculatedHours || calculatedHours <= 0) { setError('End time must be after start time.'); return }
+    setSaving(true); setError(null)
+    try {
+      await onLog(member.id, date, startTime, endTime)
+      setStartTime(''); setEndTime('')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Could not save.')
+    } finally { setSaving(false) }
   }
 
-  function formatElapsed(s: number) {
-    const h = Math.floor(s / 3600)
-    const m = Math.floor((s % 3600) / 60)
-    const sec = s % 60
-    return `${h}:${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`
-  }
-
-  function formatTs(ts: string) {
+  function fmtTime(ts: string) {
     return new Date(ts).toLocaleTimeString('en-CA', { hour: 'numeric', minute: '2-digit', hour12: true })
   }
+  function fmtDate(ds: string) {
+    return new Date(ds + 'T12:00:00').toLocaleDateString('en-CA', { weekday: 'short', month: 'short', day: 'numeric' })
+  }
+
+  const inputCls = 'w-full border border-slate-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-teal-400 bg-white'
+
+  // Merge and sort all entries for display
+  type Row = { id: string; sortKey: string; node: React.ReactNode }
+  const rows: Row[] = [
+    ...timeEntries.map(e => ({
+      id: e.id,
+      sortKey: e.work_date + e.clock_in,
+      node: (
+        <div key={e.id} className="flex items-center gap-2 text-xs text-slate-500 py-0.5">
+          <span className="text-slate-400 flex-shrink-0">{fmtDate(e.work_date)}</span>
+          <span className="flex-1 text-center">{fmtTime(e.clock_in)}&thinsp;→&thinsp;{e.clock_out ? fmtTime(e.clock_out) : '…'}</span>
+          <span className="font-medium text-teal-600 flex-shrink-0">{formatHours(e.hours)}</span>
+          <button onClick={() => onDeleteTime(e.id)} className="text-slate-200 hover:text-red-400 flex-shrink-0"><Trash2 className="w-3 h-3" /></button>
+        </div>
+      ),
+    })),
+    ...manualEntries.map(e => ({
+      id: e.id,
+      sortKey: e.work_date + '00:00',
+      node: (
+        <div key={e.id} className="flex items-center gap-2 text-xs text-slate-500 py-0.5">
+          <span className="text-slate-400 flex-shrink-0">{fmtDate(e.work_date)}</span>
+          <span className="flex-1 text-center italic text-slate-400">manual</span>
+          <span className="font-medium text-slate-600 flex-shrink-0">{formatHours(e.hours)}</span>
+          <button onClick={() => onDeleteManual(e.id)} className="text-slate-200 hover:text-red-400 flex-shrink-0"><Trash2 className="w-3 h-3" /></button>
+        </div>
+      ),
+    })),
+  ].sort((a, b) => a.sortKey.localeCompare(b.sortKey))
 
   return (
     <div className="mt-3 border-t border-slate-100 pt-3">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-1.5">
-          <p className="text-xs font-semibold text-slate-500">Today's clock</p>
-          <span title="Hours are rounded to the nearest 15 minutes." className="w-4 h-4 rounded-full bg-slate-100 text-slate-400 text-[10px] flex items-center justify-center cursor-help font-semibold">?</span>
+      <p className="text-xs font-semibold text-slate-500 mb-2.5">Log shift</p>
+
+      <div className="grid grid-cols-3 gap-2 mb-2">
+        <div>
+          <label className="text-[10px] text-slate-400 mb-1 block">Date</label>
+          <input type="date" value={date} onChange={e => setDate(e.target.value)} className={inputCls} />
         </div>
-        {todayTotal > 0 && <p className="text-xs font-semibold text-teal-600">{formatHours(todayTotal)} today</p>}
+        <div>
+          <label className="text-[10px] text-slate-400 mb-1 block">Start</label>
+          <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} className={inputCls} />
+        </div>
+        <div>
+          <label className="text-[10px] text-slate-400 mb-1 block">End</label>
+          <input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} className={inputCls} />
+        </div>
       </div>
 
-      {activeEntry ? (
-        <div className="bg-teal-50 rounded-xl p-3 flex items-center justify-between">
-          <div>
-            <p className="text-xs text-teal-600 font-medium">Clocked in at {formatTs(activeEntry.clock_in)}</p>
-            <p className="text-lg font-semibold text-teal-700 font-mono">{formatElapsed(elapsed)}</p>
-          </div>
-          <button onClick={clockOut} disabled={loading}
-            className="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-semibold px-3 py-2 rounded-xl transition-colors disabled:opacity-50">
-            <Square className="w-3 h-3" /> Clock out
-          </button>
-        </div>
-      ) : (
-        <button onClick={clockIn} disabled={loading}
-          className="w-full flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors disabled:opacity-50">
-          <Play className="w-3.5 h-3.5" />
-          {loading ? 'Clocking in...' : `Clock in ${member.full_name.split(' ')[0]}`}
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-xs text-teal-600 font-medium">
+          {calculatedHours !== null && calculatedHours > 0 ? `= ${formatHours(calculatedHours)}` : ''}
+        </span>
+        <button
+          onClick={handleLog}
+          disabled={saving || !calculatedHours || calculatedHours <= 0}
+          className="flex items-center gap-1.5 bg-teal-500 hover:bg-teal-600 disabled:opacity-40 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+        >
+          <Clock className="w-3 h-3" />
+          {saving ? 'Saving…' : 'Log shift'}
         </button>
-      )}
+      </div>
 
-      {completedEntries.length > 0 && (
-        <div className="mt-2 space-y-1">
-          {completedEntries.map(e => (
-            <div key={e.id} className="flex items-center justify-between text-xs text-slate-500 py-1">
-              <span>{formatTs(e.clock_in)} → {formatTs(e.clock_out!)}</span>
-              <span className="font-medium text-teal-600">{e.hours?.toFixed(2)} hrs</span>
-            </div>
-          ))}
+      {error && <p className="text-xs text-red-500 mb-1">{error}</p>}
+
+      {rows.length > 0 && (
+        <div className="space-y-0.5 border-t border-slate-100 pt-2.5 mt-2">
+          {rows.map(r => <div key={r.id}>{r.node}</div>)}
         </div>
       )}
     </div>
@@ -270,8 +281,7 @@ function MemberClockCard({ member, ownerId, timeEntries, onRefresh }: {
 }
 
 export default function TeamPage() {
-  const { members, hoursLog, timeEntries, loading, error, inviteMember, updatePermissions, deactivateMember, logHours, deleteHours, deleteTimeEntry, fetchHours } = useTeam()
-  const [ownerId, setOwnerId] = useState('')
+  const { members, hoursLog, timeEntries, loading, error, inviteMember, updatePermissions, deactivateMember, logHours, deleteHours, logTimeEntry, deleteTimeEntry, fetchHours } = useTeam()
   const [showInvite, setShowInvite] = useState(false)
   const [showLogHours, setShowLogHours] = useState(false)
   const [expandedMember, setExpandedMember] = useState<string | null>(null)
@@ -279,13 +289,6 @@ export default function TeamPage() {
   const [localPerms, setLocalPerms] = useState<Record<string, TeamMember['permissions']>>({})
   const [weekStart, setWeekStart] = useState(getWeekStart())
   const [tab, setTab] = useState<'hours' | 'members'>('hours')
-  const supabase = createClient()
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) setOwnerId(user.id)
-    })
-  }, [])
 
   const prevWeek = () => {
     const d = new Date(weekStart + 'T12:00:00'); d.setDate(d.getDate() - 7)
@@ -321,17 +324,13 @@ export default function TeamPage() {
 
   const memberHours = members.map(member => {
     const manualEntries = hoursLog.filter(h => h.team_member_id === member.id)
-    const clockEntries = timeEntries.filter(e => e.team_member_id === member.id && e.clock_out)
-    const manualTotal = manualEntries.reduce((s, h) => s + h.hours, 0)
-    const clockTotal = clockEntries.reduce((s, e) => s + (e.hours ?? 0), 0)
+    const clockEntries  = timeEntries.filter(e => e.team_member_id === member.id)
+    const manualTotal   = manualEntries.reduce((s, h) => s + h.hours, 0)
+    const clockTotal    = clockEntries.reduce((s, e) => s + (e.hours ?? 0), 0)
     return { member, manualEntries, clockEntries, total: manualTotal + clockTotal }
   })
 
   const totalHoursThisWeek = memberHours.reduce((s, m) => s + m.total, 0)
-
-  function formatTs(ts: string) {
-    return new Date(ts).toLocaleTimeString('en-CA', { hour: 'numeric', minute: '2-digit', hour12: true })
-  }
 
   return (
     <AppShell>
@@ -414,31 +413,12 @@ export default function TeamPage() {
 
                           <MemberClockCard
                             member={member}
-                            ownerId={ownerId}
-                            timeEntries={timeEntries}
-                            onRefresh={() => fetchHours(weekStart)}
+                            timeEntries={clockEntries}
+                            manualEntries={manualEntries}
+                            onLog={logTimeEntry}
+                            onDeleteTime={deleteTimeEntry}
+                            onDeleteManual={deleteHours}
                           />
-
-                          {(clockEntries.length > 0 || manualEntries.length > 0) && (
-                            <div className="mt-3 space-y-1 border-t border-slate-100 pt-3">
-                              {clockEntries.map(entry => (
-                                <div key={entry.id} className="flex items-center justify-between text-xs text-slate-500 py-0.5">
-                                  <span>{new Date(entry.work_date + 'T12:00:00').toLocaleDateString('en-CA', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
-                                  <span>{formatTs(entry.clock_in)} → {entry.clock_out ? formatTs(entry.clock_out) : '…'}</span>
-                                  <span className="font-medium text-teal-600">{formatHours(entry.hours)}</span>
-                                  <button onClick={() => deleteTimeEntry(entry.id)} className="text-slate-200 hover:text-red-400 ml-1"><Trash2 className="w-3 h-3" /></button>
-                                </div>
-                              ))}
-                              {manualEntries.map(entry => (
-                                <div key={entry.id} className="flex items-center justify-between text-xs text-slate-500 py-0.5">
-                                  <span>{new Date(entry.work_date + 'T12:00:00').toLocaleDateString('en-CA', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
-                                  <span className="text-slate-400 italic">manual</span>
-                                  <span className="font-medium text-slate-600">{formatHours(entry.hours)}</span>
-                                  <button onClick={() => deleteHours(entry.id)} className="text-slate-200 hover:text-red-400 ml-1"><Trash2 className="w-3 h-3" /></button>
-                                </div>
-                              ))}
-                            </div>
-                          )}
                         </Card>
                       ))}
                     </div>
