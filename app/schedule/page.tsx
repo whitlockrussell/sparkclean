@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import {
-  DndContext, DragEndEvent,
+  DndContext, DragEndEvent, DragMoveEvent,
   PointerSensor, TouchSensor, useDroppable, useDraggable,
   useSensors, useSensor, pointerWithin, rectIntersection,
 } from '@dnd-kit/core'
@@ -107,6 +107,31 @@ function groupByDate(appts: Appointment[]): Record<string, Appointment[]> {
   }, {} as Record<string, Appointment[]>)
 }
 
+// ── per-client pastel colors ──────────────────────────────────────────────────
+
+const CLIENT_COLORS = [
+  'bg-violet-100 border-violet-400 text-violet-900',
+  'bg-blue-100 border-blue-400 text-blue-900',
+  'bg-sky-100 border-sky-400 text-sky-900',
+  'bg-indigo-100 border-indigo-400 text-indigo-900',
+  'bg-emerald-100 border-emerald-500 text-emerald-900',
+  'bg-lime-100 border-lime-500 text-lime-900',
+  'bg-amber-100 border-amber-500 text-amber-900',
+  'bg-orange-100 border-orange-400 text-orange-900',
+  'bg-rose-100 border-rose-400 text-rose-900',
+  'bg-pink-100 border-pink-400 text-pink-900',
+]
+
+function clientColorIndex(id: string): number {
+  let h = 0
+  for (let i = 0; i < id.length; i++) h = ((h * 31) + id.charCodeAt(i)) >>> 0
+  return h % CLIENT_COLORS.length
+}
+function getClientColor(clientId: string | null | undefined): string {
+  if (!clientId) return 'bg-slate-100 border-slate-400 text-slate-600'
+  return CLIENT_COLORS[clientColorIndex(clientId)]
+}
+
 // ── week-view draggable job block ─────────────────────────────────────────────
 
 type JobBlockProps = { appt: Appointment; onTap: () => void }
@@ -130,7 +155,7 @@ function JobBlock({ appt, onTap }: JobBlockProps) {
 
   const bg = isPaid ? 'bg-green-100 border-green-400 text-green-900'
     : isDone ? 'bg-slate-100 border-slate-400 text-slate-500'
-    : 'bg-teal-100 border-teal-500 text-teal-900'
+    : getClientColor(appt.client_id)
 
   return (
     <div
@@ -194,7 +219,10 @@ export default function SchedulePage() {
   const [pendingEdit, setPendingEdit]     = useState<{ appt: Appointment; data: NewAppointment } | null>(null)
   const [pendingDelete, setPendingDelete] = useState<Appointment | null>(null)
   const [currentTimeY, setCurrentTimeY] = useState<number | null>(null)
-  const gridRef = useRef<HTMLDivElement>(null)
+  const gridRef       = useRef<HTMLDivElement>(null)
+  const navBarRef     = useRef<HTMLDivElement>(null)
+  const weekNavTimer  = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const weekNavDir    = useRef<number>(0)
 
   // Correct SSR UTC offset on client
   useEffect(() => {
@@ -325,8 +353,39 @@ export default function SchedulePage() {
   }
   const handleCreateInvoice = async (d: NewInvoice) => { await createInvoice(d) }
 
+  // dnd — week nav on drag-to-header
+  const cancelWeekNavTimer = () => {
+    if (weekNavTimer.current) { clearTimeout(weekNavTimer.current); weekNavTimer.current = null }
+    weekNavDir.current = 0
+  }
+
+  const handleDragMove = (event: DragMoveEvent) => {
+    const translated = event.active.rect.current.translated
+    if (!translated || !navBarRef.current) { cancelWeekNavTimer(); return }
+
+    const navRect = navBarRef.current.getBoundingClientRect()
+    const cardTop = translated.top
+
+    if (cardTop > navRect.bottom) { cancelWeekNavTimer(); return }
+
+    const cardCenterX = (translated.left + translated.right) / 2
+    const leftZoneBoundary = navRect.left + navRect.width / 3
+    const dir = cardCenterX < leftZoneBoundary ? -7 : 7
+
+    if (weekNavDir.current === dir) return
+
+    cancelWeekNavTimer()
+    weekNavDir.current = dir
+    weekNavTimer.current = setTimeout(() => {
+      setWeekStart(prev => shiftWeek(prev, dir))
+      weekNavDir.current = 0
+      weekNavTimer.current = null
+    }, 700)
+  }
+
   // dnd
   const handleDragEnd = (event: DragEndEvent) => {
+    cancelWeekNavTimer()
     setIsDragging(false)
     const { active, over, delta } = event
     if (!over) return
@@ -467,11 +526,12 @@ export default function SchedulePage() {
                 sensors={sensors}
                 collisionDetection={args => pointerWithin(args).length > 0 ? pointerWithin(args) : rectIntersection(args)}
                 onDragStart={() => setIsDragging(true)}
+                onDragMove={handleDragMove}
                 onDragEnd={handleDragEnd}
-                onDragCancel={() => setIsDragging(false)}
+                onDragCancel={() => { cancelWeekNavTimer(); setIsDragging(false) }}
               >
                 {/* Week navigation */}
-                <div className="flex items-center justify-between mb-3">
+                <div ref={navBarRef} className="flex items-center justify-between mb-3">
                   <button onClick={() => setWeekStart(shiftWeek(weekStart, -7))}
                     className="w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors">
                     <ChevronLeft className="w-4 h-4" />
@@ -538,12 +598,16 @@ export default function SchedulePage() {
                         return (
                           <div key={date} className="flex-1 py-1 px-0.5 border-r border-slate-100 last:border-r-0 min-h-[28px]">
                             {timeless.map(appt => {
-                              const name  = appt.clients?.first_name ?? '?'
+                              const name   = appt.clients?.first_name ?? '?'
                               const isDone = appt.status === 'completed' || appt.status === 'payment_received'
+                              const isPaid = appt.status === 'payment_received'
+                              const cc     = getClientColor(appt.client_id)
                               return (
                                 <button key={appt.id} onClick={() => openEdit(appt)}
                                   className={`w-full text-left text-[9px] font-semibold px-1 py-0.5 rounded mb-0.5 truncate border
-                                    ${isDone ? 'bg-slate-100 border-slate-200 text-slate-500' : 'bg-teal-50 border-teal-200 text-teal-800'}`}>
+                                    ${isPaid ? 'bg-green-100 border-green-400 text-green-900'
+                                    : isDone ? 'bg-slate-100 border-slate-200 text-slate-500'
+                                    : cc}`}>
                                   {name}
                                 </button>
                               )
