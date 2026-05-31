@@ -185,12 +185,36 @@ export function useAppointments() {
     setAppointments(prev => prev.filter(a => a.id !== id))
   }
 
+  const updateFutureAppointments = async (
+    clientId: string,
+    fromDate: string,
+    updates: Partial<NewAppointment>,
+  ) => {
+    const { data, error } = await supabase
+      .from('appointments')
+      .update(updates)
+      .eq('client_id', clientId)
+      .eq('is_recurring', true)
+      .gte('scheduled_date', fromDate)
+      .neq('status', 'cancelled')
+      .select(CLIENT_SELECT)
+
+    if (error) throw new Error(error.message)
+    const updated = (data ?? []) as Appointment[]
+    setAppointments(prev => {
+      const ids = new Set(updated.map(a => a.id))
+      return [...prev.filter(a => !ids.has(a.id)), ...updated]
+        .sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date))
+    })
+  }
+
   return {
     appointments,
     loading,
     error,
     addAppointment,
     updateAppointment,
+    updateFutureAppointments,
     markDone,
     cancelAppointment,
     deleteAppointment,

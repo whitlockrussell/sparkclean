@@ -178,7 +178,7 @@ function TimeColumn({ date, isToday, children }: { date: string; isToday: boolea
 // ── main page ─────────────────────────────────────────────────────────────────
 
 export default function SchedulePage() {
-  const { appointments, loading, error, addAppointment, updateAppointment, deleteAppointment } = useAppointments()
+  const { appointments, loading, error, addAppointment, updateAppointment, updateFutureAppointments, deleteAppointment } = useAppointments()
   const { clients } = useClients()
   const { createInvoice } = useInvoices()
 
@@ -191,6 +191,7 @@ export default function SchedulePage() {
   const [editingAppt, setEditingAppt]   = useState<Appointment | undefined>()
   const [invoiceAppt, setInvoiceAppt]   = useState<Appointment | undefined>()
   const [pendingReschedule, setPendingReschedule] = useState<{ apptId: string; newDate: string } | null>(null)
+  const [pendingEdit, setPendingEdit] = useState<{ appt: Appointment; data: NewAppointment } | null>(null)
   const [newTime, setNewTime]     = useState('')
   const [currentTimeY, setCurrentTimeY] = useState<number | null>(null)
   const gridRef = useRef<HTMLDivElement>(null)
@@ -234,11 +235,39 @@ export default function SchedulePage() {
   const listDates = sortedDates.filter(d => d >= today && d <= endOfWeek)
 
   // list-view handlers
-  const handleAdd    = async (d: NewAppointment) => { await addAppointment(d) }
-  const handleEdit   = async (d: NewAppointment) => { if (editingAppt) await updateAppointment(editingAppt.id, d) }
-  const handleDelete = async ()                   => { if (editingAppt) await deleteAppointment(editingAppt.id) }
+  const handleAdd  = async (d: NewAppointment) => { await addAppointment(d) }
+  const handleEdit = async (d: NewAppointment) => {
+    if (!editingAppt) return
+    if (editingAppt.is_recurring) {
+      // Defer save — AppointmentForm will call onClose() after onSave() returns,
+      // closing the form. The scope modal then shows based on pendingEdit state.
+      setPendingEdit({ appt: editingAppt, data: d })
+    } else {
+      await updateAppointment(editingAppt.id, d)
+    }
+  }
+  const handleDelete = async () => { if (editingAppt) await deleteAppointment(editingAppt.id) }
   const openEdit  = (a: Appointment) => { setEditingAppt(a); setShowForm(true) }
   const closeForm = ()                => { setShowForm(false); setEditingAppt(undefined) }
+
+  const confirmEditSingle = async () => {
+    if (!pendingEdit) return
+    await updateAppointment(pendingEdit.appt.id, pendingEdit.data)
+    setPendingEdit(null)
+  }
+  const confirmEditAllFuture = async () => {
+    if (!pendingEdit) return
+    const updates: Partial<NewAppointment> = {
+      start_time:      pendingEdit.data.start_time,
+      duration_hours:  pendingEdit.data.duration_hours,
+      price:           pendingEdit.data.price,
+      notes:           pendingEdit.data.notes,
+      recurrence_rule: pendingEdit.data.recurrence_rule,
+      recurrence_end:  pendingEdit.data.recurrence_end,
+    }
+    await updateFutureAppointments(pendingEdit.appt.client_id, today, updates)
+    setPendingEdit(null)
+  }
 
   const handleToggleStatus = async (id: string, s: 'scheduled' | 'completed' | 'payment_received') => {
     await updateAppointment(id, { status: s })
@@ -551,6 +580,29 @@ export default function SchedulePage() {
           </div>
         )
       })()}
+
+      {/* Edit scope modal — shown after saving a recurring appointment */}
+      {pendingEdit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.45)' }}>
+          <div className="bg-white rounded-2xl p-5 w-[320px] mx-4 shadow-xl">
+            <h3 className="text-[15px] font-semibold text-slate-900 mb-1">Apply changes to</h3>
+            <p className="text-sm text-slate-400 mb-4">This is a recurring job. Which occurrences should be updated?</p>
+            <div className="space-y-2">
+              <button onClick={confirmEditSingle}
+                className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 hover:border-teal-400 hover:bg-teal-50 transition-colors">
+                <p className="text-sm font-semibold text-slate-900">This job only</p>
+                <p className="text-xs text-slate-400 mt-0.5">Save changes to this one occurrence</p>
+              </button>
+              <button onClick={confirmEditAllFuture}
+                className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 hover:border-teal-400 hover:bg-teal-50 transition-colors">
+                <p className="text-sm font-semibold text-slate-900">All future jobs</p>
+                <p className="text-xs text-slate-400 mt-0.5">Update time, price, and notes for all upcoming jobs in this series</p>
+              </button>
+            </div>
+            <button onClick={() => setPendingEdit(null)} className="mt-3 w-full text-sm text-slate-400 py-2 hover:text-slate-600 transition-colors">Cancel</button>
+          </div>
+        </div>
+      )}
 
       {showForm && (
         <AppointmentForm clients={clients} appointment={editingAppt}
