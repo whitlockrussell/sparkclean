@@ -214,13 +214,13 @@ export function AppointmentForm({
                 <input
                   type="checkbox"
                   className="sr-only peer"
-                  checked={!!form.is_recurring}
+                  checked={!form.is_recurring}
                   onChange={() => {
                     const next = !form.is_recurring
                     setForm(prev => ({ ...prev, is_recurring: next, recurrence_rule: next && !prev.recurrence_rule ? 'weekly' : prev.recurrence_rule }))
                   }}
                 />
-                <span className="absolute inset-0 rounded-full bg-slate-300 transition-all duration-200 peer-checked:bg-teal-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:w-5 after:h-5 after:bg-white after:rounded-full after:shadow-sm after:transition-all after:duration-200 peer-checked:after:translate-x-full" />
+                <span className="absolute inset-0 rounded-full bg-teal-500 transition-all duration-200 peer-checked:bg-slate-300 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:w-5 after:h-5 after:bg-white after:rounded-full after:shadow-sm after:translate-x-full after:transition-all after:duration-200 peer-checked:after:translate-x-0" />
               </label>
             </div>
 
