@@ -100,7 +100,7 @@ export default function TodayPage() {
 
     const seen = new Set<string>()
     const banners: { clientName: string; clientId: string; endDate: string }[] = []
-    for (const item of (expiring.data ?? []) as { client_id: string; recurrence_end: string; clients: { first_name: string; last_name: string } | null }[]) {
+    for (const item of (expiring.data ?? []) as unknown as { client_id: string; recurrence_end: string; clients: { first_name: string; last_name: string } | null }[]) {
       if (!seen.has(item.client_id) && item.clients) {
         seen.add(item.client_id)
         banners.push({ clientName: `${item.clients.first_name} ${item.clients.last_name}`, clientId: item.client_id, endDate: item.recurrence_end })

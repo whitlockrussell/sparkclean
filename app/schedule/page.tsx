@@ -231,6 +231,7 @@ export default function SchedulePage() {
   const weekDates = getWeekDates(weekStart)
   const grouped   = groupByDate(appointments)
   const sortedDates = Object.keys(grouped).sort()
+  const listDates = sortedDates.filter(d => d >= today && d <= endOfWeek)
 
   // list-view handlers
   const handleAdd    = async (d: NewAppointment) => { await addAppointment(d) }
@@ -352,9 +353,8 @@ export default function SchedulePage() {
               ))}
             </div>
 
-            {view === 'list' ? (() => {
-              const listDates = sortedDates.filter(d => d >= today && d <= endOfWeek)
-              return listDates.length === 0 ? (
+            {view === 'list' ? (
+              listDates.length === 0 ? (
                 <EmptyState icon={CalendarDays} title="No jobs this week"
                   description="Nothing scheduled through Sunday. Switch to Week view to see further ahead or book a new job."
                   actionLabel="Book job" onAction={() => setShowForm(true)} />
@@ -372,7 +372,6 @@ export default function SchedulePage() {
                   ))}
                 </div>
               )
-            })()
             ) : (
               /* ── Week / calendar view ── */
               <DndContext
