@@ -8,17 +8,20 @@ import { StatCard } from '@/components/ui/StatCard'
 import { Card } from '@/components/ui/Card'
 import { PageSkeleton } from '@/components/ui/Skeleton'
 import { createClient } from '@/lib/supabase/client'
-import { DollarSign, TrendingUp, Receipt, BarChart2, Car } from 'lucide-react'
+import { DollarSign, TrendingUp, Receipt, BarChart2, Car, Download } from 'lucide-react'
 import { CRA_RATE_TIER1, CRA_RATE_TIER2, CRA_KM_THRESHOLD } from '@/lib/hooks/useMileage'
 import type { MileageLog } from '@/lib/types'
+import type { Business } from '@/lib/hooks/useBusiness'
 
 type QuarterData = {
   income: number
+  totalInvoiced: number
   expenses: number
   hstCollected: number
   hstPaid: number
   invoiceCount: number
   expenseCount: number
+  expensesByCategory: Record<string, { amount: number; hstPaid: number }>
   quarterKm: number
   quarterMileageDeduction: number
   mileageLogs: MileageLog[]
@@ -46,9 +49,11 @@ function formatQuarter(quarter: string) {
 }
 
 export default function ReportsPage() {
-  const [quarter, setQuarter] = useState(getCurrentQuarter())
-  const [data, setData] = useState<QuarterData | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [quarter, setQuarter]   = useState(getCurrentQuarter())
+  const [data, setData]         = useState<QuarterData | null>(null)
+  const [loading, setLoading]   = useState(true)
+  const [business, setBusiness] = useState<Business | null>(null)
+  const [exporting, setExporting] = useState(false)
   const supabase = createClient()
 
   // Generate last 4 quarters for selector
@@ -71,7 +76,7 @@ export default function ReportsPage() {
       const [year] = quarter.split('-Q').map(Number)
       const yearStart = `${year}-01-01`
 
-      const [invoicesRes, expensesRes, mileageYtdRes, mileageQRes] = await Promise.all([
+      const [invoicesRes, expensesRes, mileageYtdRes, mileageQRes, businessRes] = await Promise.all([
         supabase
           .from('invoices')
           .select('subtotal, hst_amount, total, status')
@@ -80,7 +85,7 @@ export default function ReportsPage() {
           .lte('issue_date', end),
         supabase
           .from('expenses')
-          .select('amount, hst_paid')
+          .select('amount, hst_paid, category')
           .gte('expense_date', start)
           .lte('expense_date', end),
         supabase
@@ -93,12 +98,14 @@ export default function ReportsPage() {
           .select('*')
           .gte('trip_date', start)
           .lte('trip_date', end),
+        supabase.from('businesses').select('*').single(),
       ])
 
       const invoices   = invoicesRes.data ?? []
       const expenses   = expensesRes.data ?? []
       const ytdLogs    = (mileageYtdRes.data ?? []) as MileageLog[]
       const qLogs      = (mileageQRes.data  ?? []) as MileageLog[]
+      if (businessRes.data) setBusiness(businessRes.data as Business)
 
       // Deduction for the quarter accounts for year-to-date km already driven
       // before the quarter so the 5,000 km tier threshold is applied correctly.
@@ -115,16 +122,26 @@ export default function ReportsPage() {
 
       const paidInvoices = invoices.filter(i => i.status === 'paid')
 
+      const expensesByCategory = expenses.reduce((acc, e) => {
+        const cat = (e as { amount: number; hst_paid: number; category: string }).category
+        if (!acc[cat]) acc[cat] = { amount: 0, hstPaid: 0 }
+        acc[cat].amount  += e.amount
+        acc[cat].hstPaid += e.hst_paid
+        return acc
+      }, {} as Record<string, { amount: number; hstPaid: number }>)
+
       setData({
-        income:    paidInvoices.reduce((s, i) => s + i.subtotal, 0),
-        expenses:  expenses.reduce((s, e) => s + e.amount, 0),
-        hstCollected: invoices.reduce((s, i) => s + i.hst_amount, 0),
-        hstPaid:   expenses.reduce((s, e) => s + e.hst_paid, 0),
-        invoiceCount: invoices.length,
-        expenseCount: expenses.length,
-        quarterKm: qLogs.reduce((s, l) => s + l.km, 0),
+        income:           paidInvoices.reduce((s, i) => s + i.subtotal, 0),
+        totalInvoiced:    invoices.reduce((s, i) => s + i.subtotal, 0),
+        expenses:         expenses.reduce((s, e) => s + e.amount, 0),
+        hstCollected:     invoices.reduce((s, i) => s + i.hst_amount, 0),
+        hstPaid:          expenses.reduce((s, e) => s + e.hst_paid, 0),
+        invoiceCount:     invoices.length,
+        expenseCount:     expenses.length,
+        expensesByCategory,
+        quarterKm:        qLogs.reduce((s, l) => s + l.km, 0),
         quarterMileageDeduction,
-        mileageLogs: qLogs,
+        mileageLogs:      qLogs,
       })
       setLoading(false)
     }
@@ -134,9 +151,63 @@ export default function ReportsPage() {
   const netHST = data ? data.hstCollected - data.hstPaid : 0
   const profit = data ? data.income - data.expenses - netHST : 0
 
+  const handleExport = async () => {
+    if (!data) return
+    setExporting(true)
+    try {
+      const { generateReport } = await import('@/lib/pdf/generateReport')
+      await generateReport({
+        quarter,
+        business: {
+          name:       business?.business_name ?? 'My Business',
+          hstNumber:  business?.hst_number ?? null,
+          city:       business?.city ?? null,
+          province:   business?.province ?? null,
+          email:      business?.email ?? null,
+          phone:      business?.phone ?? null,
+          logoUrl:    business?.logo_url ?? null,
+        },
+        revenue: {
+          totalInvoiced: data.totalInvoiced,
+          totalPaid:     data.income,
+          outstanding:   data.totalInvoiced - data.income,
+          hstCollected:  data.hstCollected,
+          invoiceCount:  data.invoiceCount,
+        },
+        expenses: {
+          total:          data.expenses,
+          hstPaid:        data.hstPaid,
+          byCategory:     data.expensesByCategory,
+        },
+        mileage: {
+          km:         data.quarterKm,
+          deduction:  data.quarterMileageDeduction,
+          tripCount:  data.mileageLogs.length,
+        },
+        netHST,
+        profit,
+      })
+    } finally {
+      setExporting(false)
+    }
+  }
+
   return (
     <AppShell>
-      <TopHeader title="Reports" subtitle={formatQuarter(quarter)} />
+      <TopHeader
+        title="Reports"
+        subtitle={formatQuarter(quarter)}
+        action={data && !loading ? (
+          <button
+            onClick={handleExport}
+            disabled={exporting}
+            className="flex items-center gap-1.5 text-xs font-semibold text-teal-600 border border-teal-200 bg-teal-50 hover:bg-teal-100 disabled:opacity-50 rounded-xl px-3 py-1.5 transition-colors"
+          >
+            <Download className="w-3.5 h-3.5" />
+            {exporting ? 'Generating…' : 'Export PDF'}
+          </button>
+        ) : undefined}
+      />
       <PageContainer>
 
         {/* Quarter selector */}

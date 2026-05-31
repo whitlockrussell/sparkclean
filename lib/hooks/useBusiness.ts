@@ -19,6 +19,7 @@ export type Business = {
   invoice_notes: string | null
   hst_rate: number
   team_mode: boolean
+  logo_url: string | null
 }
 
 export type BusinessUpdate = Partial<Omit<Business, 'id' | 'user_id'>>
