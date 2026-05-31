@@ -216,9 +216,17 @@ export function useAppointments() {
     if (error) throw new Error(error.message)
     const updated = (data ?? []) as Appointment[]
     setAppointments(prev => {
-      const ids = new Set(updated.map(a => a.id))
-      return [...prev.filter(a => !ids.has(a.id)), ...updated]
-        .sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date))
+      if (updated.length > 0) {
+        const ids = new Set(updated.map(a => a.id))
+        return [...prev.filter(a => !ids.has(a.id)), ...updated]
+          .sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date))
+      }
+      // Supabase returned no rows — apply updates directly from filter criteria to avoid phantoms
+      return prev.map(a =>
+        a.client_id === clientId && a.is_recurring && a.scheduled_date >= fromDate && a.status !== 'cancelled'
+          ? { ...a, ...updates }
+          : a
+      )
     })
   }
 

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import {
   DndContext, DragEndEvent,
   PointerSensor, TouchSensor, useDroppable, useDraggable,
-  useSensors, useSensor, closestCenter,
+  useSensors, useSensor, pointerWithin, rectIntersection,
 } from '@dnd-kit/core'
 import { AppShell } from '@/components/layout/AppShell'
 import { TopHeader } from '@/components/layout/TopHeader'
@@ -190,10 +190,9 @@ export default function SchedulePage() {
   const [isDragging, setIsDragging] = useState(false)
   const [editingAppt, setEditingAppt]   = useState<Appointment | undefined>()
   const [invoiceAppt, setInvoiceAppt]   = useState<Appointment | undefined>()
-  const [pendingReschedule, setPendingReschedule] = useState<{ apptId: string; newDate: string } | null>(null)
+  const [pendingReschedule, setPendingReschedule] = useState<{ appt: Appointment; newDate: string; newTime: string } | null>(null)
   const [pendingEdit, setPendingEdit]     = useState<{ appt: Appointment; data: NewAppointment } | null>(null)
   const [pendingDelete, setPendingDelete] = useState<Appointment | null>(null)
-  const [newTime, setNewTime]     = useState('')
   const [currentTimeY, setCurrentTimeY] = useState<number | null>(null)
   const gridRef = useRef<HTMLDivElement>(null)
 
@@ -302,26 +301,36 @@ export default function SchedulePage() {
     const appt = appointments.find(a => a.id === active.id)
     if (!appt) return
 
-    const initialTop = (active.data.current as { initialTop: number }).initialTop
-    const newDate    = over.id as string
-    const rawY       = initialTop + (delta.y ?? 0)
-    const snappedTime = yToTime(rawY)
+    const initialTop  = (active.data.current as { initialTop: number }).initialTop
+    const newDate     = over.id as string
+    const newTime     = yToTime(initialTop + (delta.y ?? 0))
+    const sameDate    = appt.scheduled_date === newDate
+    const sameTime    = newTime === appt.start_time
+    if (sameDate && sameTime) return
 
-    if (appt.scheduled_date === newDate) {
-      if (snappedTime !== appt.start_time) {
-        updateAppointment(appt.id, { start_time: snappedTime })
-      }
+    if (appt.is_recurring) {
+      setPendingReschedule({ appt, newDate, newTime })
     } else {
-      setPendingReschedule({ apptId: appt.id, newDate })
-      setNewTime(snappedTime)
+      updateAppointment(appt.id, { scheduled_date: newDate, start_time: newTime })
     }
   }
 
-  const confirmReschedule = async () => {
+  const confirmMoveSingle = async () => {
     if (!pendingReschedule) return
-    await updateAppointment(pendingReschedule.apptId, {
+    await updateAppointment(pendingReschedule.appt.id, {
       scheduled_date: pendingReschedule.newDate,
-      start_time: newTime || null,
+      start_time: pendingReschedule.newTime,
+    })
+    setPendingReschedule(null)
+  }
+  const confirmMoveAllFuture = async () => {
+    if (!pendingReschedule) return
+    await updateAppointment(pendingReschedule.appt.id, {
+      scheduled_date: pendingReschedule.newDate,
+      start_time: pendingReschedule.newTime,
+    })
+    await updateFutureAppointments(pendingReschedule.appt.client_id, today, {
+      start_time: pendingReschedule.newTime,
     })
     setPendingReschedule(null)
   }
@@ -425,7 +434,7 @@ export default function SchedulePage() {
               /* ── Week / calendar view ── */
               <DndContext
                 sensors={sensors}
-                collisionDetection={closestCenter}
+                collisionDetection={args => pointerWithin(args).length > 0 ? pointerWithin(args) : rectIntersection(args)}
                 onDragStart={() => setIsDragging(true)}
                 onDragEnd={handleDragEnd}
                 onDragCancel={() => setIsDragging(false)}
@@ -575,31 +584,30 @@ export default function SchedulePage() {
         )}
       </PageContainer>
 
-      {/* Reschedule confirm */}
-      {pendingReschedule && (() => {
-        const [dy, dm, dd] = pendingReschedule.newDate.split('-').map(Number)
-        const label = new Date(dy, dm - 1, dd).toLocaleDateString('en-CA', { weekday: 'long', month: 'short', day: 'numeric' })
-        return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.45)' }}>
-            <div className="bg-white rounded-2xl p-5 w-[320px] mx-4 shadow-xl">
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="text-[15px] font-semibold text-slate-900">Move job</h3>
-                <button onClick={() => setPendingReschedule(null)} className="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-              <p className="text-sm text-slate-400 mb-4">Moving to {label}</p>
-              <label className="block text-xs font-medium text-slate-500 mb-1.5">Start time</label>
-              <input type="time" value={newTime} onChange={e => setNewTime(e.target.value)}
-                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white" />
-              <div className="flex gap-3 mt-4">
-                <Button type="button" variant="ghost" size="lg" className="flex-1" onClick={() => setPendingReschedule(null)}>Cancel</Button>
-                <Button type="button" size="lg" className="flex-1" onClick={confirmReschedule}>Move job</Button>
-              </div>
+      {/* Move scope modal — recurring drag reschedule */}
+      {pendingReschedule && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.45)' }}>
+          <div className="bg-white rounded-2xl p-5 w-[320px] mx-4 shadow-xl">
+            <h3 className="text-[15px] font-semibold text-slate-900 mb-1">Move recurring job</h3>
+            <p className="text-sm text-slate-400 mb-4">
+              {formatDate(pendingReschedule.newDate)} at {formatTime(pendingReschedule.newTime)}
+            </p>
+            <div className="space-y-2">
+              <button onClick={confirmMoveSingle}
+                className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 hover:border-teal-400 hover:bg-teal-50 transition-colors">
+                <p className="text-sm font-semibold text-slate-900">Move just this job</p>
+                <p className="text-xs text-slate-400 mt-0.5">Move only this occurrence to the new date and time</p>
+              </button>
+              <button onClick={confirmMoveAllFuture}
+                className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 hover:border-teal-400 hover:bg-teal-50 transition-colors">
+                <p className="text-sm font-semibold text-slate-900">Move all future jobs in this series</p>
+                <p className="text-xs text-slate-400 mt-0.5">Move this job and update the time for all upcoming jobs in the series</p>
+              </button>
             </div>
+            <button onClick={() => setPendingReschedule(null)} className="mt-3 w-full text-sm text-slate-400 py-2 hover:text-slate-600 transition-colors">Cancel</button>
           </div>
-        )
-      })()}
+        </div>
+      )}
 
       {/* Edit scope modal */}
       {pendingEdit && (
