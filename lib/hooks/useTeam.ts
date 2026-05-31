@@ -217,9 +217,8 @@ export function useTeam() {
 
     const clockIn  = `${date}T${startTime}:00`
     const clockOut = `${date}T${endTime}:00`
-    const diffMs   = new Date(clockOut).getTime() - new Date(clockIn).getTime()
-    const hours    = Math.max(0, Math.round((diffMs / 3_600_000) * 4) / 4)
 
+    // hours is a GENERATED ALWAYS column — omit it; the DB computes it from clock_out - clock_in
     const { data, error } = await supabase
       .from('time_entries')
       .insert([{
@@ -227,7 +226,6 @@ export function useTeam() {
         team_member_id: memberId,
         clock_in: clockIn,
         clock_out: clockOut,
-        hours,
         work_date: date,
         notes: notes ?? null,
       }])
