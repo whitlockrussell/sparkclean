@@ -81,7 +81,10 @@ export function AppointmentForm({
 
   const handleDelete = async () => {
     if (!onDelete) return
-    if (!confirm('Delete this job? This cannot be undone.')) return
+    // Recurring jobs skip the browser confirm — parent shows a proper scope modal instead
+    if (!appointment?.is_recurring) {
+      if (!confirm('Delete this job? This cannot be undone.')) return
+    }
     setDeleting(true)
     try {
       await onDelete()

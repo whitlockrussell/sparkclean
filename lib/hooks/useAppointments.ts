@@ -185,6 +185,20 @@ export function useAppointments() {
     setAppointments(prev => prev.filter(a => a.id !== id))
   }
 
+  const deleteFutureAppointments = async (clientId: string, fromDate: string) => {
+    const { error } = await supabase
+      .from('appointments')
+      .delete()
+      .eq('client_id', clientId)
+      .eq('is_recurring', true)
+      .gte('scheduled_date', fromDate)
+
+    if (error) throw new Error(error.message)
+    setAppointments(prev =>
+      prev.filter(a => !(a.client_id === clientId && a.is_recurring && a.scheduled_date >= fromDate))
+    )
+  }
+
   const updateFutureAppointments = async (
     clientId: string,
     fromDate: string,
@@ -215,6 +229,7 @@ export function useAppointments() {
     addAppointment,
     updateAppointment,
     updateFutureAppointments,
+    deleteFutureAppointments,
     markDone,
     cancelAppointment,
     deleteAppointment,

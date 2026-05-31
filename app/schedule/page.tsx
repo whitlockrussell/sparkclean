@@ -178,7 +178,7 @@ function TimeColumn({ date, isToday, children }: { date: string; isToday: boolea
 // ── main page ─────────────────────────────────────────────────────────────────
 
 export default function SchedulePage() {
-  const { appointments, loading, error, addAppointment, updateAppointment, updateFutureAppointments, deleteAppointment } = useAppointments()
+  const { appointments, loading, error, addAppointment, updateAppointment, updateFutureAppointments, deleteAppointment, deleteFutureAppointments } = useAppointments()
   const { clients } = useClients()
   const { createInvoice } = useInvoices()
 
@@ -191,7 +191,8 @@ export default function SchedulePage() {
   const [editingAppt, setEditingAppt]   = useState<Appointment | undefined>()
   const [invoiceAppt, setInvoiceAppt]   = useState<Appointment | undefined>()
   const [pendingReschedule, setPendingReschedule] = useState<{ apptId: string; newDate: string } | null>(null)
-  const [pendingEdit, setPendingEdit] = useState<{ appt: Appointment; data: NewAppointment } | null>(null)
+  const [pendingEdit, setPendingEdit]     = useState<{ appt: Appointment; data: NewAppointment } | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<Appointment | null>(null)
   const [newTime, setNewTime]     = useState('')
   const [currentTimeY, setCurrentTimeY] = useState<number | null>(null)
   const gridRef = useRef<HTMLDivElement>(null)
@@ -246,7 +247,15 @@ export default function SchedulePage() {
       await updateAppointment(editingAppt.id, d)
     }
   }
-  const handleDelete = async () => { if (editingAppt) await deleteAppointment(editingAppt.id) }
+  const handleDelete = async () => {
+    if (!editingAppt) return
+    if (editingAppt.is_recurring) {
+      setPendingDelete(editingAppt)
+      // AppointmentForm calls onClose() after onDelete() returns — form closes, scope modal appears
+    } else {
+      await deleteAppointment(editingAppt.id)
+    }
+  }
   const openEdit  = (a: Appointment) => { setEditingAppt(a); setShowForm(true) }
   const closeForm = ()                => { setShowForm(false); setEditingAppt(undefined) }
 
@@ -267,6 +276,17 @@ export default function SchedulePage() {
     }
     await updateFutureAppointments(pendingEdit.appt.client_id, today, updates)
     setPendingEdit(null)
+  }
+
+  const confirmDeleteSingle = async () => {
+    if (!pendingDelete) return
+    await deleteAppointment(pendingDelete.id)
+    setPendingDelete(null)
+  }
+  const confirmDeleteAllFuture = async () => {
+    if (!pendingDelete) return
+    await deleteFutureAppointments(pendingDelete.client_id, pendingDelete.scheduled_date)
+    setPendingDelete(null)
   }
 
   const handleToggleStatus = async (id: string, s: 'scheduled' | 'completed' | 'payment_received') => {
@@ -581,25 +601,48 @@ export default function SchedulePage() {
         )
       })()}
 
-      {/* Edit scope modal — shown after saving a recurring appointment */}
+      {/* Edit scope modal */}
       {pendingEdit && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.45)' }}>
           <div className="bg-white rounded-2xl p-5 w-[320px] mx-4 shadow-xl">
-            <h3 className="text-[15px] font-semibold text-slate-900 mb-1">Apply changes to</h3>
-            <p className="text-sm text-slate-400 mb-4">This is a recurring job. Which occurrences should be updated?</p>
+            <h3 className="text-[15px] font-semibold text-slate-900 mb-1">Edit recurring job</h3>
+            <p className="text-sm text-slate-400 mb-4">Which jobs should be updated?</p>
             <div className="space-y-2">
               <button onClick={confirmEditSingle}
                 className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 hover:border-teal-400 hover:bg-teal-50 transition-colors">
-                <p className="text-sm font-semibold text-slate-900">This job only</p>
-                <p className="text-xs text-slate-400 mt-0.5">Save changes to this one occurrence</p>
+                <p className="text-sm font-semibold text-slate-900">Edit just this job</p>
+                <p className="text-xs text-slate-400 mt-0.5">Save changes to this one occurrence only</p>
               </button>
               <button onClick={confirmEditAllFuture}
                 className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 hover:border-teal-400 hover:bg-teal-50 transition-colors">
-                <p className="text-sm font-semibold text-slate-900">All future jobs</p>
-                <p className="text-xs text-slate-400 mt-0.5">Update time, price, and notes for all upcoming jobs in this series</p>
+                <p className="text-sm font-semibold text-slate-900">Edit all future jobs in this series</p>
+                <p className="text-xs text-slate-400 mt-0.5">Update time, price, and notes for this and all upcoming jobs</p>
               </button>
             </div>
             <button onClick={() => setPendingEdit(null)} className="mt-3 w-full text-sm text-slate-400 py-2 hover:text-slate-600 transition-colors">Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete scope modal */}
+      {pendingDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.45)' }}>
+          <div className="bg-white rounded-2xl p-5 w-[320px] mx-4 shadow-xl">
+            <h3 className="text-[15px] font-semibold text-slate-900 mb-1">Delete recurring job</h3>
+            <p className="text-sm text-slate-400 mb-4">Which jobs should be deleted?</p>
+            <div className="space-y-2">
+              <button onClick={confirmDeleteSingle}
+                className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 hover:border-red-200 hover:bg-red-50 transition-colors">
+                <p className="text-sm font-semibold text-slate-900">Delete just this job</p>
+                <p className="text-xs text-slate-400 mt-0.5">Remove this one occurrence only</p>
+              </button>
+              <button onClick={confirmDeleteAllFuture}
+                className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 hover:border-red-200 hover:bg-red-50 transition-colors">
+                <p className="text-sm font-semibold text-slate-900">Delete all future jobs in this series</p>
+                <p className="text-xs text-slate-400 mt-0.5">Remove this and all upcoming jobs in the series</p>
+              </button>
+            </div>
+            <button onClick={() => setPendingDelete(null)} className="mt-3 w-full text-sm text-slate-400 py-2 hover:text-slate-600 transition-colors">Cancel</button>
           </div>
         </div>
       )}
