@@ -263,6 +263,7 @@ export default function SchedulePage() {
   const grouped   = groupByDate(appointments)
   const sortedDates = Object.keys(grouped).sort()
   const listDates = sortedDates.filter(d => d >= today && d <= endOfWeek)
+  const thisWeekCount = listDates.reduce((s, d) => s + grouped[d].length, 0)
 
   // list-view handlers
   const handleAdd  = async (d: NewAppointment) => { await addAppointment(d) }
@@ -492,7 +493,7 @@ export default function SchedulePage() {
     <AppShell>
       <TopHeader
         title="Schedule"
-        subtitle={loading ? '' : `${appointments.length} upcoming job${appointments.length !== 1 ? 's' : ''}`}
+        subtitle={loading ? '' : `${thisWeekCount} job${thisWeekCount !== 1 ? 's' : ''} this week`}
         action={<Button size="sm" onClick={() => setShowForm(true)}><Plus className="w-3.5 h-3.5" />Book job</Button>}
       />
 
