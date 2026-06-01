@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --teal-50:  #E1F5EE;
   --teal-100: #9FE1CB;
@@ -32,6 +34,12 @@ html {
   background: #F8F9FA;
   color: var(--slate-900);
   -webkit-font-smoothing: antialiased;
+}
+
+html.dark {
+  background: #0f172a;
+  color: #f1f5f9;
+  color-scheme: dark;
 }
 
 body {

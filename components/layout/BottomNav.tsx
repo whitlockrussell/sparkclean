@@ -32,14 +32,14 @@ export function BottomNav() {
           onClick={() => setShowMore(false)}
         >
           <div
-            className="bg-white rounded-t-2xl px-4 pt-4 pb-8 safe-area-pb"
+            className="bg-white dark:bg-slate-900 rounded-t-2xl px-4 pt-4 pb-8 safe-area-pb"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <p className="text-sm font-semibold text-slate-700">More</p>
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">More</p>
               <button
                 onClick={() => setShowMore(false)}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -55,8 +55,8 @@ export function BottomNav() {
                     onClick={() => setShowMore(false)}
                     className={`flex flex-col items-center justify-center gap-1.5 py-4 rounded-2xl transition-colors ${
                       active
-                        ? 'bg-teal-50 text-teal-600'
-                        : 'bg-slate-50 text-slate-500 hover:bg-slate-100'
+                        ? 'bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400'
+                        : 'bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
                     }`}
                   >
                     <Icon className="w-5 h-5" strokeWidth={active ? 2.2 : 1.8} />
@@ -70,7 +70,7 @@ export function BottomNav() {
       )}
 
       {/* Bottom bar */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 safe-area-pb">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 safe-area-pb">
         <div className="flex items-stretch">
           {mainItems.map((item) => {
             const active = pathname === item.href || pathname.startsWith(item.href + '/')
