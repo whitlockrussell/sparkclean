@@ -5,7 +5,7 @@
   "start_url": "/today",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#f8fafc",
+  "background_color": "#0d9488",
   "theme_color": "#0d9488",
   "orientation": "portrait",
   "icons": [
@@ -16,7 +16,7 @@
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-192.png",
+      "src": "/icons/icon-192_1.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
@@ -28,7 +28,7 @@
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "/icons/icon-512_1.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
