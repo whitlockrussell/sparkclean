@@ -453,9 +453,16 @@ export default function SchedulePage() {
           <p className={`text-lg font-semibold flex-shrink-0 ${appt.price === 0 ? 'text-slate-400' : 'text-amber-600'}`}>{fmtPrice(appt.price)}</p>
         </div>
         {address && (
-          <div className="flex items-center gap-1 text-xs text-slate-400 mb-1">
-            <MapPin className="w-3 h-3 flex-shrink-0" strokeWidth={1.8} /><span className="truncate">{address}</span>
-          </div>
+          <a
+            href={`https://maps.google.com/?q=${encodeURIComponent(address)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={e => e.stopPropagation()}
+            className="flex items-center gap-1 text-xs text-teal-600 hover:text-teal-700 mb-1"
+          >
+            <MapPin className="w-3 h-3 flex-shrink-0" strokeWidth={1.8} />
+            <span className="truncate underline underline-offset-2">{address}</span>
+          </a>
         )}
         <div className="flex items-center gap-3 text-xs text-slate-500">
           {appt.start_time && <span className="flex items-center gap-1"><Clock className="w-3 h-3" strokeWidth={1.8} />{formatTime(appt.start_time)}</span>}

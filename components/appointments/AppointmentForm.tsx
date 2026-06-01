@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
-import { X, Trash2 } from 'lucide-react'
+import { X, Trash2, MapPin } from 'lucide-react'
 import type { Appointment, NewAppointment, Client } from '@/lib/types'
 
 interface AppointmentFormProps {
@@ -139,18 +139,31 @@ export function AppointmentForm({
                 Add a client first before booking a job.
               </p>
             ) : (
-              <select
-                value={form.client_id}
-                onChange={e => set('client_id', e.target.value)}
-                className={inputClass}
-              >
-                <option value="">Select a client…</option>
-                {clients.map(c => (
-                  <option key={c.id} value={c.id}>
-                    {c.first_name} {c.last_name}
-                  </option>
-                ))}
-              </select>
+              <>
+                <select
+                  value={form.client_id}
+                  onChange={e => set('client_id', e.target.value)}
+                  className={inputClass}
+                >
+                  <option value="">Select a client…</option>
+                  {clients.map(c => (
+                    <option key={c.id} value={c.id}>
+                      {c.first_name} {c.last_name}
+                    </option>
+                  ))}
+                </select>
+                {(() => {
+                  const sel = clients.find(c => c.id === form.client_id)
+                  if (!sel?.address) return null
+                  const addr = [sel.address, sel.city].filter(Boolean).join(', ')
+                  return (
+                    <p className="flex items-center gap-1 mt-1.5 text-xs text-slate-400">
+                      <MapPin className="w-3 h-3 flex-shrink-0" strokeWidth={1.8} />
+                      {addr}
+                    </p>
+                  )
+                })()}
+              </>
             )}
           </div>
 

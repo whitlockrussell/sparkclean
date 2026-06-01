@@ -53,8 +53,8 @@ export function ClientForm({ client, onSave, onClose, onDelete }: ClientFormProp
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.first_name.trim() || !form.last_name.trim()) {
-      setError('First and last name are required.')
+    if (!form.first_name.trim()) {
+      setError('First name is required.')
       return
     }
     setSaving(true)
@@ -133,7 +133,7 @@ export function ClientForm({ client, onSave, onClose, onDelete }: ClientFormProp
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-500 mb-1.5">
-                Last name <span className="text-red-400">*</span>
+                Last name
               </label>
               <input
                 type="text"
