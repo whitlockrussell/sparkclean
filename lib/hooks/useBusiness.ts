@@ -18,6 +18,7 @@ export type Business = {
   invoice_prefix: string
   invoice_notes: string | null
   hst_rate: number
+  hourly_rate: number
   team_mode: boolean
   logo_url: string | null
 }

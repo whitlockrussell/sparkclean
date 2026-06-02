@@ -86,3 +86,31 @@ export type MileageLog = {
 }
 
 export type NewMileageLog = Omit<MileageLog, 'id' | 'user_id' | 'created_at' | 'updated_at'>
+
+export type Estimate = {
+  id: string
+  user_id: string
+  client_id: string
+  estimate_number: string
+  status: 'pending' | 'accepted' | 'declined'
+  issue_date: string
+  valid_until: string
+  property_type: string
+  size: string
+  bedrooms: number
+  bathrooms: number
+  clean_type: string
+  frequency: string
+  extras: string[]
+  notes: string | null
+  hourly_rate: number
+  estimated_hours: number
+  subtotal: number
+  hst_amount: number
+  total: number
+  accepted_at: string | null
+  declined_at: string | null
+  created_at: string
+  updated_at: string
+  clients?: Pick<Client, 'first_name' | 'last_name' | 'email' | 'phone' | 'address' | 'city' | 'province' | 'postal_code'>
+}

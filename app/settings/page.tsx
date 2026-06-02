@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { useBusiness } from '@/lib/hooks/useBusiness'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { Building2, FileText, LogOut, Save, ChevronDown, ChevronUp, Camera, X, Moon } from 'lucide-react'
+import { Building2, FileText, LogOut, Save, ChevronDown, ChevronUp, Camera, X, Moon, Calculator } from 'lucide-react'
 import type { BusinessUpdate } from '@/lib/hooks/useBusiness'
 import { useTheme } from '@/components/ThemeProvider'
 
@@ -40,6 +40,7 @@ export default function SettingsPage() {
     website: '',
     invoice_prefix: 'INV',
     invoice_notes: 'Thank you for your business!',
+    hourly_rate: 45,
   })
 
   useEffect(() => {
@@ -56,11 +57,12 @@ export default function SettingsPage() {
         website: business.website ?? '',
         invoice_prefix: business.invoice_prefix ?? 'INV',
         invoice_notes: business.invoice_notes ?? '',
+        hourly_rate: business.hourly_rate ?? 45,
       })
     }
   }, [business])
 
-  const set = (field: keyof BusinessUpdate, value: string) =>
+  const set = (field: keyof BusinessUpdate, value: string | number) =>
     setForm(prev => ({ ...prev, [field]: value }))
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -325,6 +327,50 @@ export default function SettingsPage() {
                     rows={2}
                     className="w-full border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 resize-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                   />
+                </div>
+              </div>
+            )}
+          </Card>
+        </div>
+
+        {/* Estimates settings */}
+        <div className="mb-4">
+          <h2 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">Estimates</h2>
+          <Card>
+            <button
+              className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              onClick={() => toggle('estimates')}
+            >
+              <div className="w-8 h-8 rounded-xl bg-teal-50 flex items-center justify-center flex-shrink-0">
+                <Calculator className="w-4 h-4 text-teal-500" strokeWidth={1.8} />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-sm font-medium text-slate-800 dark:text-slate-100">Estimate defaults</p>
+                <p className="text-xs text-slate-400">Hourly rate for price calculator</p>
+              </div>
+              {openSection === 'estimates'
+                ? <ChevronUp className="w-4 h-4 text-slate-300" strokeWidth={1.8} />
+                : <ChevronDown className="w-4 h-4 text-slate-300" strokeWidth={1.8} />
+              }
+            </button>
+
+            {openSection === 'estimates' && (
+              <div className="px-4 pb-4 space-y-3 border-t border-slate-100 dark:border-slate-800 pt-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Hourly rate</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="5"
+                      value={form.hourly_rate ?? 45}
+                      onChange={e => set('hourly_rate', parseFloat(e.target.value) || 0)}
+                      className="w-full border border-slate-200 dark:border-slate-700 rounded-xl pl-7 pr-12 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">/hr</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1">Used as the default rate when creating new estimates.</p>
                 </div>
               </div>
             )}

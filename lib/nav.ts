@@ -8,6 +8,7 @@ import {
   Settings,
   UsersRound,
   Car,
+  Calculator,
 } from 'lucide-react'
 
 export const navItems = [
@@ -36,33 +37,39 @@ export const navItems = [
     mobileOrder: 4,
   },
   {
+    label: 'Estimates',
+    href: '/estimates',
+    icon: Calculator,
+    mobileOrder: 5,
+  },
+  {
     label: 'Expenses',
     href: '/expenses',
     icon: Receipt,
-    mobileOrder: 5,
+    mobileOrder: 6,
   },
   {
     label: 'Team',
     href: '/team',
     icon: UsersRound,
-    mobileOrder: 6,
+    mobileOrder: 7,
   },
   {
     label: 'Reports',
     href: '/reports',
     icon: BarChart2,
-    mobileOrder: 7,
+    mobileOrder: 8,
   },
   {
     label: 'Mileage',
     href: '/mileage',
     icon: Car,
-    mobileOrder: 8,
+    mobileOrder: 9,
   },
   {
     label: 'Settings',
     href: '/settings',
     icon: Settings,
-    mobileOrder: 9,
+    mobileOrder: 10,
   },
 ]
