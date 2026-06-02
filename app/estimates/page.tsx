@@ -61,13 +61,15 @@ function formatDate(dateStr: string | null) {
 }
 
 export default function EstimatesPage() {
-  const { estimates, loading, error, createEstimate, markAccepted, markDeclined, markPending, deleteEstimate, refetch } = useEstimates()
+  const { estimates, loading, error, createEstimate, updateEstimate, markAccepted, markDeclined, markPending, deleteEstimate, refetch } = useEstimates()
   const { clients } = useClients()
   const { createInvoice } = useInvoices()
   const { business } = useBusiness()
   const [showForm, setShowForm] = useState(false)
+  const [editEstimate, setEditEstimate] = useState<Estimate | null>(null)
   const [tab, setTab] = useState<Tab>('all')
   const [actionId, setActionId] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
   const [convertingId, setConvertingId] = useState<string | null>(null)
   const [convertSuccess, setConvertSuccess] = useState<string | null>(null)
 
@@ -83,31 +85,60 @@ export default function EstimatesPage() {
   const handleAccept = async (e: React.MouseEvent, est: Estimate) => {
     e.stopPropagation()
     setActionId(est.id)
-    try { await markAccepted(est.id) } finally { setActionId(null) }
+    setActionError(null)
+    try {
+      await markAccepted(est.id)
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Failed to accept estimate')
+    } finally {
+      setActionId(null)
+    }
   }
 
   const handleDecline = async (e: React.MouseEvent, est: Estimate) => {
     e.stopPropagation()
     setActionId(est.id)
-    try { await markDeclined(est.id) } finally { setActionId(null) }
+    setActionError(null)
+    try {
+      await markDeclined(est.id)
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Failed to decline estimate')
+    } finally {
+      setActionId(null)
+    }
   }
 
   const handleMarkPending = async (e: React.MouseEvent, est: Estimate) => {
     e.stopPropagation()
     setActionId(est.id)
-    try { await markPending(est.id) } finally { setActionId(null) }
+    setActionError(null)
+    try {
+      await markPending(est.id)
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Failed to reopen estimate')
+    } finally {
+      setActionId(null)
+    }
   }
 
   const handleDelete = async (e: React.MouseEvent, est: Estimate) => {
     e.stopPropagation()
     if (!confirm(`Delete ${est.estimate_number}? This cannot be undone.`)) return
     setActionId(est.id)
-    try { await deleteEstimate(est.id) } finally { setActionId(null) }
+    setActionError(null)
+    try {
+      await deleteEstimate(est.id)
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Failed to delete estimate')
+    } finally {
+      setActionId(null)
+    }
   }
 
   const handleConvertToInvoice = async (e: React.MouseEvent, est: Estimate) => {
     e.stopPropagation()
     setConvertingId(est.id)
+    setActionError(null)
     try {
       const cleanLabel = CLEAN_TYPE_LABELS[est.clean_type] ?? est.clean_type
       const propLabel = PROPERTY_LABELS[est.property_type] ?? est.property_type
@@ -121,6 +152,8 @@ export default function EstimatesPage() {
       })
       setConvertSuccess(est.id)
       setTimeout(() => setConvertSuccess(null), 3000)
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Failed to convert to invoice')
     } finally {
       setConvertingId(null)
     }
@@ -165,6 +198,12 @@ export default function EstimatesPage() {
           </div>
         )}
 
+        {actionError && (
+          <p className="text-sm text-red-500 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl px-4 py-3 mb-4">
+            {actionError}
+          </p>
+        )}
+
         {loading ? (
           <PageSkeleton />
         ) : error ? (
@@ -195,7 +234,7 @@ export default function EstimatesPage() {
               const propLabel = PROPERTY_LABELS[est.property_type] ?? est.property_type
 
               return (
-                <Card key={est.id} className="p-4">
+                <Card key={est.id} className="p-4" onClick={() => setEditEstimate(est)}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -313,6 +352,16 @@ export default function EstimatesPage() {
           initialHourlyRate={business?.hourly_rate ?? 45}
           onSave={createEstimate}
           onClose={() => { setShowForm(false); refetch() }}
+        />
+      )}
+
+      {editEstimate && (
+        <EstimateForm
+          clients={clients}
+          initialHourlyRate={business?.hourly_rate ?? 45}
+          initialValues={editEstimate}
+          onSave={(data) => updateEstimate(editEstimate.id, data)}
+          onClose={() => setEditEstimate(null)}
         />
       )}
     </AppShell>

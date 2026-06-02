@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react'
 import { Button } from '@/components/ui/Button'
 import { X, Minus, Plus, Calculator } from 'lucide-react'
-import type { Client } from '@/lib/types'
+import type { Client, Estimate } from '@/lib/types'
 import type { NewEstimate } from '@/lib/hooks/useEstimates'
 
 const BASE_HOURS: Record<string, number> = {
@@ -42,6 +42,7 @@ function roundToFive(n: number) {
 interface EstimateFormProps {
   clients: Client[]
   initialHourlyRate?: number
+  initialValues?: Estimate
   onSave: (data: NewEstimate) => Promise<void>
   onClose: () => void
 }
@@ -99,18 +100,19 @@ function Stepper({ value, min, max, onChange }: {
   )
 }
 
-export function EstimateForm({ clients, initialHourlyRate = 45, onSave, onClose }: EstimateFormProps) {
-  const [clientId, setClientId] = useState('')
-  const [propertyType, setPropertyType] = useState('house')
-  const [size, setSize] = useState('medium')
-  const [bedrooms, setBedrooms] = useState(2)
-  const [bathrooms, setBathrooms] = useState(1)
-  const [cleanType, setCleanType] = useState('regular')
-  const [frequency, setFrequency] = useState('one_time')
-  const [extras, setExtras] = useState<string[]>([])
-  const [notes, setNotes] = useState('')
-  const [hourlyRate, setHourlyRate] = useState(initialHourlyRate)
-  const [overridePrice, setOverridePrice] = useState('')
+export function EstimateForm({ clients, initialHourlyRate = 45, initialValues, onSave, onClose }: EstimateFormProps) {
+  const isEdit = !!initialValues
+  const [clientId, setClientId] = useState(initialValues?.client_id ?? '')
+  const [propertyType, setPropertyType] = useState(initialValues?.property_type ?? 'house')
+  const [size, setSize] = useState(initialValues?.size ?? 'medium')
+  const [bedrooms, setBedrooms] = useState(initialValues?.bedrooms ?? 2)
+  const [bathrooms, setBathrooms] = useState(initialValues?.bathrooms ?? 1)
+  const [cleanType, setCleanType] = useState(initialValues?.clean_type ?? 'regular')
+  const [frequency, setFrequency] = useState(initialValues?.frequency ?? 'one_time')
+  const [extras, setExtras] = useState<string[]>(initialValues?.extras ?? [])
+  const [notes, setNotes] = useState(initialValues?.notes ?? '')
+  const [hourlyRate, setHourlyRate] = useState(initialValues?.hourly_rate ?? initialHourlyRate)
+  const [overridePrice, setOverridePrice] = useState(initialValues ? initialValues.subtotal.toString() : '')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -173,7 +175,7 @@ export function EstimateForm({ clients, initialHourlyRate = 45, onSave, onClose 
     >
       <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-t-3xl lg:rounded-2xl max-h-[94vh] flex flex-col">
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex-shrink-0">
-          <h2 className="text-[15px] font-semibold text-slate-900 dark:text-white">New estimate</h2>
+          <h2 className="text-[15px] font-semibold text-slate-900 dark:text-white">{isEdit ? 'Edit estimate' : 'New estimate'}</h2>
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
@@ -393,7 +395,7 @@ export function EstimateForm({ clients, initialHourlyRate = 45, onSave, onClose 
 
           <div className="flex gap-3 pt-1 pb-2">
             <Button type="button" variant="ghost" size="lg" className="flex-1" onClick={onClose}>Cancel</Button>
-            <Button type="submit" size="lg" className="flex-1" loading={saving}>Create estimate</Button>
+            <Button type="submit" size="lg" className="flex-1" loading={saving}>{isEdit ? 'Save changes' : 'Create estimate'}</Button>
           </div>
         </form>
       </div>

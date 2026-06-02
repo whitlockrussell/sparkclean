@@ -127,6 +127,34 @@ export function useEstimates() {
     return data
   }
 
+  const updateEstimate = async (id: string, estimate: NewEstimate) => {
+    const { data, error } = await supabase
+      .from('estimates')
+      .update({
+        client_id: estimate.client_id,
+        property_type: estimate.property_type,
+        size: estimate.size,
+        bedrooms: estimate.bedrooms,
+        bathrooms: estimate.bathrooms,
+        clean_type: estimate.clean_type,
+        frequency: estimate.frequency,
+        extras: estimate.extras,
+        notes: estimate.notes,
+        hourly_rate: estimate.hourly_rate,
+        estimated_hours: estimate.estimated_hours,
+        subtotal: estimate.subtotal,
+        hst_amount: estimate.hst_amount,
+        total: estimate.total,
+      })
+      .eq('id', id)
+      .select(`*, clients(first_name, last_name, email, phone, address, city, province, postal_code)`)
+      .single()
+
+    if (error) throw new Error(error.message)
+    setEstimates(prev => prev.map(e => e.id === id ? data : e))
+    return data
+  }
+
   const deleteEstimate = async (id: string) => {
     const { error } = await supabase.from('estimates').delete().eq('id', id)
     if (error) throw new Error(error.message)
@@ -135,7 +163,7 @@ export function useEstimates() {
 
   return {
     estimates, loading, error,
-    createEstimate, markAccepted, markDeclined, markPending, deleteEstimate,
+    createEstimate, updateEstimate, markAccepted, markDeclined, markPending, deleteEstimate,
     refetch: fetchEstimates,
   }
 }

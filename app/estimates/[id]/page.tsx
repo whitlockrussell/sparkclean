@@ -278,26 +278,10 @@ export default function EstimatePDFPage({ params }: { params: Promise<{ id: stri
 
           {/* Accept section */}
           {!isAccepted && (
-            <div className="border-t-2 border-slate-200 pt-8 mt-4">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-6">Accept this estimate</p>
-              <p className="text-sm text-slate-500 mb-8">
-                By signing below, you agree to the services and pricing outlined in this estimate.
-                A deposit or confirmation may be required to schedule your appointment.
+            <div className="border-t border-slate-100 pt-6 mt-4">
+              <p className="text-sm text-slate-500">
+                To accept this estimate, reply to this email or call {business?.phone ?? 'us'}.
               </p>
-              <div className="grid grid-cols-2 gap-8">
-                <div>
-                  <div className="border-b border-slate-300 mb-2 h-10" />
-                  <p className="text-xs text-slate-400">Client name (print)</p>
-                </div>
-                <div>
-                  <div className="border-b border-slate-300 mb-2 h-10" />
-                  <p className="text-xs text-slate-400">Date</p>
-                </div>
-                <div className="col-span-2">
-                  <div className="border-b border-slate-300 mb-2 h-10" />
-                  <p className="text-xs text-slate-400">Signature</p>
-                </div>
-              </div>
             </div>
           )}
 
