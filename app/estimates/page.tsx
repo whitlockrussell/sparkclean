@@ -69,6 +69,14 @@ export default function EstimatesPage() {
   const { createInvoice } = useInvoices()
   const { business } = useBusiness()
 
+  const [showForm, setShowForm] = useState(false)
+  const [editEstimate, setEditEstimate] = useState<Estimate | null>(null)
+  const [tab, setTab] = useState<Tab>('all')
+  const [actionId, setActionId] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [convertingId, setConvertingId] = useState<string | null>(null)
+  const [convertSuccess, setConvertSuccess] = useState<string | null>(null)
+
   if (!isPro) {
     return (
       <AppShell>
@@ -82,13 +90,6 @@ export default function EstimatesPage() {
       </AppShell>
     )
   }
-  const [showForm, setShowForm] = useState(false)
-  const [editEstimate, setEditEstimate] = useState<Estimate | null>(null)
-  const [tab, setTab] = useState<Tab>('all')
-  const [actionId, setActionId] = useState<string | null>(null)
-  const [actionError, setActionError] = useState<string | null>(null)
-  const [convertingId, setConvertingId] = useState<string | null>(null)
-  const [convertSuccess, setConvertSuccess] = useState<string | null>(null)
 
   const filtered = estimates.filter(est => {
     if (tab === 'pending') return est.status === 'pending'

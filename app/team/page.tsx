@@ -291,6 +291,12 @@ export default function TeamPage() {
   const { isPro } = usePlan()
   const { members, hoursLog, timeEntries, loading, error, inviteMember, updatePermissions, deactivateMember, logHours, deleteHours, logTimeEntry, deleteTimeEntry, fetchHours } = useTeam()
   const [showInvite, setShowInvite] = useState(false)
+  const [showLogHours, setShowLogHours] = useState(false)
+  const [expandedMember, setExpandedMember] = useState<string | null>(null)
+  const [savingPerms, setSavingPerms] = useState<string | null>(null)
+  const [localPerms, setLocalPerms] = useState<Record<string, TeamMember['permissions']>>({})
+  const [weekStart, setWeekStart] = useState(getWeekStart())
+  const [tab, setTab] = useState<'hours' | 'members'>('hours')
 
   if (!isPro) {
     return (
@@ -305,12 +311,6 @@ export default function TeamPage() {
       </AppShell>
     )
   }
-  const [showLogHours, setShowLogHours] = useState(false)
-  const [expandedMember, setExpandedMember] = useState<string | null>(null)
-  const [savingPerms, setSavingPerms] = useState<string | null>(null)
-  const [localPerms, setLocalPerms] = useState<Record<string, TeamMember['permissions']>>({})
-  const [weekStart, setWeekStart] = useState(getWeekStart())
-  const [tab, setTab] = useState<'hours' | 'members'>('hours')
 
   const prevWeek = () => {
     const d = new Date(weekStart + 'T12:00:00'); d.setDate(d.getDate() - 7)
