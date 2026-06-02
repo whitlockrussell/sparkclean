@@ -456,7 +456,7 @@ export default function SchedulePage() {
       <Card key={appt.id} className={`p-4 ${appt.status !== 'scheduled' ? 'opacity-60' : ''}`} onClick={() => openEdit(appt)}>
         <div className="flex items-start justify-between gap-3 mb-1">
           <div className="flex items-center gap-2 flex-wrap min-w-0">
-            <p className="font-semibold text-slate-900 text-[15px]">{name}</p>
+            <p className="font-semibold text-slate-900 dark:text-white text-[15px]">{name}</p>
             {appt.is_recurring && <Badge variant="teal"><RefreshCw className="w-2.5 h-2.5 mr-1" />{appt.recurrence_rule}</Badge>}
           </div>
           <p className={`text-lg font-semibold flex-shrink-0 ${appt.price === 0 ? 'text-slate-400' : 'text-amber-600'}`}>{fmtPrice(appt.price)}</p>
