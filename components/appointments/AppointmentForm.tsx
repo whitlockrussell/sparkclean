@@ -96,7 +96,7 @@ export function AppointmentForm({
     }
   }
 
-  const inputClass = 'w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent bg-white'
+  const inputClass = 'w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent bg-white'
 
   return (
     <div
@@ -282,7 +282,7 @@ export function AppointmentForm({
               onChange={e => set('notes', e.target.value)}
               placeholder="Deep clean, bring extra supplies, key under mat…"
               rows={2}
-              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent resize-none"
+              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent resize-none"
             />
           </div>
 

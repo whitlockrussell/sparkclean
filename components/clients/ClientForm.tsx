@@ -83,6 +83,8 @@ export function ClientForm({ client, onSave, onClose, onDelete }: ClientFormProp
     }
   }
 
+  const inputClass = 'w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent'
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
@@ -128,7 +130,7 @@ export function ClientForm({ client, onSave, onClose, onDelete }: ClientFormProp
                 value={form.first_name}
                 onChange={e => set('first_name', e.target.value)}
                 placeholder="Maria"
-                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent"
+                className={inputClass}
               />
             </div>
             <div>
@@ -140,7 +142,7 @@ export function ClientForm({ client, onSave, onClose, onDelete }: ClientFormProp
                 value={form.last_name}
                 onChange={e => set('last_name', e.target.value)}
                 placeholder="Rodriguez"
-                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent"
+                className={inputClass}
               />
             </div>
           </div>
@@ -153,7 +155,7 @@ export function ClientForm({ client, onSave, onClose, onDelete }: ClientFormProp
               value={form.phone ?? ''}
               onChange={e => set('phone', e.target.value)}
               placeholder="613-555-0100"
-              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent"
+              className={inputClass}
             />
           </div>
 
@@ -164,7 +166,7 @@ export function ClientForm({ client, onSave, onClose, onDelete }: ClientFormProp
               value={form.email ?? ''}
               onChange={e => set('email', e.target.value)}
               placeholder="client@email.com"
-              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent"
+              className={inputClass}
             />
           </div>
 
@@ -176,7 +178,7 @@ export function ClientForm({ client, onSave, onClose, onDelete }: ClientFormProp
               value={form.address ?? ''}
               onChange={e => set('address', e.target.value)}
               placeholder="123 Main St"
-              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent"
+              className={inputClass}
             />
           </div>
 
@@ -188,7 +190,7 @@ export function ClientForm({ client, onSave, onClose, onDelete }: ClientFormProp
                 value={form.city ?? ''}
                 onChange={e => set('city', e.target.value)}
                 placeholder="Ottawa"
-                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent"
+                className={inputClass}
               />
             </div>
             <div>
@@ -196,7 +198,7 @@ export function ClientForm({ client, onSave, onClose, onDelete }: ClientFormProp
               <select
                 value={form.province}
                 onChange={e => set('province', e.target.value)}
-                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent bg-white"
+                className={inputClass}
               >
                 {provinces.map(p => (
                   <option key={p} value={p}>{p}</option>
@@ -213,7 +215,7 @@ export function ClientForm({ client, onSave, onClose, onDelete }: ClientFormProp
               onChange={e => set('postal_code', e.target.value.toUpperCase())}
               placeholder="K1N 5X5"
               maxLength={7}
-              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent"
+              className={inputClass}
             />
           </div>
 
@@ -225,7 +227,7 @@ export function ClientForm({ client, onSave, onClose, onDelete }: ClientFormProp
               onChange={e => set('notes', e.target.value)}
               placeholder="Has a dog. Prefers unscented products. Key under mat."
               rows={3}
-              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent resize-none"
+              className={`${inputClass} resize-none`}
             />
           </div>
 

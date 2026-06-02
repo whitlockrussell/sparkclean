@@ -42,6 +42,16 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+input, select, textarea {
+  color: #0f172a;
+  background-color: #ffffff;
+}
+
+html.dark input, html.dark select, html.dark textarea {
+  color: #f1f5f9;
+  background-color: #1e293b;
+}
+
 html {
   font-family: var(--font-body);
   background: #F8F9FA;

@@ -177,7 +177,7 @@ export function ExpenseForm({ expense, onSave, onClose }: ExpenseFormProps) {
     }
   }
 
-  const inputClass = 'w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent bg-white'
+  const inputClass = 'w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent'
 
   return (
     <div

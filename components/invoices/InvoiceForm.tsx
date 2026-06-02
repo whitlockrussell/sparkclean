@@ -71,7 +71,7 @@ export function InvoiceForm({ clients, onSave, onClose, initialClientId, initial
     }
   }
 
-  const inputClass = 'w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent bg-white'
+  const inputClass = 'w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent'
 
   return (
     <div
@@ -135,7 +135,7 @@ export function InvoiceForm({ clients, onSave, onClose, initialClientId, initial
                       value={item.description}
                       onChange={e => updateItem(i, 'description', e.target.value)}
                       placeholder="Description e.g. Standard home cleaning"
-                      className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent bg-white"
+                      className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent"
                     />
                     {items.length > 1 && (
                       <button type="button" onClick={() => removeItem(i)} className="text-slate-300 hover:text-red-400 transition-colors mt-2">
@@ -151,7 +151,7 @@ export function InvoiceForm({ clients, onSave, onClose, initialClientId, initial
                         value={item.quantity || ''}
                         onChange={e => updateItem(i, 'quantity', parseFloat(e.target.value) || 1)}
                         placeholder="1"
-                        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white"
+                        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400"
                       />
                     </div>
                     <div>
@@ -161,7 +161,7 @@ export function InvoiceForm({ clients, onSave, onClose, initialClientId, initial
                         value={item.unit_price || ''}
                         onChange={e => updateItem(i, 'unit_price', parseFloat(e.target.value) || 0)}
                         placeholder="150"
-                        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white"
+                        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400"
                       />
                     </div>
                   </div>
@@ -197,7 +197,7 @@ export function InvoiceForm({ clients, onSave, onClose, initialClientId, initial
               onChange={e => setNotes(e.target.value)}
               placeholder="Thank you for your business!"
               rows={2}
-              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 resize-none"
+              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400 resize-none"
             />
           </div>
 
