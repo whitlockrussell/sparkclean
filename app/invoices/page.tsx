@@ -155,11 +155,11 @@ export default function InvoicesPage() {
               const isActing = actionId === inv.id
 
               return (
-                <Card key={inv.id} className="p-4">
+                <Card key={inv.id} className="p-4" onClick={() => setEditingInvoice(inv)}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <p className="font-semibold text-slate-900 text-[15px] truncate">{name}</p>
+                        <p className="font-semibold text-slate-900 dark:text-white text-[15px] truncate">{name}</p>
                         <Badge variant={statusVariant[inv.status]}>
                           {inv.status.charAt(0).toUpperCase() + inv.status.slice(1)}
                         </Badge>
@@ -180,7 +180,7 @@ export default function InvoicesPage() {
                     </div>
                   </div>
 
-                  <div className="flex gap-2 mt-3 pt-3 border-t border-slate-100 flex-wrap">
+                  <div className="flex gap-2 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex-wrap">
                     {isPro ? (
                       <a
                         href={`/invoices/${inv.id}`}
@@ -202,7 +202,7 @@ export default function InvoicesPage() {
                       </Link>
                     )}
 
-                    {inv.status !== 'paid' && inv.status !== 'cancelled' && (
+                    {inv.status !== 'cancelled' && (
                       <Button
                         size="sm"
                         variant="ghost"

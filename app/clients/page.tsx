@@ -97,7 +97,7 @@ export default function ClientsPage() {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search clients..."
-              className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent bg-white"
+              className="w-full pl-9 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
             />
           </div>
         )}
@@ -135,7 +135,7 @@ export default function ClientsPage() {
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-slate-900 text-[15px] truncate">
+                  <p className="font-semibold text-slate-900 dark:text-white text-[15px] truncate">
                     {c.first_name} {c.last_name}
                   </p>
                   {c.phone && (

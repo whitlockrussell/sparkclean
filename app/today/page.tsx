@@ -14,6 +14,7 @@ import { InvoiceForm } from '@/components/invoices/InvoiceForm'
 import { useAppointments } from '@/lib/hooks/useAppointments'
 import { useClients } from '@/lib/hooks/useClients'
 import { useInvoices } from '@/lib/hooks/useInvoices'
+import { usePlan } from '@/lib/hooks/usePlan'
 import type { NewInvoice } from '@/lib/hooks/useInvoices'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -52,14 +53,16 @@ function getWeekRange() {
 }
 
 export default function TodayPage() {
-  const { addAppointment, updateAppointment, fetchToday, fetchUnpaid } = useAppointments()
+  const { addAppointment, updateAppointment, deleteAppointment, fetchToday, fetchUnpaid } = useAppointments()
   const { clients } = useClients()
   const { createInvoice } = useInvoices()
+  const { isPro } = usePlan()
   const [todayJobs, setTodayJobs] = useState<Appointment[]>([])
   const [unpaidJobs, setUnpaidJobs] = useState<Appointment[]>([])
   const [weekIncome, setWeekIncome] = useState(0)
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
+  const [editingJob, setEditingJob] = useState<Appointment | undefined>()
   const [invoiceJob, setInvoiceJob] = useState<Appointment | undefined>()
   const [expiringRecurring, setExpiringRecurring] = useState<{ clientName: string; clientId: string; endDate: string }[]>([])
   const [renewClientId, setRenewClientId] = useState<string | null>(null)
@@ -132,6 +135,20 @@ export default function TodayPage() {
 
   const handleCreateInvoice = async (data: NewInvoice) => {
     await createInvoice(data)
+  }
+
+  const handleJobSave = async (data: NewAppointment) => {
+    if (!editingJob) return
+    await updateAppointment(editingJob.id, data)
+    setEditingJob(undefined)
+    await refresh()
+  }
+
+  const handleJobDelete = async () => {
+    if (!editingJob) return
+    await deleteAppointment(editingJob.id)
+    setEditingJob(undefined)
+    await refresh()
   }
 
   const scheduledJobs = todayJobs.filter(j => j.status === 'scheduled')
@@ -220,9 +237,9 @@ export default function TodayPage() {
                   const isPaid = job.status === 'payment_received'
 
                   return (
-                    <Card key={job.id} className={`p-4 ${job.status !== 'scheduled' ? 'opacity-60' : ''}`}>
+                    <Card key={job.id} className={`p-4 ${job.status !== 'scheduled' ? 'opacity-60' : ''}`} onClick={() => setEditingJob(job)}>
                       <div className="flex items-start justify-between gap-3 mb-1">
-                        <p className="font-semibold text-slate-900 text-[15px] truncate">{name}</p>
+                        <p className="font-semibold text-slate-900 dark:text-white text-[15px] truncate">{name}</p>
                         <p className={`text-lg font-semibold flex-shrink-0 ${job.price === 0 ? 'text-slate-400' : 'text-amber-600'}`}>
                           {job.price === 0 ? 'TBD' : `$${job.price.toFixed(0)}`}
                         </p>
@@ -234,7 +251,7 @@ export default function TodayPage() {
                         </div>
                       )}
                       {job.start_time && (
-                        <div className="flex items-center gap-3 text-xs text-slate-500">
+                        <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
                           <span className="flex items-center gap-1">
                             <Clock className="w-3 h-3" strokeWidth={1.8} />
                             {formatTime(job.start_time)}
@@ -247,23 +264,23 @@ export default function TodayPage() {
                       {client?.notes && (
                         <p className="text-xs text-slate-400 mt-1.5 italic truncate">{client.notes}</p>
                       )}
-                      <div className="mt-3 pt-3 border-t border-slate-100">
+                      <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
                         <div className="flex items-center py-1.5 gap-3">
-                          <p className="text-sm text-slate-700 flex-1">Job done</p>
+                          <p className="text-sm text-slate-700 dark:text-slate-200 flex-1">Job done</p>
                           <button
                             type="button"
-                            onClick={() => handleToggleStatus(job.id, isDone ? 'scheduled' : 'completed')}
+                            onClick={e => { e.stopPropagation(); handleToggleStatus(job.id, isDone ? 'scheduled' : 'completed') }}
                             className={`w-10 h-[22px] rounded-full transition-colors relative flex-shrink-0 ${isDone ? 'bg-teal-500' : 'bg-slate-300'}`}
                           >
                             <span className={`absolute left-0 top-[3px] w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${isDone ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
                           </button>
                         </div>
                         <div className="flex items-center py-1.5 gap-3">
-                          <p className={`text-sm flex-1 ${isDone ? 'text-slate-700' : 'text-slate-400'}`}>Payment received</p>
+                          <p className={`text-sm flex-1 ${isDone ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400'}`}>Payment received</p>
                           <button
                             type="button"
                             disabled={!isDone}
-                            onClick={() => handleToggleStatus(job.id, isPaid ? 'completed' : 'payment_received')}
+                            onClick={e => { e.stopPropagation(); handleToggleStatus(job.id, isPaid ? 'completed' : 'payment_received') }}
                             className={`w-10 h-[22px] rounded-full transition-colors relative flex-shrink-0 ${isPaid ? 'bg-teal-500' : 'bg-slate-300'} disabled:opacity-40 disabled:cursor-not-allowed`}
                           >
                             <span className={`absolute left-0 top-[3px] w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${isPaid ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
@@ -272,7 +289,7 @@ export default function TodayPage() {
                         {isPaid && (
                           <button
                             type="button"
-                            onClick={() => setInvoiceJob(job)}
+                            onClick={e => { e.stopPropagation(); setInvoiceJob(job) }}
                             className="mt-1 w-full text-xs font-medium text-teal-600 border border-teal-200 bg-teal-50 hover:bg-teal-100 rounded-xl py-2 transition-colors"
                           >
                             + Create invoice
@@ -307,9 +324,9 @@ export default function TodayPage() {
                   const isDone = job.status === 'completed' || job.status === 'payment_received'
                   const isPaid = job.status === 'payment_received'
                   return (
-                    <Card key={job.id} className="p-4 opacity-60">
+                    <Card key={job.id} className="p-4 opacity-60" onClick={() => setEditingJob(job)}>
                       <div className="flex items-start justify-between gap-3 mb-1">
-                        <p className="font-semibold text-slate-900 text-[15px] truncate">{name}</p>
+                        <p className="font-semibold text-slate-900 dark:text-white text-[15px] truncate">{name}</p>
                         <p className={`text-lg font-semibold flex-shrink-0 ${job.price === 0 ? 'text-slate-400' : 'text-amber-600'}`}>{job.price === 0 ? 'TBD' : `$${job.price.toFixed(0)}`}</p>
                       </div>
                       {!isToday && (
@@ -319,23 +336,23 @@ export default function TodayPage() {
                           })}
                         </p>
                       )}
-                      <div className="mt-3 pt-3 border-t border-slate-100">
+                      <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
                         <div className="flex items-center py-1.5 gap-3">
-                          <p className="text-sm text-slate-700 flex-1">Job done</p>
+                          <p className="text-sm text-slate-700 dark:text-slate-200 flex-1">Job done</p>
                           <button
                             type="button"
-                            onClick={() => handleToggleStatus(job.id, isDone ? 'scheduled' : 'completed')}
+                            onClick={e => { e.stopPropagation(); handleToggleStatus(job.id, isDone ? 'scheduled' : 'completed') }}
                             className={`w-10 h-[22px] rounded-full transition-colors relative flex-shrink-0 ${isDone ? 'bg-teal-500' : 'bg-slate-300'}`}
                           >
                             <span className={`absolute left-0 top-[3px] w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${isDone ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
                           </button>
                         </div>
                         <div className="flex items-center py-1.5 gap-3">
-                          <p className={`text-sm flex-1 ${isDone ? 'text-slate-700' : 'text-slate-400'}`}>Payment received</p>
+                          <p className={`text-sm flex-1 ${isDone ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400'}`}>Payment received</p>
                           <button
                             type="button"
                             disabled={!isDone}
-                            onClick={() => handleToggleStatus(job.id, isPaid ? 'completed' : 'payment_received')}
+                            onClick={e => { e.stopPropagation(); handleToggleStatus(job.id, isPaid ? 'completed' : 'payment_received') }}
                             className={`w-10 h-[22px] rounded-full transition-colors relative flex-shrink-0 ${isPaid ? 'bg-teal-500' : 'bg-slate-300'} disabled:opacity-40 disabled:cursor-not-allowed`}
                           >
                             <span className={`absolute left-0 top-[3px] w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${isPaid ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
@@ -352,7 +369,17 @@ export default function TodayPage() {
       </PageContainer>
 
       {showForm && (
-        <AppointmentForm clients={clients} onSave={handleAdd} onClose={() => setShowForm(false)} />
+        <AppointmentForm clients={clients} isPro={isPro} onSave={handleAdd} onClose={() => setShowForm(false)} />
+      )}
+      {editingJob && (
+        <AppointmentForm
+          clients={clients}
+          appointment={editingJob}
+          isPro={isPro}
+          onSave={handleJobSave}
+          onClose={() => setEditingJob(undefined)}
+          onDelete={handleJobDelete}
+        />
       )}
       {renewClientId && (
         <AppointmentForm
