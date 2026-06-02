@@ -13,6 +13,12 @@
 @source inline("bg-sky-100 border-sky-500 text-sky-900");
 @source inline("bg-red-100 border-red-500 text-red-900");
 @source inline("bg-violet-100 border-violet-500 text-violet-900");
+@source inline("bg-amber-100 border-amber-500 text-amber-900");
+@source inline("bg-yellow-100 border-yellow-500 text-yellow-900");
+@source inline("bg-cyan-100 border-cyan-500 text-cyan-900");
+@source inline("bg-stone-100 border-stone-500 text-stone-800");
+@source inline("bg-zinc-100 border-zinc-500 text-zinc-800");
+@source inline("bg-neutral-100 border-neutral-500 text-neutral-800");
 @source inline("bg-slate-100 border-slate-400 text-slate-600");
 
 :root {

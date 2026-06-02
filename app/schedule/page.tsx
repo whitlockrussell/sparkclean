@@ -120,6 +120,12 @@ const CLIENT_COLORS = [
   'bg-sky-100 border-sky-500 text-sky-900',
   'bg-red-100 border-red-500 text-red-900',
   'bg-violet-100 border-violet-500 text-violet-900',
+  'bg-amber-100 border-amber-500 text-amber-900',
+  'bg-yellow-100 border-yellow-500 text-yellow-900',
+  'bg-cyan-100 border-cyan-500 text-cyan-900',
+  'bg-stone-100 border-stone-500 text-stone-800',
+  'bg-zinc-100 border-zinc-500 text-zinc-800',
+  'bg-neutral-100 border-neutral-500 text-neutral-800',
 ]
 
 function clientColorIndex(id: string): number {
