@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
 import { TopHeader } from '@/components/layout/TopHeader'
 import { PageContainer } from '@/components/layout/PageContainer'
@@ -16,6 +16,20 @@ import { usePlan } from '@/lib/hooks/usePlan'
 
 const provinces = ['AB','BC','MB','NB','NL','NS','NT','NU','ON','PE','QC','SK','YT']
 
+function UpgradedBanner() {
+  const searchParams = useSearchParams()
+  if (searchParams.get('upgraded') !== '1') return null
+  return (
+    <div className="flex items-center gap-3 bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 rounded-2xl px-4 py-3.5 mb-4">
+      <Sparkles className="w-5 h-5 text-teal-500 flex-shrink-0" />
+      <div>
+        <p className="text-sm font-semibold text-teal-800 dark:text-teal-300">Welcome to Pro!</p>
+        <p className="text-xs text-teal-600 dark:text-teal-400">All features are now unlocked.</p>
+      </div>
+    </div>
+  )
+}
+
 export default function SettingsPage() {
   const { business, loading, saveBusiness } = useBusiness()
   const { isPro, plan, currentPeriodEnd } = usePlan()
@@ -29,8 +43,6 @@ export default function SettingsPage() {
   const [portalLoading, setPortalLoading] = useState(false)
   const logoInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const justUpgraded = searchParams.get('upgraded') === '1'
   const supabase = createClient()
 
   const [form, setForm] = useState<BusinessUpdate>({
@@ -166,15 +178,9 @@ export default function SettingsPage() {
       <TopHeader title="Settings" />
       <PageContainer>
 
-        {justUpgraded && (
-          <div className="flex items-center gap-3 bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 rounded-2xl px-4 py-3.5 mb-4">
-            <Sparkles className="w-5 h-5 text-teal-500 flex-shrink-0" />
-            <div>
-              <p className="text-sm font-semibold text-teal-800 dark:text-teal-300">Welcome to Pro!</p>
-              <p className="text-xs text-teal-600 dark:text-teal-400">All features are now unlocked.</p>
-            </div>
-          </div>
-        )}
+        <Suspense fallback={null}>
+          <UpgradedBanner />
+        </Suspense>
 
         {/* Appearance */}
         <div className="mb-4">
