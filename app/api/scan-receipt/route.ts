@@ -18,6 +18,14 @@ async function resizeBase64Image(base64: string, mediaType: string): Promise<{ d
 
 export async function POST(req: NextRequest) {
   try {
+    if (!process.env.ANTHROPIC_API_KEY) {
+      console.error('ANTHROPIC_API_KEY is not set')
+      return NextResponse.json(
+        { error: 'Receipt scanning is not configured. Add ANTHROPIC_API_KEY to your environment variables.' },
+        { status: 503 }
+      )
+    }
+
     const { imageBase64, mediaType } = await req.json()
 
     if (!imageBase64) {
@@ -64,7 +72,7 @@ export async function POST(req: NextRequest) {
   "description": "vendor name and what was purchased (short, max 60 chars)",
   "amount": total amount as a number (no dollar sign),
   "hst_paid": HST or tax amount as a number (0 if not visible),
-  "expense_date": date in YYYY-MM-DD format (use today if not visible: ${new Date().toISOString().split('T')[0]}),
+  "expense_date": date in YYYY-MM-DD format (use today if not visible: ${new Date().toLocaleDateString('en-CA')}),
   "category": one of: supplies, gas, equipment, insurance, phone, other
 }`,
             },

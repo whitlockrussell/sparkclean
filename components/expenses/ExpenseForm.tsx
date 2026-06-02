@@ -129,7 +129,10 @@ export function ExpenseForm({ expense, onSave, onClose }: ExpenseFormProps) {
   }
 
   const scanReceiptWithAI = async () => {
-    if (!receiptBase64) return
+    if (!receiptBase64) {
+      setError('Upload a receipt photo first, then tap Auto-fill.')
+      return
+    }
     setScanningReceipt(true)
     setError(null)
     try {
@@ -234,6 +237,9 @@ export function ExpenseForm({ expense, onSave, onClose }: ExpenseFormProps) {
                     </>
                   )}
                 </button>
+                {error && (
+                  <p className="text-sm text-red-500 bg-red-50 rounded-xl px-3 py-2">{error}</p>
+                )}
               </div>
             ) : (
               <button
