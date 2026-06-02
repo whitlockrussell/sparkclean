@@ -10,6 +10,8 @@ import { Badge } from '@/components/ui/Badge'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { PageSkeleton } from '@/components/ui/Skeleton'
 import { useTeam, getWeekStart, formatWeekLabel } from '@/lib/hooks/useTeam'
+import { usePlan } from '@/lib/hooks/usePlan'
+import { UpgradePrompt } from '@/components/ui/UpgradePrompt'
 import type { TeamMember, TimeEntry, HoursLog } from '@/lib/hooks/useTeam'
 import {
   Users, Plus, ChevronDown, ChevronUp, Clock,
@@ -286,8 +288,23 @@ function MemberClockCard({ member, timeEntries, manualEntries, onLog, onDeleteTi
 }
 
 export default function TeamPage() {
+  const { isPro } = usePlan()
   const { members, hoursLog, timeEntries, loading, error, inviteMember, updatePermissions, deactivateMember, logHours, deleteHours, logTimeEntry, deleteTimeEntry, fetchHours } = useTeam()
   const [showInvite, setShowInvite] = useState(false)
+
+  if (!isPro) {
+    return (
+      <AppShell>
+        <TopHeader title="Team" />
+        <PageContainer>
+          <UpgradePrompt
+            feature="Team management"
+            description="Invite team members, track their hours, and control what they can see and do."
+          />
+        </PageContainer>
+      </AppShell>
+    )
+  }
   const [showLogHours, setShowLogHours] = useState(false)
   const [expandedMember, setExpandedMember] = useState<string | null>(null)
   const [savingPerms, setSavingPerms] = useState<string | null>(null)

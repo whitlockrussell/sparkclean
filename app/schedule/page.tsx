@@ -19,9 +19,11 @@ import { InvoiceForm } from '@/components/invoices/InvoiceForm'
 import { useAppointments } from '@/lib/hooks/useAppointments'
 import { useClients } from '@/lib/hooks/useClients'
 import { useInvoices } from '@/lib/hooks/useInvoices'
+import { usePlan } from '@/lib/hooks/usePlan'
 import type { NewInvoice } from '@/lib/hooks/useInvoices'
-import { CalendarDays, Plus, Clock, MapPin, RefreshCw, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { CalendarDays, Plus, Clock, MapPin, RefreshCw, ChevronLeft, ChevronRight, X, Lock } from 'lucide-react'
 import type { Appointment, NewAppointment } from '@/lib/types'
+import Link from 'next/link'
 
 // ── calendar constants ────────────────────────────────────────────────────────
 
@@ -212,6 +214,7 @@ export default function SchedulePage() {
   const { appointments, loading, error, addAppointment, updateAppointment, convertToRecurring, updateFutureAppointments, moveFutureAppointments, deleteAppointment, deleteFutureAppointments } = useAppointments()
   const { clients } = useClients()
   const { createInvoice } = useInvoices()
+  const { isPro } = usePlan()
 
   const [view, setView]           = useState<'list' | 'week'>('list')
   const [weekStart, setWeekStart] = useState(getWeekStart)
@@ -517,12 +520,21 @@ export default function SchedulePage() {
           <>
             {/* View toggle */}
             <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 mb-4">
-              {(['list', 'week'] as const).map(v => (
-                <button key={v} onClick={() => setView(v)}
-                  className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${view === v ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
-                  {v === 'list' ? '≡ List' : '📅 Week'}
+              <button onClick={() => setView('list')}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${view === 'list' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
+                ≡ List
+              </button>
+              {isPro ? (
+                <button onClick={() => setView('week')}
+                  className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${view === 'week' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
+                  📅 Week
                 </button>
-              ))}
+              ) : (
+                <Link href="/upgrade" className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium text-slate-400 dark:text-slate-600 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+                  <Lock className="w-3 h-3" strokeWidth={2} />
+                  Week
+                </Link>
+              )}
             </div>
 
             {view === 'list' ? (
@@ -811,6 +823,7 @@ export default function SchedulePage() {
 
       {showForm && (
         <AppointmentForm clients={clients} appointment={editingAppt}
+          isPro={isPro}
           onSave={editingAppt ? handleEdit : handleAdd} onClose={closeForm}
           onDelete={editingAppt ? handleDelete : undefined} />
       )}

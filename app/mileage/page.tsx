@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { PageSkeleton } from '@/components/ui/Skeleton'
 import { useMileage, calcDeduction, tripDeduction, CRA_RATE_TIER1, CRA_KM_THRESHOLD } from '@/lib/hooks/useMileage'
+import { usePlan } from '@/lib/hooks/usePlan'
+import { UpgradePrompt } from '@/components/ui/UpgradePrompt'
 import { Car, Plus, Trash2, Pencil, MapPin, X } from 'lucide-react'
 import type { MileageLog, NewMileageLog } from '@/lib/types'
 
@@ -171,9 +173,24 @@ function TripForm({ log, onSave, onClose, onDelete }: {
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function MileagePage() {
+  const { isPro } = usePlan()
   const { logs, loading, error, addLog, updateLog, deleteLog } = useMileage()
   const [showForm, setShowForm]   = useState(false)
   const [editing, setEditing]     = useState<MileageLog | undefined>()
+
+  if (!isPro) {
+    return (
+      <AppShell>
+        <TopHeader title="Mileage" />
+        <PageContainer>
+          <UpgradePrompt
+            feature="Mileage tracker"
+            description="Track business km for CRA deductions. Every km logged saves you money at tax time."
+          />
+        </PageContainer>
+      </AppShell>
+    )
+  }
 
   const totalKm     = logs.reduce((s, l) => s + l.km, 0)
   const deduction   = calcDeduction(logs)

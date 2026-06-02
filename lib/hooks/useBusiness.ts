@@ -21,6 +21,11 @@ export type Business = {
   hourly_rate: number
   team_mode: boolean
   logo_url: string | null
+  plan: 'free' | 'pro'
+  stripe_customer_id: string | null
+  stripe_subscription_id: string | null
+  subscription_status: string | null
+  current_period_end: string | null
 }
 
 export type BusinessUpdate = Partial<Omit<Business, 'id' | 'user_id'>>

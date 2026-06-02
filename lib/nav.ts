@@ -11,7 +11,15 @@ import {
   Calculator,
 } from 'lucide-react'
 
-export const navItems = [
+export type NavItem = {
+  label: string
+  href: string
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>
+  mobileOrder: number
+  proOnly?: boolean
+}
+
+export const navItems: NavItem[] = [
   {
     label: 'Today',
     href: '/today',
@@ -35,6 +43,7 @@ export const navItems = [
     href: '/estimates',
     icon: Calculator,
     mobileOrder: 4,
+    proOnly: true,
   },
   {
     label: 'Invoices',
@@ -53,12 +62,14 @@ export const navItems = [
     href: '/mileage',
     icon: Car,
     mobileOrder: 7,
+    proOnly: true,
   },
   {
     label: 'Team',
     href: '/team',
     icon: UsersRound,
     mobileOrder: 8,
+    proOnly: true,
   },
   {
     label: 'Reports',

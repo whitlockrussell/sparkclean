@@ -8,10 +8,12 @@ import { StatCard } from '@/components/ui/StatCard'
 import { Card } from '@/components/ui/Card'
 import { PageSkeleton } from '@/components/ui/Skeleton'
 import { createClient } from '@/lib/supabase/client'
-import { DollarSign, TrendingUp, Receipt, BarChart2, Car, Download } from 'lucide-react'
+import { DollarSign, TrendingUp, Receipt, BarChart2, Car, Download, Lock } from 'lucide-react'
 import { CRA_RATE_TIER1, CRA_RATE_TIER2, CRA_KM_THRESHOLD } from '@/lib/hooks/useMileage'
 import type { MileageLog } from '@/lib/types'
 import type { Business } from '@/lib/hooks/useBusiness'
+import { usePlan } from '@/lib/hooks/usePlan'
+import Link from 'next/link'
 
 // ── types ─────────────────────────────────────────────────────────────────────
 
@@ -102,6 +104,7 @@ function calcMileageDeduction(logs: MileageLog[], priorKm = 0): number {
 export default function ReportsPage() {
   const supabase = createClient()
 
+  const { isPro } = usePlan()
   const [mode, setMode]           = useState<'quarterly' | 'annual'>('quarterly')
   const [quarter, setQuarter]     = useState(getCurrentQuarter())
   const [annualYear, setAnnualYear] = useState(new Date().getFullYear())
@@ -293,14 +296,24 @@ export default function ReportsPage() {
         title="Reports"
         subtitle={subtitle}
         action={canExport ? (
-          <button
-            onClick={handleExport}
-            disabled={exporting}
-            className="flex items-center gap-1.5 text-xs font-semibold text-teal-600 border border-teal-200 bg-teal-50 hover:bg-teal-100 disabled:opacity-50 rounded-xl px-3 py-1.5 transition-colors"
-          >
-            <Download className="w-3.5 h-3.5" />
-            {exporting ? 'Generating…' : 'Export PDF'}
-          </button>
+          isPro ? (
+            <button
+              onClick={handleExport}
+              disabled={exporting}
+              className="flex items-center gap-1.5 text-xs font-semibold text-teal-600 border border-teal-200 bg-teal-50 hover:bg-teal-100 disabled:opacity-50 rounded-xl px-3 py-1.5 transition-colors"
+            >
+              <Download className="w-3.5 h-3.5" />
+              {exporting ? 'Generating…' : 'Export PDF'}
+            </button>
+          ) : (
+            <Link
+              href="/upgrade"
+              className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 border border-slate-200 bg-slate-50 hover:bg-slate-100 rounded-xl px-3 py-1.5 transition-colors"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              Export PDF
+            </Link>
+          )
         ) : undefined}
       />
       <PageContainer>

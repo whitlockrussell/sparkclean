@@ -2,13 +2,15 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
-import { X, Trash2, MapPin } from 'lucide-react'
+import { X, Trash2, MapPin, Lock } from 'lucide-react'
 import type { Appointment, NewAppointment, Client } from '@/lib/types'
+import Link from 'next/link'
 
 interface AppointmentFormProps {
   clients: Client[]
   appointment?: Appointment
   defaultClientId?: string
+  isPro?: boolean
   onSave: (data: NewAppointment) => Promise<void>
   onClose: () => void
   onDelete?: () => Promise<void>
@@ -31,6 +33,7 @@ export function AppointmentForm({
   clients,
   appointment,
   defaultClientId,
+  isPro = false,
   onSave,
   onClose,
   onDelete,
@@ -224,20 +227,28 @@ export function AppointmentForm({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-700">Recurring job</p>
-                <p className="text-xs text-slate-400">Repeats automatically</p>
+                <p className="text-xs text-slate-400">
+                  {isPro ? 'Repeats automatically' : (
+                    <Link href="/upgrade" className="text-teal-600 font-medium">Pro feature · Upgrade</Link>
+                  )}
+                </p>
               </div>
-              <label className="relative inline-block w-11 h-6 flex-shrink-0 cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="sr-only peer"
-                  checked={!!form.is_recurring}
-                  onChange={() => {
-                    const next = !form.is_recurring
-                    setForm(prev => ({ ...prev, is_recurring: next, recurrence_rule: next && !prev.recurrence_rule ? 'weekly' : prev.recurrence_rule }))
-                  }}
-                />
-                <span className="absolute inset-0 rounded-full bg-slate-300 transition-all duration-200 peer-checked:bg-teal-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:w-5 after:h-5 after:bg-white after:rounded-full after:shadow-sm after:transition-all after:duration-200 peer-checked:after:left-[22px]" />
-              </label>
+              {isPro ? (
+                <label className="relative inline-block w-11 h-6 flex-shrink-0 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={!!form.is_recurring}
+                    onChange={() => {
+                      const next = !form.is_recurring
+                      setForm(prev => ({ ...prev, is_recurring: next, recurrence_rule: next && !prev.recurrence_rule ? 'weekly' : prev.recurrence_rule }))
+                    }}
+                  />
+                  <span className="absolute inset-0 rounded-full bg-slate-300 transition-all duration-200 peer-checked:bg-teal-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:w-5 after:h-5 after:bg-white after:rounded-full after:shadow-sm after:transition-all after:duration-200 peer-checked:after:left-[22px]" />
+                </label>
+              ) : (
+                <Lock className="w-4 h-4 text-slate-300" strokeWidth={2} />
+              )}
             </div>
 
             {form.is_recurring && (

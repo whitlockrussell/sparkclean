@@ -3,10 +3,12 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { navItems } from '@/lib/nav'
-import { Sparkles } from 'lucide-react'
+import { Sparkles, Lock } from 'lucide-react'
+import { usePlan } from '@/lib/hooks/usePlan'
 
 export function Sidebar() {
   const pathname = usePathname()
+  const { isPro, plan } = usePlan()
 
   return (
     <aside className="hidden lg:flex flex-col w-56 min-h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 fixed left-0 top-0 z-30">
@@ -25,7 +27,26 @@ export function Sidebar() {
       <nav className="flex-1 px-3 py-4 space-y-0.5">
         {navItems.map((item) => {
           const active = pathname === item.href || pathname.startsWith(item.href + '/')
+          const locked = item.proOnly && !isPro
           const Icon = item.icon
+
+          if (locked) {
+            return (
+              <Link
+                key={item.href}
+                href="/upgrade"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 text-slate-400 dark:text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-500"
+              >
+                <Icon
+                  className="w-[18px] h-[18px] flex-shrink-0 text-slate-300 dark:text-slate-700"
+                  strokeWidth={1.8}
+                />
+                <span className="flex-1">{item.label}</span>
+                <Lock className="w-3 h-3 text-slate-300 dark:text-slate-600" strokeWidth={2} />
+              </Link>
+            )
+          }
+
           return (
             <Link
               key={item.href}
@@ -54,9 +75,18 @@ export function Sidebar() {
           <div className="w-7 h-7 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0">
             <span className="text-xs font-semibold text-teal-700">R</span>
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">My Business</p>
-            <p className="text-[11px] text-slate-400 truncate">Free plan</p>
+            {isPro ? (
+              <p className="text-[11px] text-teal-600 font-medium truncate flex items-center gap-1">
+                <Sparkles className="w-2.5 h-2.5" />
+                Pro plan
+              </p>
+            ) : (
+              <Link href="/upgrade" className="text-[11px] text-slate-400 hover:text-teal-500 transition-colors truncate block">
+                Free plan · Upgrade
+              </Link>
+            )}
           </div>
         </div>
       </div>

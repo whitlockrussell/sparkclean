@@ -29,7 +29,9 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/login') ||
     pathname.startsWith('/signup') ||
     pathname.startsWith('/member') ||
-    pathname.startsWith('/auth')
+    pathname.startsWith('/auth') ||
+    pathname.startsWith('/upgrade') ||
+    pathname.startsWith('/api/stripe/webhook')
 
   // Not logged in — redirect to login
   if (!user && !isPublic) {

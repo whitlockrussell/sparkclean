@@ -13,8 +13,10 @@ import { InvoiceForm } from '@/components/invoices/InvoiceForm'
 import { EditInvoiceForm } from '@/components/invoices/EditInvoiceForm'
 import { useInvoices } from '@/lib/hooks/useInvoices'
 import { useClients } from '@/lib/hooks/useClients'
+import { usePlan } from '@/lib/hooks/usePlan'
 import { createClient } from '@/lib/supabase/client'
-import { FileText, Plus, CheckCircle, Send, Download, Pencil, RotateCcw } from 'lucide-react'
+import { FileText, Plus, CheckCircle, Send, Download, Pencil, RotateCcw, Lock } from 'lucide-react'
+import Link from 'next/link'
 import type { Invoice } from '@/lib/types'
 import type { NewInvoice } from '@/lib/hooks/useInvoices'
 
@@ -40,6 +42,7 @@ function formatDate(dateStr: string | null) {
 export default function InvoicesPage() {
   const { invoices, loading, error, createInvoice, markPaid, markUnpaid, markSent, refetch } = useInvoices()
   const { clients } = useClients()
+  const { isPro } = usePlan()
   const supabase = createClient()
   const [showForm, setShowForm] = useState(false)
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null)
@@ -178,17 +181,26 @@ export default function InvoicesPage() {
                   </div>
 
                   <div className="flex gap-2 mt-3 pt-3 border-t border-slate-100 flex-wrap">
-                    <a
-                      href={`/invoices/${inv.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={e => e.stopPropagation()}
-                    >
-                      <Button size="sm" variant="ghost">
-                        <Download className="w-3 h-3" />
-                        PDF
-                      </Button>
-                    </a>
+                    {isPro ? (
+                      <a
+                        href={`/invoices/${inv.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={e => e.stopPropagation()}
+                      >
+                        <Button size="sm" variant="ghost">
+                          <Download className="w-3 h-3" />
+                          PDF
+                        </Button>
+                      </a>
+                    ) : (
+                      <Link href="/upgrade" onClick={e => e.stopPropagation()}>
+                        <Button size="sm" variant="ghost" className="text-slate-400">
+                          <Lock className="w-3 h-3" />
+                          PDF
+                        </Button>
+                      </Link>
+                    )}
 
                     {inv.status !== 'paid' && inv.status !== 'cancelled' && (
                       <Button

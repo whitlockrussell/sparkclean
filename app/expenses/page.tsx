@@ -11,6 +11,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { PageSkeleton } from '@/components/ui/Skeleton'
 import { ExpenseForm } from '@/components/expenses/ExpenseForm'
 import { useExpenses } from '@/lib/hooks/useExpenses'
+import { usePlan } from '@/lib/hooks/usePlan'
 import { Receipt, Plus, Pencil, Trash2 } from 'lucide-react'
 import type { Expense, NewExpense } from '@/lib/types'
 
@@ -56,6 +57,7 @@ function formatMonth(monthStr: string) {
 
 export default function ExpensesPage() {
   const { expenses, loading, error, addExpense, updateExpense, deleteExpense } = useExpenses()
+  const { isPro } = usePlan()
   const [showForm, setShowForm] = useState(false)
   const [editingExpense, setEditingExpense] = useState<Expense | undefined>()
 
@@ -186,6 +188,7 @@ export default function ExpensesPage() {
       {showForm && (
         <ExpenseForm
           expense={editingExpense}
+          isPro={isPro}
           onSave={editingExpense ? handleEdit : handleAdd}
           onClose={closeForm}
         />

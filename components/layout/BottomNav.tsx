@@ -4,18 +4,16 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { navItems } from '@/lib/nav'
 import { useState } from 'react'
-import { MoreHorizontal, X } from 'lucide-react'
+import { MoreHorizontal, X, Lock } from 'lucide-react'
+import { usePlan } from '@/lib/hooks/usePlan'
 
-const mainItems = navItems
-  .sort((a, b) => a.mobileOrder - b.mobileOrder)
-  .slice(0, 4)
-
-const moreItems = navItems
-  .sort((a, b) => a.mobileOrder - b.mobileOrder)
-  .slice(4)
+const sorted = [...navItems].sort((a, b) => a.mobileOrder - b.mobileOrder)
+const mainItems = sorted.slice(0, 4)
+const moreItems = sorted.slice(4)
 
 export function BottomNav() {
   const pathname = usePathname()
+  const { isPro } = usePlan()
   const [showMore, setShowMore] = useState(false)
 
   const isMoreActive = moreItems.some(
@@ -47,7 +45,24 @@ export function BottomNav() {
             <div className="grid grid-cols-3 gap-3">
               {moreItems.map(item => {
                 const active = pathname === item.href || pathname.startsWith(item.href + '/')
+                const locked = item.proOnly && !isPro
                 const Icon = item.icon
+
+                if (locked) {
+                  return (
+                    <Link
+                      key={item.href}
+                      href="/upgrade"
+                      onClick={() => setShowMore(false)}
+                      className="relative flex flex-col items-center justify-center gap-1.5 py-4 rounded-2xl bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-600"
+                    >
+                      <Icon className="w-5 h-5 opacity-40" strokeWidth={1.8} />
+                      <span className="text-xs font-medium opacity-40">{item.label}</span>
+                      <Lock className="absolute top-2 right-2 w-3 h-3 text-slate-400 dark:text-slate-500" strokeWidth={2} />
+                    </Link>
+                  )
+                }
+
                 return (
                   <Link
                     key={item.href}

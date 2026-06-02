@@ -14,6 +14,8 @@ import { useEstimates } from '@/lib/hooks/useEstimates'
 import { useClients } from '@/lib/hooks/useClients'
 import { useInvoices } from '@/lib/hooks/useInvoices'
 import { useBusiness } from '@/lib/hooks/useBusiness'
+import { usePlan } from '@/lib/hooks/usePlan'
+import { UpgradePrompt } from '@/components/ui/UpgradePrompt'
 import { Calculator, Plus, Download, CheckCircle, XCircle, RotateCcw, FileText, Trash2 } from 'lucide-react'
 import type { Estimate } from '@/lib/types'
 
@@ -61,10 +63,25 @@ function formatDate(dateStr: string | null) {
 }
 
 export default function EstimatesPage() {
+  const { isPro } = usePlan()
   const { estimates, loading, error, createEstimate, updateEstimate, markAccepted, markDeclined, markPending, deleteEstimate, refetch } = useEstimates()
   const { clients } = useClients()
   const { createInvoice } = useInvoices()
   const { business } = useBusiness()
+
+  if (!isPro) {
+    return (
+      <AppShell>
+        <TopHeader title="Estimates" />
+        <PageContainer>
+          <UpgradePrompt
+            feature="Estimates"
+            description="Create professional price quotes and send them to potential clients before they book."
+          />
+        </PageContainer>
+      </AppShell>
+    )
+  }
   const [showForm, setShowForm] = useState(false)
   const [editEstimate, setEditEstimate] = useState<Estimate | null>(null)
   const [tab, setTab] = useState<Tab>('all')

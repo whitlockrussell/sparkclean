@@ -8,15 +8,17 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { useBusiness } from '@/lib/hooks/useBusiness'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
-import { Building2, FileText, LogOut, Save, ChevronDown, ChevronUp, Camera, X, Moon, Calculator } from 'lucide-react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Building2, FileText, LogOut, Save, ChevronDown, ChevronUp, Camera, X, Moon, Calculator, Sparkles, CreditCard } from 'lucide-react'
 import type { BusinessUpdate } from '@/lib/hooks/useBusiness'
 import { useTheme } from '@/components/ThemeProvider'
+import { usePlan } from '@/lib/hooks/usePlan'
 
 const provinces = ['AB','BC','MB','NB','NL','NS','NT','NU','ON','PE','QC','SK','YT']
 
 export default function SettingsPage() {
   const { business, loading, saveBusiness } = useBusiness()
+  const { isPro, plan, currentPeriodEnd } = usePlan()
   const { theme, toggle: toggleTheme } = useTheme()
   const [openSection, setOpenSection] = useState<string | null>('business')
   const [saving, setSaving] = useState(false)
@@ -24,8 +26,11 @@ export default function SettingsPage() {
   const [error, setError] = useState<string | null>(null)
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
+  const [portalLoading, setPortalLoading] = useState(false)
   const logoInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const justUpgraded = searchParams.get('upgraded') === '1'
   const supabase = createClient()
 
   const [form, setForm] = useState<BusinessUpdate>({
@@ -123,6 +128,20 @@ export default function SettingsPage() {
     router.push('/login')
   }
 
+  const handleManageBilling = async () => {
+    setPortalLoading(true)
+    try {
+      const res = await fetch('/api/stripe/portal', { method: 'POST' })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error ?? 'Failed to open billing portal')
+      window.location.href = json.url
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Something went wrong')
+    } finally {
+      setPortalLoading(false)
+    }
+  }
+
   const toggle = (section: string) =>
     setOpenSection(prev => prev === section ? null : section)
 
@@ -146,6 +165,16 @@ export default function SettingsPage() {
     <AppShell>
       <TopHeader title="Settings" />
       <PageContainer>
+
+        {justUpgraded && (
+          <div className="flex items-center gap-3 bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 rounded-2xl px-4 py-3.5 mb-4">
+            <Sparkles className="w-5 h-5 text-teal-500 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-semibold text-teal-800 dark:text-teal-300">Welcome to Pro!</p>
+              <p className="text-xs text-teal-600 dark:text-teal-400">All features are now unlocked.</p>
+            </div>
+          </div>
+        )}
 
         {/* Appearance */}
         <div className="mb-4">
@@ -374,6 +403,49 @@ export default function SettingsPage() {
                 </div>
               </div>
             )}
+          </Card>
+        </div>
+
+        {/* Billing */}
+        <div className="mb-4">
+          <h2 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">Billing</h2>
+          <Card>
+            <div className="flex items-center gap-3 px-4 py-3.5">
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${isPro ? 'bg-teal-50 dark:bg-teal-900/30' : 'bg-slate-100 dark:bg-slate-800'}`}>
+                {isPro
+                  ? <Sparkles className="w-4 h-4 text-teal-500" strokeWidth={1.8} />
+                  : <CreditCard className="w-4 h-4 text-slate-400" strokeWidth={1.8} />
+                }
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                  {isPro ? 'Pro plan' : 'Free plan'}
+                </p>
+                {isPro && currentPeriodEnd ? (
+                  <p className="text-xs text-slate-400">
+                    Renews {new Date(currentPeriodEnd).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </p>
+                ) : (
+                  <p className="text-xs text-slate-400">Up to 5 clients · limited features</p>
+                )}
+              </div>
+              {isPro ? (
+                <button
+                  onClick={handleManageBilling}
+                  disabled={portalLoading}
+                  className="text-xs font-medium text-teal-600 hover:text-teal-700 transition-colors disabled:opacity-50 flex-shrink-0"
+                >
+                  {portalLoading ? 'Loading…' : 'Manage'}
+                </button>
+              ) : (
+                <a
+                  href="/upgrade"
+                  className="text-xs font-semibold text-white bg-teal-500 hover:bg-teal-600 transition-colors rounded-lg px-3 py-1.5 flex-shrink-0"
+                >
+                  Upgrade
+                </a>
+              )}
+            </div>
           </Card>
         </div>
 

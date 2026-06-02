@@ -11,11 +11,14 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { PageSkeleton } from '@/components/ui/Skeleton'
 import { ClientForm } from '@/components/clients/ClientForm'
 import { useClients } from '@/lib/hooks/useClients'
-import { Users, Plus, Phone, ChevronRight, Search } from 'lucide-react'
+import { usePlan } from '@/lib/hooks/usePlan'
+import { Users, Plus, Phone, ChevronRight, Search, Lock } from 'lucide-react'
 import type { Client, NewClient } from '@/lib/types'
+import Link from 'next/link'
 
 export default function ClientsPage() {
   const { clients, loading, error, addClient, updateClient, deleteClient } = useClients()
+  const { isPro } = usePlan()
   const [showForm, setShowForm] = useState(false)
   const [editingClient, setEditingClient] = useState<Client | undefined>()
   const [search, setSearch] = useState('')
@@ -58,14 +61,33 @@ export default function ClientsPage() {
         title="Clients"
         subtitle={loading ? '' : `${clients.length} active client${clients.length !== 1 ? 's' : ''}`}
         action={
-          <Button size="sm" onClick={() => setShowForm(true)}>
-            <Plus className="w-3.5 h-3.5" />
-            Add client
-          </Button>
+          !isPro && clients.length >= 5 ? (
+            <Link href="/upgrade">
+              <Button size="sm" variant="secondary">
+                <Lock className="w-3.5 h-3.5" />
+                5/5 clients
+              </Button>
+            </Link>
+          ) : (
+            <Button size="sm" onClick={() => setShowForm(true)}>
+              <Plus className="w-3.5 h-3.5" />
+              Add client
+            </Button>
+          )
         }
       />
 
       <PageContainer>
+        {!isPro && clients.length >= 5 && (
+          <div className="flex items-center gap-2 text-sm text-amber-800 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl px-3 py-2.5 mb-4">
+            <Lock className="w-3.5 h-3.5 flex-shrink-0 text-amber-600" />
+            <span className="flex-1">You&apos;ve reached the 5 client limit on the free plan.</span>
+            <Link href="/upgrade" className="text-xs font-semibold text-teal-600 hover:text-teal-700 whitespace-nowrap">
+              Upgrade →
+            </Link>
+          </div>
+        )}
+
         {/* Search */}
         {clients.length > 0 && (
           <div className="relative mb-4">

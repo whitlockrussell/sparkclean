@@ -2,12 +2,14 @@
 
 import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/Button'
-import { X, Camera, Sparkles } from 'lucide-react'
+import { X, Camera, Sparkles, Lock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Expense, NewExpense } from '@/lib/types'
+import Link from 'next/link'
 
 interface ExpenseFormProps {
   expense?: Expense
+  isPro?: boolean
   onSave: (data: NewExpense) => Promise<void>
   onClose: () => void
 }
@@ -65,7 +67,7 @@ function resizeImage(file: File): Promise<{ base64: string; mediaType: string }>
   })
 }
 
-export function ExpenseForm({ expense, onSave, onClose }: ExpenseFormProps) {
+export function ExpenseForm({ expense, isPro = false, onSave, onClose }: ExpenseFormProps) {
   const [form, setForm] = useState<NewExpense>(
     expense ? {
       description: expense.description,
@@ -219,24 +221,34 @@ export function ExpenseForm({ expense, onSave, onClose }: ExpenseFormProps) {
                     <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={scanReceiptWithAI}
-                  disabled={scanningReceipt || uploadingReceipt}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-teal-50 border border-teal-200 text-teal-700 text-sm font-medium hover:bg-teal-100 transition-colors disabled:opacity-50"
-                >
-                  {scanningReceipt ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
-                      Reading receipt with AI…
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4" />
-                      Auto-fill from receipt
-                    </>
-                  )}
-                </button>
+                {isPro ? (
+                  <button
+                    type="button"
+                    onClick={scanReceiptWithAI}
+                    disabled={scanningReceipt || uploadingReceipt}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-teal-50 border border-teal-200 text-teal-700 text-sm font-medium hover:bg-teal-100 transition-colors disabled:opacity-50"
+                  >
+                    {scanningReceipt ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
+                        Reading receipt with AI…
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4" />
+                        Auto-fill from receipt
+                      </>
+                    )}
+                  </button>
+                ) : (
+                  <Link
+                    href="/upgrade"
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 text-sm font-medium hover:bg-slate-100 transition-colors"
+                  >
+                    <Lock className="w-4 h-4" />
+                    Auto-fill from receipt · Pro only
+                  </Link>
+                )}
                 {error && (
                   <p className="text-sm text-red-500 bg-red-50 rounded-xl px-3 py-2">{error}</p>
                 )}
