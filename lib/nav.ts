@@ -31,15 +31,15 @@ export const navItems = [
     mobileOrder: 3,
   },
   {
-    label: 'Invoices',
-    href: '/invoices',
-    icon: FileText,
-    mobileOrder: 4,
-  },
-  {
     label: 'Estimates',
     href: '/estimates',
     icon: Calculator,
+    mobileOrder: 4,
+  },
+  {
+    label: 'Invoices',
+    href: '/invoices',
+    icon: FileText,
     mobileOrder: 5,
   },
   {
@@ -49,21 +49,21 @@ export const navItems = [
     mobileOrder: 6,
   },
   {
+    label: 'Mileage',
+    href: '/mileage',
+    icon: Car,
+    mobileOrder: 7,
+  },
+  {
     label: 'Team',
     href: '/team',
     icon: UsersRound,
-    mobileOrder: 7,
+    mobileOrder: 8,
   },
   {
     label: 'Reports',
     href: '/reports',
     icon: BarChart2,
-    mobileOrder: 8,
-  },
-  {
-    label: 'Mileage',
-    href: '/mileage',
-    icon: Car,
     mobileOrder: 9,
   },
   {
