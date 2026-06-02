@@ -36,16 +36,18 @@ function getGreeting() {
   return 'Good evening'
 }
 
+function localDateStr(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 function getWeekRange() {
   const now = new Date()
   const day = now.getDay()
-  const monday = new Date(now)
-  monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1))
-  const sunday = new Date(monday)
-  sunday.setDate(monday.getDate() + 6)
+  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (day === 0 ? 6 : day - 1))
+  const sunday = new Date(now.getFullYear(), now.getMonth(), monday.getDate() + 6)
   return {
-    weekStart: monday.toISOString().split('T')[0],
-    weekEnd: sunday.toISOString().split('T')[0],
+    weekStart: localDateStr(monday),
+    weekEnd: localDateStr(sunday),
   }
 }
 
@@ -63,7 +65,7 @@ export default function TodayPage() {
   const [renewClientId, setRenewClientId] = useState<string | null>(null)
   const supabase = createClient()
 
-  const todayStr = new Date().toISOString().split('T')[0]
+  const todayStr = localDateStr(new Date())
   const todayLabel = new Date().toLocaleDateString('en-CA', {
     weekday: 'long', month: 'long', day: 'numeric',
   })

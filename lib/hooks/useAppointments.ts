@@ -6,6 +6,10 @@ import type { Appointment, NewAppointment } from '@/lib/types'
 
 const CLIENT_SELECT = `*, clients(first_name, last_name, address, city, notes)`
 
+function localDateStr(d = new Date()): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 function generateOccurrenceDates(
   start: string,
   rule: 'weekly' | 'biweekly' | 'monthly',
@@ -52,7 +56,7 @@ export function useAppointments() {
         )
       `)
       .neq('status', 'cancelled')
-      .gte('scheduled_date', new Date().toISOString().split('T')[0])
+      .gte('scheduled_date', localDateStr())
       .order('scheduled_date', { ascending: true })
       .order('start_time', { ascending: true })
 
@@ -65,7 +69,7 @@ export function useAppointments() {
   }, [])
 
   const fetchToday = useCallback(async () => {
-    const today = new Date().toISOString().split('T')[0]
+    const today = localDateStr()
     const { data, error } = await supabase
       .from('appointments')
       .select(`
