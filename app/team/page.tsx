@@ -83,10 +83,10 @@ function PermRow({ label, sub, checked, onChange }: {
   label: string; sub?: string; checked: boolean; onChange: (v: boolean) => void
 }) {
   return (
-    <div className="flex items-center py-2.5 border-b border-slate-100 last:border-0 gap-3">
+    <div className="flex items-center py-2.5 border-b border-slate-100 dark:border-slate-800 last:border-0 gap-3">
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-slate-700">{label}</p>
-        {sub && <p className="text-[11px] text-slate-400">{sub}</p>}
+        <p className="text-sm text-slate-700 dark:text-slate-200">{label}</p>
+        {sub && <p className="text-[11px] text-slate-400 dark:text-gray-400">{sub}</p>}
       </div>
       <button
         type="button"
@@ -386,8 +386,8 @@ export default function TeamPage() {
                     <div className="flex items-center justify-between mb-4">
                       <button onClick={prevWeek} className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100"><ChevronLeft className="w-4 h-4" /></button>
                       <div className="text-center">
-                        <p className="text-sm font-semibold text-slate-900">{formatWeekLabel(weekStart)}</p>
-                        <p className="text-xs text-slate-400">{formatHours(totalHoursThisWeek)} total</p>
+                        <p className="text-sm font-semibold text-slate-900 dark:text-white">{formatWeekLabel(weekStart)}</p>
+                        <p className="text-xs text-slate-400 dark:text-slate-500">{formatHours(totalHoursThisWeek)} total</p>
                       </div>
                       <button onClick={nextWeek} className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100"><ChevronRight className="w-4 h-4" /></button>
                     </div>
@@ -402,18 +402,18 @@ export default function TeamPage() {
                               </span>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-slate-900 text-[15px]">{member.full_name}</p>
+                              <p className="font-semibold text-slate-900 dark:text-white text-[15px]">{member.full_name}</p>
                               <div className="flex items-center gap-2">
-                                <p className="text-xs text-slate-400">{!member.invite_accepted ? '⏳ Pending' : '✓ Active'}</p>
+                                <p className="text-xs text-slate-400 dark:text-slate-400">{!member.invite_accepted ? '⏳ Pending' : '✓ Active'}</p>
                                 {member.permissions.can_clock_self
                                   ? <span className="text-[10px] bg-teal-50 text-teal-600 px-1.5 py-0.5 rounded-full">Self-clocking</span>
-                                  : <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full">Owner tracks</span>
+                                  : <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded-full">Owner tracks</span>
                                 }
                               </div>
                             </div>
                             <div className="text-right flex-shrink-0">
                               <p className="text-xl font-semibold text-teal-600">{formatHours(total)}</p>
-                              <p className="text-[10px] text-slate-400">hrs this week</p>
+                              <p className="text-[10px] text-slate-400 dark:text-slate-500">hrs this week</p>
                             </div>
                           </div>
 
@@ -424,7 +424,7 @@ export default function TeamPage() {
                               const dayHours = dayManual + dayClock
                               return (
                                 <div key={date} className="text-center">
-                                  <p className="text-[10px] text-slate-400 mb-1">{days[i]}</p>
+                                  <p className="text-[10px] text-slate-400 dark:text-slate-500 mb-1">{days[i]}</p>
                                   <div className={`text-xs font-medium rounded-lg py-1 ${dayHours > 0 ? 'bg-teal-50 text-teal-700' : 'text-slate-300'}`}>
                                     {dayHours > 0 ? formatHours(dayHours) : '–'}
                                   </div>
@@ -476,8 +476,8 @@ export default function TeamPage() {
                               </span>
                             </div>
                             <div className="flex-1 text-left min-w-0">
-                              <p className="text-sm font-medium text-slate-800">{member.full_name}</p>
-                              <p className="text-xs text-slate-400 truncate">{member.email}</p>
+                              <p className="text-sm font-medium text-slate-800 dark:text-slate-100">{member.full_name}</p>
+                              <p className="text-xs text-slate-400 dark:text-slate-500 truncate">{member.email}</p>
                             </div>
                             <div className="flex items-center gap-2 flex-shrink-0">
                               {member.invite_accepted ? <Badge variant="green">Active</Badge> : <Badge variant="amber">Pending</Badge>}
@@ -486,24 +486,24 @@ export default function TeamPage() {
                           </button>
 
                           {isExpanded && (
-                            <div className="px-4 pb-4 border-t border-slate-100 pt-4">
+                            <div className="px-4 pb-4 border-t border-slate-100 dark:border-slate-800 pt-4">
                               <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 mb-4">
                                 <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2">⏱ Hours tracking</p>
                                 <PermRow label="Can clock in/out themselves" sub="Helper sees Clock in/Clock out buttons" checked={perms.can_clock_self} onChange={v => setPermField(member.id, 'can_clock_self', v)} />
                                 <PermRow label="Can view own hours" sub="Helper can see their logged hours" checked={perms.view_own_hours} onChange={v => setPermField(member.id, 'view_own_hours', v)} />
                               </div>
 
-                              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Schedule</p>
+                              <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Schedule</p>
                               <PermRow label="View today's jobs" sub="See assigned jobs for the day" checked={perms.view_today} onChange={v => setPermField(member.id, 'view_today', v)} />
                               <PermRow label="View upcoming schedule" checked={perms.view_schedule} onChange={v => setPermField(member.id, 'view_schedule', v)} />
                               <PermRow label="Mark job as done" checked={perms.mark_job_done} onChange={v => setPermField(member.id, 'mark_job_done', v)} />
 
-                              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-3 mb-2">Clients</p>
+                              <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mt-3 mb-2">Clients</p>
                               <PermRow label="View job address" checked={perms.view_address} onChange={v => setPermField(member.id, 'view_address', v)} />
                               <PermRow label="View client contact info" sub="Phone and email" checked={perms.view_contact_info} onChange={v => setPermField(member.id, 'view_contact_info', v)} />
                               <PermRow label="View job notes" checked={perms.view_job_notes} onChange={v => setPermField(member.id, 'view_job_notes', v)} />
 
-                              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-3 mb-2">Financial</p>
+                              <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mt-3 mb-2">Financial</p>
                               <PermRow label="View job price" checked={perms.view_job_price} onChange={v => setPermField(member.id, 'view_job_price', v)} />
                               <PermRow label="View invoices" checked={perms.view_invoices} onChange={v => setPermField(member.id, 'view_invoices', v)} />
                               <PermRow label="View expenses" checked={perms.view_expenses} onChange={v => setPermField(member.id, 'view_expenses', v)} />
