@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Appointment, NewAppointment } from '@/lib/types'
 
-const CLIENT_SELECT = `*, clients(first_name, last_name, address, city, notes)`
+const CLIENT_SELECT = `*, clients(first_name, last_name, address, city, notes, phone)`
 
 function localDateStr(d = new Date()): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
