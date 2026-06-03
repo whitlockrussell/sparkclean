@@ -21,7 +21,8 @@ import { useClients } from '@/lib/hooks/useClients'
 import { useInvoices } from '@/lib/hooks/useInvoices'
 import { usePlan } from '@/lib/hooks/usePlan'
 import type { NewInvoice } from '@/lib/hooks/useInvoices'
-import { CalendarDays, Plus, Clock, MapPin, RefreshCw, ChevronLeft, ChevronRight, X, Lock } from 'lucide-react'
+import { CalendarDays, Plus, Clock, RefreshCw, ChevronLeft, ChevronRight, X, Lock } from 'lucide-react'
+import { PhoneLink } from '@/components/ui/PhoneLink'
 import type { Appointment, NewAppointment } from '@/lib/types'
 import Link from 'next/link'
 
@@ -445,6 +446,7 @@ export default function SchedulePage() {
   const renderCard = (appt: Appointment) => {
     const client  = appt.clients
     const name    = client ? `${client.first_name} ${client.last_name}` : 'Unknown client'
+    const phone   = client?.phone ?? null
     const address = client?.address ? `${client.address}${client.city ? ', ' + client.city : ''}` : null
     const isDone  = appt.status === 'completed' || appt.status === 'payment_received'
     const isPaid  = appt.status === 'payment_received'
@@ -457,17 +459,8 @@ export default function SchedulePage() {
           </div>
           <p className={`text-lg font-semibold flex-shrink-0 ${appt.price === 0 ? 'text-slate-400 dark:text-slate-500' : 'text-amber-600'}`}>{fmtPrice(appt.price)}</p>
         </div>
-        {address && (
-          <a
-            href={`https://maps.google.com/?q=${encodeURIComponent(address)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={e => e.stopPropagation()}
-            className="flex items-center gap-1 text-xs text-teal-600 hover:text-teal-700 mb-1"
-          >
-            <MapPin className="w-3 h-3 flex-shrink-0" strokeWidth={1.8} />
-            <span className="truncate underline underline-offset-2">{address}</span>
-          </a>
+        {(phone || address) && (
+          <PhoneLink phone={phone} address={address} className="mb-1" />
         )}
         <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-gray-300">
           {appt.start_time && <span className="flex items-center gap-1"><Clock className="w-3 h-3" strokeWidth={1.8} />{formatTime(appt.start_time)}</span>}

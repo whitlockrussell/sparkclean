@@ -12,7 +12,7 @@ import { PageSkeleton } from '@/components/ui/Skeleton'
 import { ClientForm } from '@/components/clients/ClientForm'
 import { useClients } from '@/lib/hooks/useClients'
 import { usePlan } from '@/lib/hooks/usePlan'
-import { Users, Plus, Phone, ChevronRight, Search, Lock } from 'lucide-react'
+import { Users, Plus, ChevronRight, Search, Lock } from 'lucide-react'
 import type { Client, NewClient } from '@/lib/types'
 import Link from 'next/link'
 import { PhoneLink } from '@/components/ui/PhoneLink'
@@ -139,11 +139,12 @@ export default function ClientsPage() {
                   <p className="font-semibold text-slate-900 dark:text-white text-[15px] truncate">
                     {c.first_name} {c.last_name}
                   </p>
-                  {c.phone && (
-                    <div className="flex items-center gap-1 text-xs mt-0.5">
-                      <Phone className="w-3 h-3 text-slate-400 dark:text-slate-500 flex-shrink-0" strokeWidth={1.8} />
-                      <PhoneLink phone={c.phone} className="text-xs" />
-                    </div>
+                  {(c.phone || c.address) && (
+                    <PhoneLink
+                      phone={c.phone}
+                      address={c.address ? `${c.address}${c.city ? ', ' + c.city : ''}` : null}
+                      className="mt-1"
+                    />
                   )}
                   {c.address && (
                     <p className="text-xs text-slate-400 dark:text-slate-500 truncate mt-0.5">{c.address}, {c.city}</p>
