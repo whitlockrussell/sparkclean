@@ -164,7 +164,7 @@ export default function InvoicesPage() {
                           {inv.status.charAt(0).toUpperCase() + inv.status.slice(1)}
                         </Badge>
                       </div>
-                      <p className="text-xs text-slate-400">
+                      <p className="text-xs text-slate-400 dark:text-slate-500">
                         {inv.invoice_number}
                         {inv.due_date && ` · Due ${formatDate(inv.due_date)}`}
                         {inv.paid_at && ` · Paid ${formatDate(inv.paid_at)}`}
@@ -172,11 +172,11 @@ export default function InvoicesPage() {
                     </div>
                     <div className="flex-shrink-0 text-right">
                       <p className={`text-[15px] font-semibold ${
-                        inv.status === 'paid' ? 'text-slate-400' : 'text-amber-600'
+                        inv.status === 'paid' ? 'text-slate-400 dark:text-slate-500' : 'text-amber-600'
                       }`}>
                         ${inv.total.toFixed(2)}
                       </p>
-                      <p className="text-[10px] text-slate-400">incl. HST</p>
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500">incl. HST</p>
                     </div>
                   </div>
 
