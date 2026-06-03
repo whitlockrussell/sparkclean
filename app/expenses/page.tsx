@@ -124,11 +124,11 @@ export default function ExpensesPage() {
                 <div key={month}>
                   {/* Month header */}
                   <div className="flex items-center justify-between mb-3">
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                       {formatMonth(month)}
                     </p>
                     <div className="text-right">
-                      <p className="text-xs font-medium text-slate-700">${monthTotal.toFixed(2)}</p>
+                      <p className="text-xs font-medium text-slate-700 dark:text-slate-200">${monthTotal.toFixed(2)}</p>
                       {monthHST > 0 && (
                         <p className="text-[10px] text-teal-600">ITC: ${monthHST.toFixed(2)}</p>
                       )}
@@ -140,14 +140,14 @@ export default function ExpensesPage() {
                       <Card key={exp.id} className="p-4">
                         <div className="flex items-center gap-3">
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-slate-900 text-[15px] truncate mb-1">
+                            <p className="font-medium text-slate-900 dark:text-white text-[15px] truncate mb-1">
                               {exp.description}
                             </p>
                             <div className="flex items-center gap-2">
                               <Badge variant={categoryStyle[exp.category]}>
                                 {categoryLabel[exp.category]}
                               </Badge>
-                              <span className="text-xs text-slate-400">{formatDate(exp.expense_date)}</span>
+                              <span className="text-xs text-slate-400 dark:text-slate-500">{formatDate(exp.expense_date)}</span>
                               {exp.hst_paid > 0 && (
                                 <span className="text-xs text-teal-600">
                                   ITC ${exp.hst_paid.toFixed(2)}
@@ -156,7 +156,7 @@ export default function ExpensesPage() {
                             </div>
                           </div>
                           <div className="flex items-center gap-2 flex-shrink-0">
-                            <p className="text-[15px] font-semibold text-slate-700">
+                            <p className="text-[15px] font-semibold text-slate-700 dark:text-slate-200">
                               ${exp.amount.toFixed(2)}
                             </p>
                             <button
