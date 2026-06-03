@@ -7,10 +7,22 @@ import {
 } from 'lucide-react'
 import { ScrollButton } from '@/components/landing/ScrollButton'
 
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string>>
+}) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (user) redirect('/today')
+
+  const params = await searchParams
+  if (params.error_code || params.error) {
+    const message = params.error_code === 'otp_expired'
+      ? 'Your password reset link has expired. Please request a new one.'
+      : 'That link is no longer valid. Please try again.'
+    redirect(`/login?message=${encodeURIComponent(message)}`)
+  }
 
   return (
     <div className="scroll-smooth">

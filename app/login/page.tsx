@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { AuthShell } from '@/components/auth/AuthShell'
 
@@ -14,6 +14,8 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const notice = searchParams.get('message')
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -52,6 +54,11 @@ export default function LoginPage() {
 
   return (
     <AuthShell subtitle="Sign in to your account">
+      {notice && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-xl px-3 py-2.5 mb-4">
+          {notice}
+        </div>
+      )}
       <form onSubmit={handleLogin} className="space-y-4">
         <div>
           <label className="block text-xs font-medium text-slate-500 mb-1.5">Email</label>
