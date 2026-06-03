@@ -240,12 +240,12 @@ export default function TodayPage() {
                     <Card key={job.id} className={`p-4 ${job.status !== 'scheduled' ? 'opacity-60' : ''}`} onClick={() => setEditingJob(job)}>
                       <div className="flex items-start justify-between gap-3 mb-1">
                         <p className="font-semibold text-slate-900 dark:text-white text-[15px] truncate">{name}</p>
-                        <p className={`text-lg font-semibold flex-shrink-0 ${job.price === 0 ? 'text-slate-400' : 'text-amber-600'}`}>
+                        <p className={`text-lg font-semibold flex-shrink-0 ${job.price === 0 ? 'text-slate-400 dark:text-slate-500' : 'text-amber-600'}`}>
                           {job.price === 0 ? 'TBD' : `$${job.price.toFixed(0)}`}
                         </p>
                       </div>
                       {address && (
-                        <div className="flex items-center gap-1 text-slate-400 text-xs mb-1">
+                        <div className="flex items-center gap-1 text-slate-400 dark:text-slate-500 text-xs mb-1">
                           <MapPin className="w-3 h-3 flex-shrink-0" strokeWidth={1.8} />
                           <span className="truncate">{address}</span>
                         </div>
@@ -262,7 +262,7 @@ export default function TodayPage() {
                         </div>
                       )}
                       {client?.notes && (
-                        <p className="text-xs text-slate-400 mt-1.5 italic truncate">{client.notes}</p>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1.5 italic truncate">{client.notes}</p>
                       )}
                       <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
                         <div className="flex items-center py-1.5 gap-3">
@@ -276,7 +276,7 @@ export default function TodayPage() {
                           </button>
                         </div>
                         <div className="flex items-center py-1.5 gap-3">
-                          <p className={`text-sm flex-1 ${isDone ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400'}`}>Payment received</p>
+                          <p className={`text-sm flex-1 ${isDone ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400 dark:text-slate-500'}`}>Payment received</p>
                           <button
                             type="button"
                             disabled={!isDone}
@@ -312,7 +312,7 @@ export default function TodayPage() {
             </div>
 
             {unpaidJobs.length === 0 ? (
-              <p className="text-sm text-slate-400 text-center py-4">All jobs paid up</p>
+              <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-4">All jobs paid up</p>
             ) : (
               <div className="space-y-3">
                 {unpaidJobs.map(job => {
@@ -330,7 +330,7 @@ export default function TodayPage() {
                         <p className={`text-lg font-semibold flex-shrink-0 ${job.price === 0 ? 'text-slate-400' : 'text-amber-600'}`}>{job.price === 0 ? 'TBD' : `$${job.price.toFixed(0)}`}</p>
                       </div>
                       {!isToday && (
-                        <p className="text-xs text-slate-400 mb-1">
+                        <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">
                           {new Date(job.scheduled_date + 'T12:00:00').toLocaleDateString('en-CA', {
                             weekday: 'short', month: 'short', day: 'numeric',
                           })}
@@ -348,7 +348,7 @@ export default function TodayPage() {
                           </button>
                         </div>
                         <div className="flex items-center py-1.5 gap-3">
-                          <p className={`text-sm flex-1 ${isDone ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400'}`}>Payment received</p>
+                          <p className={`text-sm flex-1 ${isDone ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400 dark:text-slate-500'}`}>Payment received</p>
                           <button
                             type="button"
                             disabled={!isDone}
