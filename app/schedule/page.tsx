@@ -481,14 +481,14 @@ export default function SchedulePage() {
         {client?.notes   && <p className="text-xs text-slate-400 mt-1.5 italic truncate">{client.notes}</p>}
         <div className="mt-3 pt-3 border-t border-slate-100">
           <div className="flex items-center py-1.5 gap-3">
-            <p className="text-sm text-slate-700 flex-1">Job done</p>
+            <p className="text-sm text-slate-700 dark:text-slate-200 flex-1">Job done</p>
             <button type="button" onClick={e => { e.stopPropagation(); handleToggleStatus(appt.id, isDone ? 'scheduled' : 'completed') }}
               className={`w-10 h-[22px] rounded-full transition-colors relative flex-shrink-0 ${isDone ? 'bg-teal-500' : 'bg-slate-300'}`}>
               <span className={`absolute left-0 top-[3px] w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${isDone ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
             </button>
           </div>
           <div className="flex items-center py-1.5 gap-3">
-            <p className={`text-sm flex-1 ${isDone ? 'text-slate-700' : 'text-slate-400'}`}>Payment received</p>
+            <p className={`text-sm flex-1 ${isDone ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400 dark:text-slate-500'}`}>Payment received</p>
             <button type="button" disabled={!isDone} onClick={e => { e.stopPropagation(); handleToggleStatus(appt.id, isPaid ? 'completed' : 'payment_received') }}
               className={`w-10 h-[22px] rounded-full transition-colors relative flex-shrink-0 ${isPaid ? 'bg-teal-500' : 'bg-slate-300'} disabled:opacity-40 disabled:cursor-not-allowed`}>
               <span className={`absolute left-0 top-[3px] w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${isPaid ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
