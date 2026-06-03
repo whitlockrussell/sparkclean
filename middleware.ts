@@ -34,6 +34,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/upgrade') ||
     pathname.startsWith('/privacy') ||
     pathname.startsWith('/terms') ||
+    pathname.startsWith('/forgot-password') ||
+    pathname.startsWith('/reset-password') ||
     pathname.startsWith('/api/stripe/webhook')
 
   // Not logged in — redirect to login

@@ -3,6 +3,10 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { AuthShell } from '@/components/auth/AuthShell'
+
+const inputClass = 'w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent placeholder:text-slate-400'
 
 export default function SignupPage() {
   const [fullName, setFullName] = useState('')
@@ -21,9 +25,7 @@ export default function SignupPage() {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: { full_name: fullName }
-      }
+      options: { data: { full_name: fullName } },
     })
 
     if (error) {
@@ -35,74 +37,69 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 w-full max-w-md">
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-semibold text-gray-900">SparkClean</h1>
-          <p className="text-gray-500 mt-1 text-sm">Create your account</p>
+    <AuthShell subtitle="Create your free account">
+      <form onSubmit={handleSignup} className="space-y-4">
+        <div>
+          <label className="block text-xs font-medium text-slate-500 mb-1.5">Full name</label>
+          <input
+            type="text"
+            value={fullName}
+            onChange={e => setFullName(e.target.value)}
+            required
+            className={inputClass}
+            placeholder="Maria Rodriguez"
+          />
         </div>
 
-        <form onSubmit={handleSignup} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Full name</label>
-            <input
-              type="text"
-              value={fullName}
-              onChange={e => setFullName(e.target.value)}
-              required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-              placeholder="Maria Rodriguez"
-            />
-          </div>
+        <div>
+          <label className="block text-xs font-medium text-slate-500 mb-1.5">Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            required
+            className={inputClass}
+            placeholder="you@example.com"
+          />
+        </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-              placeholder="you@example.com"
-            />
-          </div>
+        <div>
+          <label className="block text-xs font-medium text-slate-500 mb-1.5">Password</label>
+          <input
+            type="password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            required
+            minLength={6}
+            className={inputClass}
+            placeholder="••••••••"
+          />
+        </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              minLength={6}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-              placeholder="••••••••"
-            />
-          </div>
+        {error && <p className="text-red-500 text-sm">{error}</p>}
 
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-teal-500 hover:bg-teal-600 disabled:opacity-60 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors"
+        >
+          {loading ? 'Creating account…' : 'Create free account'}
+        </button>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 rounded-lg text-sm transition-colors"
-          >
-            {loading ? 'Creating account...' : 'Create account'}
-          </button>
-
-          <p className="text-center text-xs text-gray-400">
-            By signing up, you agree to our{' '}
-            <a href="/terms" className="underline hover:text-gray-600 transition-colors">Terms of Service</a>
-            {' '}and{' '}
-            <a href="/privacy" className="underline hover:text-gray-600 transition-colors">Privacy Policy</a>
-          </p>
-        </form>
-
-        <p className="text-center text-sm text-gray-500 mt-6">
-          Already have an account?{' '}
-          <a href="/login" className="text-green-600 hover:underline font-medium">Sign in</a>
+        <p className="text-center text-xs text-slate-400">
+          By signing up, you agree to our{' '}
+          <a href="/terms" className="underline hover:text-slate-600 transition-colors">Terms of Service</a>
+          {' '}and{' '}
+          <a href="/privacy" className="underline hover:text-slate-600 transition-colors">Privacy Policy</a>
         </p>
-      </div>
-    </div>
+      </form>
+
+      <p className="text-center text-sm text-slate-400 mt-6">
+        Already have an account?{' '}
+        <Link href="/login" className="text-teal-600 hover:text-teal-700 font-medium transition-colors">
+          Sign in
+        </Link>
+      </p>
+    </AuthShell>
   )
 }

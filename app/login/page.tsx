@@ -3,6 +3,10 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { AuthShell } from '@/components/auth/AuthShell'
+
+const inputClass = 'w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent placeholder:text-slate-400'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -26,14 +30,11 @@ export default function LoginPage() {
       return
     }
 
-    // Wait a moment for session to settle
     await new Promise(resolve => setTimeout(resolve, 500))
 
-    // Get the current user
     const { data: { user } } = await supabase.auth.getUser()
 
     if (user) {
-      // Check if this user is a team member
       const { data: members } = await supabase
         .from('team_members')
         .select('id')
@@ -50,54 +51,54 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 w-full max-w-md">
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-semibold text-gray-900">SparkClean</h1>
-          <p className="text-gray-500 mt-1 text-sm">Sign in to your account</p>
+    <AuthShell subtitle="Sign in to your account">
+      <form onSubmit={handleLogin} className="space-y-4">
+        <div>
+          <label className="block text-xs font-medium text-slate-500 mb-1.5">Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            required
+            className={inputClass}
+            placeholder="you@example.com"
+          />
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-              placeholder="you@example.com"
-            />
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="block text-xs font-medium text-slate-500">Password</label>
+            <Link href="/forgot-password" className="text-xs text-teal-600 hover:text-teal-700 transition-colors">
+              Forgot password?
+            </Link>
           </div>
+          <input
+            type="password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            required
+            className={inputClass}
+            placeholder="••••••••"
+          />
+        </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-              placeholder="••••••••"
-            />
-          </div>
+        {error && <p className="text-red-500 text-sm">{error}</p>}
 
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-teal-500 hover:bg-teal-600 disabled:opacity-60 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors"
+        >
+          {loading ? 'Signing in…' : 'Sign in'}
+        </button>
+      </form>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 rounded-lg text-sm transition-colors"
-          >
-            {loading ? 'Signing in...' : 'Sign in'}
-          </button>
-        </form>
-
-        <p className="text-center text-sm text-gray-500 mt-6">
-          Don't have an account?{' '}
-          <a href="/signup" className="text-green-600 hover:underline font-medium">Sign up</a>
-        </p>
-      </div>
-    </div>
+      <p className="text-center text-sm text-slate-400 mt-6">
+        Don&apos;t have an account?{' '}
+        <Link href="/signup" className="text-teal-600 hover:text-teal-700 font-medium transition-colors">
+          Sign up free
+        </Link>
+      </p>
+    </AuthShell>
   )
 }

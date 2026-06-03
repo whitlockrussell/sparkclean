@@ -19,5 +19,6 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return NextResponse.redirect(new URL('/today', req.url))
+  const next = searchParams.get('next') ?? '/today'
+  return NextResponse.redirect(new URL(next, req.url))
 }
