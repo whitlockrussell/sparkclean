@@ -19,7 +19,7 @@ export default function ForgotPasswordPage() {
     setError('')
 
     const supabase = createClient()
-    const redirectTo = `${window.location.origin}/auth/callback?next=/reset-password`
+    const redirectTo = 'https://sparkcleanapp.ca/auth/callback?next=/reset-password'
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
 
