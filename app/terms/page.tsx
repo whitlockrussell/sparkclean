@@ -55,7 +55,7 @@ export default function TermsPage() {
             </ul>
 
             <h3 className="text-sm font-semibold text-slate-700 mb-1">Pro Plan</h3>
-            <p className="mb-2">The Pro plan is <strong>$17 USD per month</strong> and includes everything in Free, plus:</p>
+            <p className="mb-2">The Pro plan is <strong>$19 CAD per month</strong> and includes everything in Free, plus:</p>
             <ul className="list-disc list-inside space-y-1 pl-2">
               <li>Unlimited clients</li>
               <li>PDF invoice downloads</li>
@@ -75,7 +75,7 @@ export default function TermsPage() {
               Pro plan subscriptions are billed monthly through Stripe. By subscribing, you authorize Stripe to charge your payment method on a recurring monthly basis.
             </p>
             <p className="mt-2">
-              All prices are in US dollars (USD). Canadian users are responsible for any applicable taxes or currency conversion fees charged by their financial institution.
+              All prices are in Canadian dollars (CAD).
             </p>
             <p className="mt-2">
               If a payment fails, your account may be downgraded to the Free plan until payment is resolved. We will make reasonable attempts to notify you before downgrading.

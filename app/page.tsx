@@ -183,7 +183,7 @@ export default async function Home() {
               </div>
               <p className="text-xs font-semibold text-teal-600 uppercase tracking-wider mb-2">Pro</p>
               <p className="text-3xl font-bold text-slate-900 mb-0.5">$19</p>
-              <p className="text-xs text-slate-400 mb-5">USD per month</p>
+              <p className="text-xs text-slate-400 mb-5">CAD per month</p>
               <ul className="space-y-2.5 text-sm text-slate-600">
                 {[
                   'Unlimited clients',

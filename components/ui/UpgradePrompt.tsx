@@ -43,7 +43,7 @@ export function UpgradePrompt({ feature, description, mode = 'page' }: UpgradePr
           Upgrade to Pro
         </Button>
       </Link>
-      <p className="text-xs text-slate-400 mt-3">$17 USD / month · Cancel anytime</p>
+      <p className="text-xs text-slate-400 mt-3">$19 CAD / month · Cancel anytime</p>
     </div>
   )
 }

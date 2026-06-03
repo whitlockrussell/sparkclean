@@ -71,7 +71,7 @@ export default function UpgradePage() {
 
   return (
     <AppShell>
-      <TopHeader title="Upgrade to Pro" subtitle="$17 USD / month" />
+      <TopHeader title="Upgrade to Pro" subtitle="$19 CAD / month" />
       <PageContainer>
 
         <div className="grid gap-4 mb-6 sm:grid-cols-2">
@@ -101,8 +101,8 @@ export default function UpgradePage() {
                   RECOMMENDED
                 </span>
               </div>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white">$17</p>
-              <p className="text-xs text-slate-400 dark:text-slate-500">USD per month</p>
+              <p className="text-2xl font-bold text-slate-900 dark:text-white">$19</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500">CAD per month</p>
             </div>
             <ul className="space-y-2.5 mb-5">
               {PRO_FEATURES.map(f => (
