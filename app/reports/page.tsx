@@ -323,7 +323,7 @@ export default function ReportsPage() {
           {(['quarterly', 'annual'] as const).map(m => (
             <button key={m} onClick={() => setMode(m)}
               className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all capitalize ${
-                mode === m ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                mode === m ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
               }`}>
               {m === 'quarterly' ? '⊞ Quarterly' : '📅 Annual'}
             </button>
@@ -336,7 +336,7 @@ export default function ReportsPage() {
             {uniqueQuarters.map(q => (
               <button key={q} onClick={() => setQuarter(q)}
                 className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
-                  quarter === q ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                  quarter === q ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                 }`}>
                 {q.replace('-', ' ')}
               </button>
@@ -347,7 +347,7 @@ export default function ReportsPage() {
             {availableYears.map(y => (
               <button key={y} onClick={() => setAnnualYear(y)}
                 className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
-                  annualYear === y ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                  annualYear === y ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                 }`}>
                 {y}
               </button>
@@ -388,12 +388,12 @@ function QuarterlyView({ data, netHST, profit }: { data: QuarterData; netHST: nu
       <Card className="p-4 space-y-3 mb-5">
         {[
           { label: 'HST collected on invoices', value: `+$${data.hstCollected.toFixed(2)}`, color: 'text-teal-600' },
-          { label: 'HST paid on expenses (ITC)', value: `−$${data.hstPaid.toFixed(2)}`, color: 'text-slate-500' },
+          { label: 'HST paid on expenses (ITC)', value: `−$${data.hstPaid.toFixed(2)}`, color: 'text-slate-500 dark:text-slate-400' },
           { label: 'Net HST to remit to CRA', value: `$${netHST.toFixed(2)}`,
             color: netHST > 0 ? 'text-red-500 font-semibold' : 'text-green-600 font-semibold' },
         ].map(r => <DataRow key={r.label} label={r.label} value={r.value} valueClass={r.color} />)}
         <div className="border-t border-slate-100 pt-3">
-          <p className="text-xs text-slate-400 leading-relaxed">
+          <p className="text-xs text-slate-400 dark:text-slate-500 leading-relaxed">
             File your HST return with the CRA quarterly. Keep all receipts for 6 years.
             {netHST <= 0 && ' You have more input tax credits than HST collected this quarter.'}
           </p>
@@ -403,9 +403,9 @@ function QuarterlyView({ data, netHST, profit }: { data: QuarterData; netHST: nu
       <SectionLabel>Income breakdown</SectionLabel>
       <Card className="p-4 space-y-3 mb-5">
         {[
-          { label: 'Gross revenue (excl. HST)', value: `$${data.income.toFixed(2)}`,    color: 'text-slate-700' },
-          { label: 'Business expenses',          value: `−$${data.expenses.toFixed(2)}`, color: 'text-slate-500' },
-          { label: 'HST remittance',             value: `−$${netHST.toFixed(2)}`,        color: 'text-slate-500' },
+          { label: 'Gross revenue (excl. HST)', value: `$${data.income.toFixed(2)}`,    color: 'text-slate-700 dark:text-slate-200' },
+          { label: 'Business expenses',          value: `−$${data.expenses.toFixed(2)}`, color: 'text-slate-500 dark:text-slate-400' },
+          { label: 'HST remittance',             value: `−$${netHST.toFixed(2)}`,        color: 'text-slate-500 dark:text-slate-400' },
           { label: 'Estimated net profit',       value: `$${profit.toFixed(2)}`,
             color: profit >= 0 ? 'text-teal-600 font-semibold' : 'text-red-500 font-semibold' },
         ].map(r => <DataRow key={r.label} label={r.label} value={r.value} valueClass={r.color} />)}
@@ -439,7 +439,7 @@ function AnnualView({ data, netHST, profit }: { data: AnnualData; netHST: number
       <Card className="p-4 mb-5 overflow-x-auto">
         <table className="w-full text-xs">
           <thead>
-            <tr className="text-slate-400 font-semibold">
+            <tr className="text-slate-400 dark:text-slate-500 font-semibold">
               <th className="text-left pb-2 font-semibold"></th>
               {data.quarterBreakdown.map(q => (
                 <th key={q.q} className="text-right pb-2 font-semibold">
@@ -452,12 +452,12 @@ function AnnualView({ data, netHST, profit }: { data: AnnualData; netHST: number
           <tbody className="divide-y divide-slate-100">
             {[
               { label: 'Revenue',       key: 'income'       as const, color: 'text-teal-600' },
-              { label: 'HST collected', key: 'hstCollected' as const, color: 'text-slate-700' },
-              { label: 'ITC',           key: 'hstPaid'      as const, color: 'text-slate-700' },
+              { label: 'HST collected', key: 'hstCollected' as const, color: 'text-slate-700 dark:text-slate-200' },
+              { label: 'ITC',           key: 'hstPaid'      as const, color: 'text-slate-700 dark:text-slate-200' },
               { label: 'Net HST',       key: null,                    color: 'text-red-500' },
             ].map(row => (
               <tr key={row.label}>
-                <td className="py-2 text-slate-500">{row.label}</td>
+                <td className="py-2 text-slate-500 dark:text-slate-400">{row.label}</td>
                 {data.quarterBreakdown.map(q => {
                   const val = row.key ? q[row.key] : q.hstCollected - q.hstPaid
                   return (
@@ -482,12 +482,12 @@ function AnnualView({ data, netHST, profit }: { data: AnnualData; netHST: number
       <Card className="p-4 space-y-3 mb-5">
         {[
           { label: 'HST collected on invoices', value: `+$${data.hstCollected.toFixed(2)}`, color: 'text-teal-600' },
-          { label: 'HST paid on expenses (ITC)', value: `−$${data.hstPaid.toFixed(2)}`, color: 'text-slate-500' },
+          { label: 'HST paid on expenses (ITC)', value: `−$${data.hstPaid.toFixed(2)}`, color: 'text-slate-500 dark:text-slate-400' },
           { label: 'Net HST to remit to CRA', value: `$${netHST.toFixed(2)}`,
             color: netHST > 0 ? 'text-red-500 font-semibold' : 'text-green-600 font-semibold' },
         ].map(r => <DataRow key={r.label} label={r.label} value={r.value} valueClass={r.color} />)}
         <div className="border-t border-slate-100 pt-3">
-          <p className="text-xs text-slate-400 leading-relaxed">
+          <p className="text-xs text-slate-400 dark:text-slate-500 leading-relaxed">
             File your HST return with the CRA quarterly. Keep all receipts for 6 years.
           </p>
         </div>
@@ -496,9 +496,9 @@ function AnnualView({ data, netHST, profit }: { data: AnnualData; netHST: number
       <SectionLabel>Annual income summary</SectionLabel>
       <Card className="p-4 space-y-3 mb-5">
         {[
-          { label: 'Gross revenue (excl. HST)', value: `$${data.income.toFixed(2)}`,    color: 'text-slate-700' },
-          { label: 'Business expenses',          value: `−$${data.expenses.toFixed(2)}`, color: 'text-slate-500' },
-          { label: 'HST remittance',             value: `−$${netHST.toFixed(2)}`,        color: 'text-slate-500' },
+          { label: 'Gross revenue (excl. HST)', value: `$${data.income.toFixed(2)}`,    color: 'text-slate-700 dark:text-slate-200' },
+          { label: 'Business expenses',          value: `−$${data.expenses.toFixed(2)}`, color: 'text-slate-500 dark:text-slate-400' },
+          { label: 'HST remittance',             value: `−$${netHST.toFixed(2)}`,        color: 'text-slate-500 dark:text-slate-400' },
           { label: 'Estimated net income',       value: `$${profit.toFixed(2)}`,
             color: profit >= 0 ? 'text-teal-600 font-semibold' : 'text-red-500 font-semibold' },
         ].map(r => <DataRow key={r.label} label={r.label} value={r.value} valueClass={r.color} />)}
@@ -514,14 +514,14 @@ function AnnualView({ data, netHST, profit }: { data: AnnualData; netHST: number
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">{children}</h2>
+    <h2 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">{children}</h2>
   )
 }
 
 function DataRow({ label, value, valueClass }: { label: string; value: string; valueClass: string }) {
   return (
     <div className="flex justify-between items-center text-sm">
-      <span className="text-slate-600">{label}</span>
+      <span className="text-slate-600 dark:text-slate-300">{label}</span>
       <span className={valueClass}>{value}</span>
     </div>
   )
@@ -535,19 +535,19 @@ function MileageCard({ km, deduction, trips, annual }: { km: number; deduction: 
           <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
             <Car className="w-4 h-4 text-slate-400" strokeWidth={1.8} />
           </div>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-slate-400 dark:text-slate-500">
             No trips logged{annual ? ' this year' : ' this quarter'}. <a href="/mileage" className="text-teal-600 underline">Start tracking</a>.
           </p>
         </div>
       ) : (
         <div className="space-y-3">
           {[
-            { label: 'Total km driven', value: `${km.toFixed(1)} km`,         color: 'text-slate-700' },
-            { label: 'Trips logged',    value: `${trips}`,                     color: 'text-slate-700' },
+            { label: 'Total km driven', value: `${km.toFixed(1)} km`,         color: 'text-slate-700 dark:text-slate-200' },
+            { label: 'Trips logged',    value: `${trips}`,                     color: 'text-slate-700 dark:text-slate-200' },
             { label: 'Est. deduction',  value: `$${deduction.toFixed(2)}`,     color: 'text-amber-600 font-semibold' },
           ].map(r => <DataRow key={r.label} label={r.label} value={r.value} valueClass={r.color} />)}
           <div className="border-t border-slate-100 pt-3">
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-slate-400 dark:text-slate-500 leading-relaxed">
               CRA 2025 rate: $0.72/km (first {CRA_KM_THRESHOLD.toLocaleString()} km) · $0.66/km after.
               {!annual && ' Deduction accounts for km driven earlier in the year.'}
             </p>
