@@ -85,7 +85,7 @@ export function AuthShell({ subtitle, children }: AuthShellProps) {
               </span>
             </div>
 
-            <p className="text-slate-500 text-sm mb-6">{subtitle}</p>
+            <h1 className="text-2xl font-semibold text-gray-800 mb-6">{subtitle}</h1>
 
             {children}
           </div>
