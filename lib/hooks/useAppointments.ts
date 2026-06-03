@@ -54,7 +54,8 @@ export function useAppointments() {
           last_name,
           address,
           city,
-          notes
+          notes,
+          phone
         )
       `)
       .neq('status', 'cancelled')
@@ -82,7 +83,8 @@ export function useAppointments() {
           last_name,
           address,
           city,
-          notes
+          notes,
+          phone
         )
       `)
       .eq('scheduled_date', today)
@@ -182,7 +184,8 @@ export function useAppointments() {
           last_name,
           address,
           city,
-          notes
+          notes,
+          phone
         )
       `)
       .single()
@@ -206,7 +209,8 @@ export function useAppointments() {
           last_name,
           address,
           city,
-          notes
+          notes,
+          phone
         )
       `)
       .eq('status', 'completed')
