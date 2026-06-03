@@ -473,12 +473,12 @@ export default function SchedulePage() {
             <span className="truncate underline underline-offset-2">{address}</span>
           </a>
         )}
-        <div className="flex items-center gap-3 text-xs text-slate-500">
+        <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-gray-300">
           {appt.start_time && <span className="flex items-center gap-1"><Clock className="w-3 h-3" strokeWidth={1.8} />{formatTime(appt.start_time)}</span>}
           {appt.duration_hours && <><span>·</span><span>{appt.duration_hours} hrs</span></>}
         </div>
-        {appt.notes      && <p className="text-xs text-slate-400 mt-1.5 truncate">{appt.notes}</p>}
-        {client?.notes   && <p className="text-xs text-slate-400 mt-1.5 italic truncate">{client.notes}</p>}
+        {appt.notes      && <p className="text-xs text-slate-400 dark:text-gray-300 mt-1.5 truncate">{appt.notes}</p>}
+        {client?.notes   && <p className="text-xs text-slate-400 dark:text-gray-300 mt-1.5 italic truncate">{client.notes}</p>}
         <div className="mt-3 pt-3 border-t border-slate-100">
           <div className="flex items-center py-1.5 gap-3">
             <p className="text-sm text-slate-700 dark:text-slate-200 flex-1">Job done</p>
