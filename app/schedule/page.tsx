@@ -137,8 +137,14 @@ function clientColorIndex(id: string): number {
 }
 function getClientColor(clientId: string | null | undefined, fallbackId?: string): string {
   const id = clientId ?? fallbackId
-  if (!id) return 'bg-slate-100 dark:bg-slate-700 border-slate-400 text-slate-600 dark:text-slate-300'
-  return CLIENT_COLORS[clientColorIndex(id)]
+  if (!id) {
+    console.log('[getClientColor] no id at all — returning gray')
+    return 'bg-slate-100 dark:bg-slate-700 border-slate-400 text-slate-600 dark:text-slate-300'
+  }
+  const idx = clientColorIndex(id)
+  const color = CLIENT_COLORS[idx]
+  console.log(`[getClientColor] id=${id} idx=${idx} color="${color}"`)
+  return color
 }
 
 // ── week-view draggable job block ─────────────────────────────────────────────
