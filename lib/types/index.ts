@@ -32,7 +32,7 @@ export type Appointment = {
   notes: string | null
   created_at: string
   updated_at: string
-  clients?: Pick<Client, 'first_name' | 'last_name' | 'address' | 'city' | 'notes'>
+  clients?: Pick<Client, 'first_name' | 'last_name' | 'address' | 'city' | 'notes' | 'phone'>
 }
 
 export type NewAppointment = Omit<Appointment, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'clients'>
