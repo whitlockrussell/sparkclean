@@ -27,7 +27,7 @@ import Link from 'next/link'
 
 // ── calendar constants ────────────────────────────────────────────────────────
 
-const HOUR_H = 60          // px per hour
+const HOUR_H = 52          // px per hour
 const START_H = 7          // 7 AM
 const END_H   = 19         // 7 PM
 const TOTAL_H = (END_H - START_H) * HOUR_H   // 720px
@@ -176,9 +176,9 @@ function JobBlock({ appt, onTap }: JobBlockProps) {
       className={`rounded border-l-2 px-1 py-0.5 overflow-hidden cursor-grab active:cursor-grabbing touch-none select-none
         ${bg} ${isDone ? 'opacity-60' : ''} ${isDragging ? 'shadow-lg opacity-90 ring-1 ring-teal-400' : ''}`}
     >
-      <p className="text-[10px] font-semibold leading-tight truncate">{name}</p>
+      <p className="text-xs font-bold leading-tight truncate">{name}</p>
       {height >= 36 && (
-        <p className="text-[9px] leading-tight opacity-70">{formatTime(appt.start_time)}</p>
+        <p className="text-[10px] leading-tight opacity-70">{formatTime(appt.start_time)}</p>
       )}
     </div>
   )
@@ -251,7 +251,7 @@ export default function SchedulePage() {
   // Auto-scroll to current time when entering week view
   useEffect(() => {
     if (view === 'week' && gridRef.current) {
-      const target = currentTimeY != null ? Math.max(0, currentTimeY - 80) : 0
+      const target = currentTimeY != null ? Math.max(0, currentTimeY - 80) : HOUR_H
       gridRef.current.scrollTo({ top: target, behavior: 'smooth' })
     }
   }, [view, weekStart])
