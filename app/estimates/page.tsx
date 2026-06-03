@@ -261,10 +261,10 @@ export default function EstimatesPage() {
                           {est.status.charAt(0).toUpperCase() + est.status.slice(1)}
                         </Badge>
                       </div>
-                      <p className="text-xs text-slate-400">
+                      <p className="text-xs text-slate-400 dark:text-slate-500">
                         {est.estimate_number} · {cleanLabel} · {est.bedrooms}BR/{est.bathrooms}BA {propLabel}
                       </p>
-                      <p className="text-xs text-slate-400 mt-0.5">
+                      <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
                         Valid until {formatDate(est.valid_until)}
                       </p>
                     </div>
@@ -272,7 +272,7 @@ export default function EstimatesPage() {
                       <p className="text-[15px] font-semibold text-amber-600">
                         ${est.total.toFixed(2)}
                       </p>
-                      <p className="text-[10px] text-slate-400">incl. HST</p>
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500">incl. HST</p>
                     </div>
                   </div>
 
