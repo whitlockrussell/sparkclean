@@ -112,22 +112,22 @@ function groupByDate(appts: Appointment[]): Record<string, Appointment[]> {
 // ── per-client pastel colors ──────────────────────────────────────────────────
 
 const CLIENT_COLORS = [
-  'bg-purple-100 border-purple-500 text-purple-900',
-  'bg-blue-100 border-blue-500 text-blue-900',
-  'bg-orange-100 border-orange-500 text-orange-900',
-  'bg-pink-100 border-pink-500 text-pink-900',
-  'bg-indigo-100 border-indigo-500 text-indigo-900',
-  'bg-rose-100 border-rose-500 text-rose-900',
-  'bg-fuchsia-100 border-fuchsia-500 text-fuchsia-900',
-  'bg-sky-100 border-sky-500 text-sky-900',
-  'bg-red-100 border-red-500 text-red-900',
-  'bg-violet-100 border-violet-500 text-violet-900',
-  'bg-amber-100 border-amber-500 text-amber-900',
-  'bg-yellow-100 border-yellow-500 text-yellow-900',
-  'bg-cyan-100 border-cyan-500 text-cyan-900',
-  'bg-stone-100 border-stone-500 text-stone-800',
-  'bg-zinc-100 border-zinc-500 text-zinc-800',
-  'bg-neutral-100 border-neutral-500 text-neutral-800',
+  'bg-purple-100 dark:bg-purple-900/50 border-purple-500 text-purple-900 dark:text-purple-200',
+  'bg-blue-100 dark:bg-blue-900/50 border-blue-500 text-blue-900 dark:text-blue-200',
+  'bg-orange-100 dark:bg-orange-900/50 border-orange-500 text-orange-900 dark:text-orange-200',
+  'bg-pink-100 dark:bg-pink-900/50 border-pink-500 text-pink-900 dark:text-pink-200',
+  'bg-indigo-100 dark:bg-indigo-900/50 border-indigo-500 text-indigo-900 dark:text-indigo-200',
+  'bg-rose-100 dark:bg-rose-900/50 border-rose-500 text-rose-900 dark:text-rose-200',
+  'bg-fuchsia-100 dark:bg-fuchsia-900/50 border-fuchsia-500 text-fuchsia-900 dark:text-fuchsia-200',
+  'bg-sky-100 dark:bg-sky-900/50 border-sky-500 text-sky-900 dark:text-sky-200',
+  'bg-red-100 dark:bg-red-900/50 border-red-500 text-red-900 dark:text-red-200',
+  'bg-violet-100 dark:bg-violet-900/50 border-violet-500 text-violet-900 dark:text-violet-200',
+  'bg-amber-100 dark:bg-amber-900/50 border-amber-500 text-amber-900 dark:text-amber-200',
+  'bg-yellow-100 dark:bg-yellow-900/50 border-yellow-500 text-yellow-900 dark:text-yellow-200',
+  'bg-cyan-100 dark:bg-cyan-900/50 border-cyan-500 text-cyan-900 dark:text-cyan-200',
+  'bg-stone-100 dark:bg-stone-800/70 border-stone-500 text-stone-800 dark:text-stone-200',
+  'bg-zinc-100 dark:bg-zinc-800/70 border-zinc-500 text-zinc-800 dark:text-zinc-200',
+  'bg-neutral-100 dark:bg-neutral-800/70 border-neutral-500 text-neutral-800 dark:text-neutral-200',
 ]
 
 function clientColorIndex(id: string): number {
@@ -136,7 +136,7 @@ function clientColorIndex(id: string): number {
   return h % CLIENT_COLORS.length
 }
 function getClientColor(clientId: string | null | undefined): string {
-  if (!clientId) return 'bg-slate-100 border-slate-400 text-slate-600'
+  if (!clientId) return 'bg-slate-100 dark:bg-slate-700 border-slate-400 text-slate-600 dark:text-slate-300'
   return CLIENT_COLORS[clientColorIndex(clientId)]
 }
 
@@ -161,8 +161,8 @@ function JobBlock({ appt, onTap }: JobBlockProps) {
   const isPaid  = appt.status === 'payment_received'
   const name    = appt.clients?.first_name ?? '?'
 
-  const bg = isPaid ? 'bg-green-100 border-green-400 text-green-900'
-    : isDone ? 'bg-slate-100 border-slate-400 text-slate-500'
+  const bg = isPaid ? 'bg-green-100 dark:bg-green-900/50 border-green-400 text-green-900 dark:text-green-200'
+    : isDone ? 'bg-slate-100 dark:bg-slate-700 border-slate-400 text-slate-500 dark:text-slate-400'
     : getClientColor(appt.client_id)
 
   return (
@@ -521,12 +521,12 @@ export default function SchedulePage() {
             {/* View toggle */}
             <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 mb-4">
               <button onClick={() => setView('list')}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${view === 'list' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${view === 'list' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'}`}>
                 ≡ List
               </button>
               {isPro ? (
                 <button onClick={() => setView('week')}
-                  className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${view === 'week' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
+                  className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${view === 'week' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'}`}>
                   📅 Week
                 </button>
               ) : (
@@ -657,8 +657,8 @@ export default function SchedulePage() {
                               return (
                                 <button key={appt.id} onClick={() => openEdit(appt)}
                                   className={`w-full text-left text-[9px] font-semibold px-1 py-0.5 rounded mb-0.5 truncate border
-                                    ${isPaid ? 'bg-green-100 border-green-400 text-green-900'
-                                    : isDone ? 'bg-slate-100 border-slate-200 text-slate-500'
+                                    ${isPaid ? 'bg-green-100 dark:bg-green-900/50 border-green-400 text-green-900 dark:text-green-200'
+                                    : isDone ? 'bg-slate-100 dark:bg-slate-700 border-slate-300 text-slate-500 dark:text-slate-400'
                                     : cc}`}>
                                   {name}
                                 </button>
