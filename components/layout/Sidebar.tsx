@@ -69,6 +69,12 @@ export function Sidebar() {
         })}
       </nav>
 
+      {/* Legal links */}
+      <div className="px-4 pb-2 flex gap-3">
+        <Link href="/privacy" className="text-[10px] text-slate-400 hover:text-teal-500 transition-colors">Privacy</Link>
+        <Link href="/terms" className="text-[10px] text-slate-400 hover:text-teal-500 transition-colors">Terms</Link>
+      </div>
+
       {/* Bottom user section */}
       <div className="px-4 py-4 border-t border-slate-100 dark:border-slate-800">
         <div className="flex items-center gap-2.5">

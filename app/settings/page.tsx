@@ -467,6 +467,12 @@ export default function SettingsPage() {
           Sign out
         </Button>
 
+        <div className="flex items-center justify-center gap-4 mt-6 pb-2">
+          <a href="/privacy" className="text-xs text-slate-400 hover:text-teal-600 transition-colors">Privacy Policy</a>
+          <span className="text-slate-300 dark:text-slate-700">·</span>
+          <a href="/terms" className="text-xs text-slate-400 hover:text-teal-600 transition-colors">Terms of Service</a>
+        </div>
+
       </PageContainer>
     </AppShell>
   )
