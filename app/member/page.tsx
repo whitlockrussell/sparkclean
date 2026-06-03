@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { CalendarDays, Clock, MapPin, LogOut } from 'lucide-react'
+import { PhoneLink } from '@/components/ui/PhoneLink'
 
 type MemberPermissions = {
   view_today: boolean
@@ -344,7 +345,10 @@ export default function MemberDashboard() {
                             </div>
                           )}
                           {permissions.view_contact_info && client && (
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{client.first_name} {client.last_name} · {client.phone}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                              {client.first_name} {client.last_name}
+                              {client.phone && <> · <PhoneLink phone={client.phone} className="text-xs" /></>}
+                            </p>
                           )}
                           {job.start_time && (
                             <div className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">

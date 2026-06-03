@@ -15,6 +15,7 @@ import { usePlan } from '@/lib/hooks/usePlan'
 import { Users, Plus, Phone, ChevronRight, Search, Lock } from 'lucide-react'
 import type { Client, NewClient } from '@/lib/types'
 import Link from 'next/link'
+import { PhoneLink } from '@/components/ui/PhoneLink'
 
 export default function ClientsPage() {
   const { clients, loading, error, addClient, updateClient, deleteClient } = useClients()
@@ -139,9 +140,9 @@ export default function ClientsPage() {
                     {c.first_name} {c.last_name}
                   </p>
                   {c.phone && (
-                    <div className="flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                      <Phone className="w-3 h-3" strokeWidth={1.8} />
-                      <span>{c.phone}</span>
+                    <div className="flex items-center gap-1 text-xs mt-0.5">
+                      <Phone className="w-3 h-3 text-slate-400 dark:text-slate-500 flex-shrink-0" strokeWidth={1.8} />
+                      <PhoneLink phone={c.phone} className="text-xs" />
                     </div>
                   )}
                   {c.address && (
