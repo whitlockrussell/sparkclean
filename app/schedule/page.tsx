@@ -124,12 +124,12 @@ const CLIENT_COLORS = [
 ]
 
 // Assign colors by position so no two vertically adjacent jobs in a column share a color.
-function assignColumnColors(jobs: Appointment[]): Map<string, string> {
+function assignColumnColors(jobs: Appointment[], startOffset: number): Map<string, string> {
   const sorted = [...jobs].sort((a, b) => (a.start_time ?? '').localeCompare(b.start_time ?? ''))
   const map = new Map<string, string>()
   let prevIdx = -1
   sorted.forEach((job, i) => {
-    let idx = i % CLIENT_COLORS.length
+    let idx = (startOffset + i) % CLIENT_COLORS.length
     if (idx === prevIdx) idx = (idx + 1) % CLIENT_COLORS.length
     map.set(job.id, CLIENT_COLORS[idx])
     prevIdx = idx
@@ -722,7 +722,7 @@ export default function SchedulePage() {
                           }
                         }
 
-                        const colorMap = assignColumnColors(dayJobs)
+                        const colorMap = assignColumnColors(dayJobs, idx)
 
                         return (
                           <TimeColumn key={idx} date={date} isToday={date === today}>
