@@ -227,27 +227,27 @@ export default function MileagePage() {
             {/* Year-to-date summary */}
             {logs.length > 0 && (
               <div className="grid grid-cols-2 gap-3 mb-5">
-                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
-                  <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-3">Total km</p>
-                  <p className="text-2xl font-semibold text-teal-700">{totalKm.toFixed(1)}</p>
-                  <p className="text-[11px] text-slate-400 mt-1.5">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-4">
+                  <p className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide mb-3">Total km</p>
+                  <p className="text-2xl font-semibold text-teal-700 dark:text-teal-400">{totalKm.toFixed(1)}</p>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1.5">
                     {remaining > 0
                       ? `${remaining.toFixed(0)} km until tier 2 rate`
                       : `${(totalKm - CRA_KM_THRESHOLD).toFixed(0)} km at tier 2 ($0.66/km)`}
                   </p>
                 </div>
-                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
-                  <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-3">Est. deduction</p>
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-4">
+                  <p className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide mb-3">Est. deduction</p>
                   <p className="text-2xl font-semibold text-amber-600">${deduction.toFixed(2)}</p>
-                  <p className="text-[11px] text-slate-400 mt-1.5">CRA rate · this year</p>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1.5">CRA rate · this year</p>
                 </div>
               </div>
             )}
 
             {/* CRA rate info */}
             {logs.length > 0 && (
-              <div className="bg-slate-50 rounded-xl px-4 py-3 mb-5 text-xs text-slate-500 leading-relaxed">
-                <span className="font-semibold text-slate-600">CRA 2025 rate:</span> $0.72/km for first {CRA_KM_THRESHOLD.toLocaleString()} km · $0.66/km after.
+              <div className="bg-slate-50 dark:bg-slate-800 rounded-xl px-4 py-3 mb-5 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                <span className="font-semibold text-slate-600 dark:text-slate-300">CRA 2025 rate:</span> $0.72/km for first {CRA_KM_THRESHOLD.toLocaleString()} km · $0.66/km after.
                 Keep a logbook with date, destination, and business purpose for each trip.
               </div>
             )}
@@ -269,9 +269,9 @@ export default function MileagePage() {
                   return (
                     <div key={month}>
                       <div className="flex items-center gap-2 mb-3">
-                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{formatMonth(month)}</p>
-                        <div className="flex-1 h-px bg-slate-100" />
-                        <span className="text-xs text-slate-400">{monthKm.toFixed(1)} km</span>
+                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{formatMonth(month)}</p>
+                        <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800" />
+                        <span className="text-xs text-slate-400 dark:text-slate-500">{monthKm.toFixed(1)} km</span>
                       </div>
                       <div className="space-y-2">
                         {monthLogs.map(l => (
@@ -279,11 +279,11 @@ export default function MileagePage() {
                             <div className="flex items-start justify-between gap-3">
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-1">
-                                  <p className="text-xs text-slate-400">{formatDate(l.trip_date)}</p>
+                                  <p className="text-xs text-slate-400 dark:text-slate-500">{formatDate(l.trip_date)}</p>
                                 </div>
                                 {(l.start_location || l.end_location) ? (
-                                  <div className="flex items-center gap-1 text-sm text-slate-700">
-                                    <MapPin className="w-3 h-3 text-slate-400 flex-shrink-0" strokeWidth={1.8} />
+                                  <div className="flex items-center gap-1 text-sm text-slate-700 dark:text-slate-200">
+                                    <MapPin className="w-3 h-3 text-slate-400 dark:text-slate-500 flex-shrink-0" strokeWidth={1.8} />
                                     <span className="truncate">
                                       {l.start_location && l.end_location
                                         ? `${l.start_location} → ${l.end_location}`
@@ -291,12 +291,12 @@ export default function MileagePage() {
                                     </span>
                                   </div>
                                 ) : (
-                                  <p className="text-sm text-slate-500 italic">No locations</p>
+                                  <p className="text-sm text-slate-500 dark:text-slate-400 italic">No locations</p>
                                 )}
-                                {l.notes && <p className="text-xs text-slate-400 mt-1 truncate">{l.notes}</p>}
+                                {l.notes && <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 truncate">{l.notes}</p>}
                               </div>
                               <div className="text-right flex-shrink-0">
-                                <p className="text-lg font-semibold text-slate-700">{l.km.toFixed(1)} km</p>
+                                <p className="text-lg font-semibold text-slate-700 dark:text-slate-200">{l.km.toFixed(1)} km</p>
                                 <p className="text-xs text-amber-600 font-medium">${(tripDedMap.get(l.id) ?? 0).toFixed(2)}</p>
                               </div>
                             </div>
