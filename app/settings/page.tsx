@@ -184,7 +184,7 @@ export default function SettingsPage() {
 
         {/* Appearance */}
         <div className="mb-4">
-          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Appearance</h2>
+          <h2 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">Appearance</h2>
           <Card>
             <div className="flex items-center gap-3 px-4 py-3.5">
               <div className="w-8 h-8 rounded-xl bg-teal-50 dark:bg-teal-900/30 flex items-center justify-center flex-shrink-0">
@@ -192,7 +192,7 @@ export default function SettingsPage() {
               </div>
               <div className="flex-1">
                 <p className="text-sm font-medium text-slate-800 dark:text-slate-100">Dark mode</p>
-                <p className="text-xs text-slate-400">Easier on the eyes at night</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">Easier on the eyes at night</p>
               </div>
               <button
                 onClick={toggleTheme}
@@ -224,7 +224,7 @@ export default function SettingsPage() {
               </div>
               <div className="flex-1 text-left">
                 <p className="text-sm font-medium text-slate-800 dark:text-slate-100">Business details</p>
-                <p className="text-xs text-slate-400 truncate">
+                <p className="text-xs text-slate-400 dark:text-slate-500 truncate">
                   {form.business_name || 'Not set'} · HST: {form.hst_number || 'Not set'}
                 </p>
               </div>
@@ -271,7 +271,7 @@ export default function SettingsPage() {
                         )}
                         {currentLogo ? 'Change logo' : 'Upload logo'}
                       </button>
-                      <p className="text-[11px] text-slate-400 mt-1">PNG or JPG · Appears on invoices</p>
+                      <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">PNG or JPG · Appears on invoices</p>
                     </div>
                   </div>
                   <input
@@ -290,7 +290,7 @@ export default function SettingsPage() {
                 <div>
                   <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">HST number</label>
                   <input type="text" value={form.hst_number ?? ''} onChange={e => set('hst_number', e.target.value)} placeholder="123456789RT0001" className={inputClass} />
-                  <p className="text-[11px] text-slate-400 mt-1">This appears on every invoice you send.</p>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">This appears on every invoice you send.</p>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Phone</label>
@@ -338,7 +338,7 @@ export default function SettingsPage() {
               </div>
               <div className="flex-1 text-left">
                 <p className="text-sm font-medium text-slate-800 dark:text-slate-100">Invoice defaults</p>
-                <p className="text-xs text-slate-400">Prefix, footer note</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">Prefix, footer note</p>
               </div>
               {openSection === 'invoice'
                 ? <ChevronUp className="w-4 h-4 text-slate-300" strokeWidth={1.8} />
@@ -351,7 +351,7 @@ export default function SettingsPage() {
                 <div>
                   <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Invoice prefix</label>
                   <input type="text" value={form.invoice_prefix ?? 'INV'} onChange={e => set('invoice_prefix', e.target.value.toUpperCase())} placeholder="INV" maxLength={6} className={inputClass} />
-                  <p className="text-[11px] text-slate-400 mt-1">Invoices will be numbered INV-001, INV-002…</p>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">Invoices will be numbered INV-001, INV-002…</p>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Default invoice note</label>
@@ -381,7 +381,7 @@ export default function SettingsPage() {
               </div>
               <div className="flex-1 text-left">
                 <p className="text-sm font-medium text-slate-800 dark:text-slate-100">Estimate defaults</p>
-                <p className="text-xs text-slate-400">Hourly rate for price calculator</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">Hourly rate for price calculator</p>
               </div>
               {openSection === 'estimates'
                 ? <ChevronUp className="w-4 h-4 text-slate-300" strokeWidth={1.8} />
@@ -405,7 +405,7 @@ export default function SettingsPage() {
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">/hr</span>
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-1">Used as the default rate when creating new estimates.</p>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">Used as the default rate when creating new estimates.</p>
                 </div>
               </div>
             )}
@@ -432,7 +432,7 @@ export default function SettingsPage() {
                     Renews {new Date(currentPeriodEnd).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </p>
                 ) : (
-                  <p className="text-xs text-slate-400">Up to 5 clients · limited features</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">Up to 5 clients · limited features</p>
                 )}
               </div>
               {isPro ? (

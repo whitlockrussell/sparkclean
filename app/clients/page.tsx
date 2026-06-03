@@ -91,7 +91,7 @@ export default function ClientsPage() {
         {/* Search */}
         {clients.length > 0 && (
           <div className="relative mb-4">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" strokeWidth={1.8} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" strokeWidth={1.8} />
             <input
               type="text"
               value={search}
@@ -139,13 +139,13 @@ export default function ClientsPage() {
                     {c.first_name} {c.last_name}
                   </p>
                   {c.phone && (
-                    <div className="flex items-center gap-1 text-xs text-slate-400 mt-0.5">
+                    <div className="flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500 mt-0.5">
                       <Phone className="w-3 h-3" strokeWidth={1.8} />
                       <span>{c.phone}</span>
                     </div>
                   )}
                   {c.address && (
-                    <p className="text-xs text-slate-400 truncate mt-0.5">{c.address}, {c.city}</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 truncate mt-0.5">{c.address}, {c.city}</p>
                   )}
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">

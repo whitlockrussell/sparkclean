@@ -78,14 +78,14 @@ export default function UpgradePage() {
           {/* Free plan */}
           <Card className="p-5">
             <div className="mb-4">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Free</p>
+              <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">Free</p>
               <p className="text-2xl font-bold text-slate-900 dark:text-white">$0</p>
-              <p className="text-xs text-slate-400">forever</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500">forever</p>
             </div>
             <ul className="space-y-2.5">
               {FREE_FEATURES.map(f => (
                 <li key={f} className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-400">
-                  <Check className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" strokeWidth={2} />
+                  <Check className="w-4 h-4 text-slate-400 dark:text-slate-500 flex-shrink-0 mt-0.5" strokeWidth={2} />
                   {f}
                 </li>
               ))}
@@ -102,7 +102,7 @@ export default function UpgradePage() {
                 </span>
               </div>
               <p className="text-2xl font-bold text-slate-900 dark:text-white">$17</p>
-              <p className="text-xs text-slate-400">USD per month</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500">USD per month</p>
             </div>
             <ul className="space-y-2.5 mb-5">
               {PRO_FEATURES.map(f => (
@@ -123,7 +123,7 @@ export default function UpgradePage() {
               <Sparkles className="w-4 h-4" />
               Upgrade to Pro
             </Button>
-            <p className="text-[11px] text-slate-400 text-center mt-2">
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 text-center mt-2">
               Secure payment via Stripe · Cancel anytime
             </p>
           </Card>
@@ -131,7 +131,7 @@ export default function UpgradePage() {
 
         <div className="bg-slate-50 dark:bg-slate-800 rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-2">
-            <Lock className="w-4 h-4 text-slate-400" strokeWidth={1.8} />
+            <Lock className="w-4 h-4 text-slate-400 dark:text-slate-500" strokeWidth={1.8} />
             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               Currently locked on your plan
             </p>

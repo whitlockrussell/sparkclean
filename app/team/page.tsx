@@ -58,13 +58,13 @@ function InviteForm({ onInvite, onClose }: {
         </div>
         <form onSubmit={handleSubmit} className="px-5 py-5 space-y-4">
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1.5">Full name</label>
+            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Full name</label>
             <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Jess Liu" className={inputClass} />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1.5">Email address</label>
+            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Email address</label>
             <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="jess@email.com" className={inputClass} />
-            <p className="text-[11px] text-slate-400 mt-1">They'll receive an email to set up their login.</p>
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">They'll receive an email to set up their login.</p>
           </div>
           {error && <p className="text-sm text-red-500 bg-red-50 rounded-xl px-3 py-2">{error}</p>}
           <div className="flex gap-3 pb-2">
@@ -133,24 +133,24 @@ function LogHoursForm({ members, onLog, onClose }: {
         </div>
         <form onSubmit={handleSubmit} className="px-5 py-5 space-y-4">
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1.5">Team member</label>
+            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Team member</label>
             <select value={memberId} onChange={e => setMemberId(e.target.value)} className={inputClass}>
               {members.map(m => <option key={m.id} value={m.id}>{m.full_name}</option>)}
             </select>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1.5">Hours worked</label>
+              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Hours worked</label>
               <input type="number" min="0.5" max="24" step="0.5" value={hours}
                 onChange={e => setHours(e.target.value)} placeholder="3.5" className={inputClass} />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1.5">Date</label>
+              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Date</label>
               <input type="date" value={date} onChange={e => setDate(e.target.value)} className={inputClass} />
             </div>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1.5">Notes (optional)</label>
+            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Notes (optional)</label>
             <input type="text" value={notes} onChange={e => setNotes(e.target.value)}
               placeholder="e.g. Deep clean, extra time" className={inputClass} />
           </div>
@@ -221,8 +221,8 @@ function MemberClockCard({ member, timeEntries, manualEntries, onLog, onDeleteTi
       id: e.id,
       sortKey: e.work_date + e.clock_in,
       node: (
-        <div key={e.id} className="flex items-center gap-2 text-xs text-slate-500 py-0.5">
-          <span className="text-slate-400 flex-shrink-0">{fmtDate(e.work_date)}</span>
+        <div key={e.id} className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 py-0.5">
+          <span className="text-slate-400 dark:text-slate-500 flex-shrink-0">{fmtDate(e.work_date)}</span>
           <span className="flex-1 text-center">{fmtTime(e.clock_in)}&thinsp;→&thinsp;{e.clock_out ? fmtTime(e.clock_out) : '…'}</span>
           <span className="font-medium text-teal-600 flex-shrink-0">{formatHours(e.hours)}</span>
           <button onClick={() => onDeleteTime(e.id)} className="text-slate-200 hover:text-red-400 flex-shrink-0"><Trash2 className="w-3 h-3" /></button>
@@ -233,10 +233,10 @@ function MemberClockCard({ member, timeEntries, manualEntries, onLog, onDeleteTi
       id: e.id,
       sortKey: e.work_date + '00:00',
       node: (
-        <div key={e.id} className="flex items-center gap-2 text-xs text-slate-500 py-0.5">
-          <span className="text-slate-400 flex-shrink-0">{fmtDate(e.work_date)}</span>
-          <span className="flex-1 text-center italic text-slate-400">manual</span>
-          <span className="font-medium text-slate-600 flex-shrink-0">{formatHours(e.hours)}</span>
+        <div key={e.id} className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 py-0.5">
+          <span className="text-slate-400 dark:text-slate-500 flex-shrink-0">{fmtDate(e.work_date)}</span>
+          <span className="flex-1 text-center italic text-slate-400 dark:text-slate-500">manual</span>
+          <span className="font-medium text-slate-600 dark:text-slate-300 flex-shrink-0">{formatHours(e.hours)}</span>
           <button onClick={() => onDeleteManual(e.id)} className="text-slate-200 hover:text-red-400 flex-shrink-0"><Trash2 className="w-3 h-3" /></button>
         </div>
       ),
@@ -245,19 +245,19 @@ function MemberClockCard({ member, timeEntries, manualEntries, onLog, onDeleteTi
 
   return (
     <div className="mt-3 border-t border-slate-100 pt-3">
-      <p className="text-xs font-semibold text-slate-500 mb-2.5">Log shift</p>
+      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2.5">Log shift</p>
 
       <div className="grid grid-cols-3 gap-2 mb-2">
         <div>
-          <label className="text-[10px] text-slate-400 mb-1 block">Date</label>
+          <label className="text-[10px] text-slate-400 dark:text-slate-500 mb-1 block">Date</label>
           <input type="date" value={date} onChange={e => setDate(e.target.value)} className={inputCls} />
         </div>
         <div>
-          <label className="text-[10px] text-slate-400 mb-1 block">Start</label>
+          <label className="text-[10px] text-slate-400 dark:text-slate-500 mb-1 block">Start</label>
           <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} className={inputCls} />
         </div>
         <div>
-          <label className="text-[10px] text-slate-400 mb-1 block">End</label>
+          <label className="text-[10px] text-slate-400 dark:text-slate-500 mb-1 block">End</label>
           <input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} className={inputCls} />
         </div>
       </div>
@@ -366,7 +366,7 @@ export default function TeamPage() {
         <div className="flex gap-1 bg-slate-100 rounded-xl p-1 mb-5">
           {(['hours', 'members'] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all capitalize ${tab === t ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all capitalize ${tab === t ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>
               {t === 'hours' ? '⏱ Hours' : '👥 Members'}
             </button>
           ))}

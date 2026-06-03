@@ -227,18 +227,18 @@ export default function MemberDashboard() {
   )
 
   if (!permissions) return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
-      <p className="text-slate-400 text-sm text-center">Your account isn't linked to a team yet.</p>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-6">
+      <p className="text-slate-400 dark:text-slate-500 text-sm text-center">Your account isn't linked to a team yet.</p>
     </div>
   )
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="bg-white border-b border-slate-100 px-4 py-4">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+      <div className="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 px-4 py-4">
         <div className="flex items-center justify-between max-w-lg mx-auto">
           <div>
-            <p className="text-[15px] font-semibold text-slate-900">{greeting()}, {memberName.split(' ')[0]} 👋</p>
-            <p className="text-xs text-slate-400">{new Date().toLocaleDateString('en-CA', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+            <p className="text-[15px] font-semibold text-slate-900 dark:text-white">{greeting()}, {memberName.split(' ')[0]} 👋</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500">{new Date().toLocaleDateString('en-CA', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-9 h-9 rounded-full bg-teal-50 flex items-center justify-center">
@@ -271,12 +271,12 @@ export default function MemberDashboard() {
                   </button>
                 </div>
               ) : (
-                <div className="bg-white rounded-2xl border border-slate-100 p-5 text-center">
-                  <div className="w-14 h-14 rounded-full bg-teal-50 flex items-center justify-center mx-auto mb-3">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-5 text-center">
+                  <div className="w-14 h-14 rounded-full bg-teal-50 dark:bg-teal-900/30 flex items-center justify-center mx-auto mb-3">
                     <Clock className="w-7 h-7 text-teal-500" strokeWidth={1.8} />
                   </div>
                   {todayTotalHours > 0 && (
-                    <p className="text-sm text-slate-500 mb-1">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">
                       Total today: <span className="font-semibold text-teal-600">{todayTotalHours.toFixed(2)} hrs</span>
                     </p>
                   )}
@@ -288,17 +288,17 @@ export default function MemberDashboard() {
               )
             ) : (
               /* Owner controls hours — read-only view for helper */
-              <div className="bg-white rounded-2xl border border-slate-100 p-4">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <Clock className="w-4 h-4 text-teal-500" strokeWidth={1.8} />
-                  <p className="text-sm font-semibold text-slate-700">Your hours today</p>
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Your hours today</p>
                 </div>
                 {todayEntries.length === 0 ? (
-                  <p className="text-xs text-slate-400">No hours logged yet today. Your employer tracks your hours.</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">No hours logged yet today. Your employer tracks your hours.</p>
                 ) : (
                   <div className="space-y-1">
                     {todayEntries.map(entry => (
-                      <div key={entry.id} className="flex items-center justify-between text-xs text-slate-500 py-1.5 border-b border-slate-50 last:border-0">
+                      <div key={entry.id} className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 py-1.5 border-b border-slate-50 dark:border-slate-800 last:border-0">
                         <span>
                           {formatTimestamp(entry.clock_in)}
                           {entry.clock_out ? ` → ${formatTimestamp(entry.clock_out)}` : ' → ongoing'}
@@ -321,11 +321,11 @@ export default function MemberDashboard() {
         {/* Today's jobs */}
         {permissions.view_today && (
           <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Today's jobs</p>
+            <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">Today's jobs</p>
             {todayJobs.length === 0 ? (
-              <div className="bg-white rounded-2xl border border-slate-100 p-6 text-center">
-                <CalendarDays className="w-8 h-8 text-slate-200 mx-auto mb-2" strokeWidth={1.5} />
-                <p className="text-sm text-slate-400">No jobs scheduled for today</p>
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6 text-center">
+                <CalendarDays className="w-8 h-8 text-slate-200 dark:text-slate-700 mx-auto mb-2" strokeWidth={1.5} />
+                <p className="text-sm text-slate-400 dark:text-slate-500">No jobs scheduled for today</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -334,36 +334,36 @@ export default function MemberDashboard() {
                   const isPaid = job.status === 'payment_received'
                   const client = job.clients
                   return (
-                    <div key={job.id} className={`bg-white rounded-2xl border border-slate-100 p-4 ${isDone ? 'opacity-60' : ''}`}>
+                    <div key={job.id} className={`bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-4 ${isDone ? 'opacity-60' : ''}`}>
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           {permissions.view_address && client?.address && (
-                            <div className="flex items-center gap-1 text-sm font-semibold text-slate-900 mb-1">
+                            <div className="flex items-center gap-1 text-sm font-semibold text-slate-900 dark:text-white mb-1">
                               <MapPin className="w-3.5 h-3.5 text-teal-500 flex-shrink-0" strokeWidth={2} />
                               <span className="truncate">{client.address}{client.city ? `, ${client.city}` : ''}</span>
                             </div>
                           )}
                           {permissions.view_contact_info && client && (
-                            <p className="text-xs text-slate-500 mb-1">{client.first_name} {client.last_name} · {client.phone}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{client.first_name} {client.last_name} · {client.phone}</p>
                           )}
                           {job.start_time && (
-                            <div className="flex items-center gap-2 text-xs text-slate-400">
+                            <div className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
                               <Clock className="w-3 h-3" strokeWidth={1.8} />
                               <span>{formatTime(job.start_time)}</span>
                               {job.duration_hours && <span>· {job.duration_hours} hrs</span>}
                             </div>
                           )}
                           {permissions.view_job_notes && job.notes && (
-                            <p className="text-xs text-slate-400 mt-1.5 bg-slate-50 rounded-lg px-2 py-1">{job.notes}</p>
+                            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1.5 bg-slate-50 dark:bg-slate-800 rounded-lg px-2 py-1">{job.notes}</p>
                           )}
                         </div>
                         {permissions.view_job_price && (
-                          <p className={`text-base font-semibold flex-shrink-0 ${job.price === 0 ? 'text-slate-400' : 'text-amber-600'}`}>{job.price === 0 ? 'TBD' : `$${job.price}`}</p>
+                          <p className={`text-base font-semibold flex-shrink-0 ${job.price === 0 ? 'text-slate-400 dark:text-slate-500' : 'text-amber-600'}`}>{job.price === 0 ? 'TBD' : `$${job.price}`}</p>
                         )}
                       </div>
-                      <div className="mt-3 pt-3 border-t border-slate-100">
+                      <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
                         <div className="flex items-center py-1.5 gap-3">
-                          <p className="text-sm text-slate-700 flex-1">Job done</p>
+                          <p className="text-sm text-slate-700 dark:text-slate-200 flex-1">Job done</p>
                           <button
                             type="button"
                             disabled={!permissions.mark_job_done}
@@ -374,7 +374,7 @@ export default function MemberDashboard() {
                           </button>
                         </div>
                         <div className="flex items-center py-1.5 gap-3">
-                          <p className={`text-sm flex-1 ${isDone ? 'text-slate-400' : 'text-slate-400'}`}>Payment received</p>
+                          <p className="text-sm flex-1 text-slate-400 dark:text-slate-500">Payment received</p>
                           <button
                             type="button"
                             disabled
@@ -395,22 +395,22 @@ export default function MemberDashboard() {
         {/* Upcoming */}
         {permissions.view_schedule && upcomingJobs.length > 0 && (
           <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Upcoming</p>
+            <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">Upcoming</p>
             <div className="space-y-2">
               {upcomingJobs.map(job => {
                 const client = job.clients
                 return (
-                  <div key={job.id} className="bg-white rounded-2xl border border-slate-100 px-4 py-3 flex items-center gap-3">
+                  <div key={job.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 px-4 py-3 flex items-center gap-3">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-slate-700">
+                      <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
                         {new Date(job.scheduled_date + 'T12:00:00').toLocaleDateString('en-CA', { weekday: 'short', month: 'short', day: 'numeric' })}
                         {job.start_time && ` · ${formatTime(job.start_time)}`}
                       </p>
                       {permissions.view_address && client?.address && (
-                        <p className="text-xs text-slate-400 truncate">{client.address}</p>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 truncate">{client.address}</p>
                       )}
                     </div>
-                    {job.duration_hours && <p className="text-xs text-slate-400 flex-shrink-0">{job.duration_hours} hrs</p>}
+                    {job.duration_hours && <p className="text-xs text-slate-400 dark:text-slate-500 flex-shrink-0">{job.duration_hours} hrs</p>}
                   </div>
                 )
               })}

@@ -459,7 +459,7 @@ export default function SchedulePage() {
             <p className="font-semibold text-slate-900 dark:text-white text-[15px]">{name}</p>
             {appt.is_recurring && <Badge variant="teal"><RefreshCw className="w-2.5 h-2.5 mr-1" />{appt.recurrence_rule}</Badge>}
           </div>
-          <p className={`text-lg font-semibold flex-shrink-0 ${appt.price === 0 ? 'text-slate-400' : 'text-amber-600'}`}>{fmtPrice(appt.price)}</p>
+          <p className={`text-lg font-semibold flex-shrink-0 ${appt.price === 0 ? 'text-slate-400 dark:text-slate-500' : 'text-amber-600'}`}>{fmtPrice(appt.price)}</p>
         </div>
         {address && (
           <a
@@ -549,7 +549,7 @@ export default function SchedulePage() {
                       <div className="flex items-center gap-2 mb-3">
                         <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{formatDate(date)}</p>
                         <div className="flex-1 h-px bg-slate-100" />
-                        <span className="text-xs text-slate-400">{grouped[date].length} job{grouped[date].length !== 1 ? 's' : ''}</span>
+                        <span className="text-xs text-slate-400 dark:text-slate-500">{grouped[date].length} job{grouped[date].length !== 1 ? 's' : ''}</span>
                       </div>
                       <div className="space-y-3">{grouped[date].map(a => renderCard(a))}</div>
                     </div>
@@ -628,11 +628,11 @@ export default function SchedulePage() {
                       const dayNum  = Number(date.split('-')[2])
                       return (
                         <div key={date} className="flex-1 text-center py-2 border-r border-slate-100 last:border-r-0">
-                          <p className={`text-[9px] font-bold uppercase tracking-widest ${isToday ? 'text-teal-500' : 'text-slate-400'}`}>
+                          <p className={`text-[9px] font-bold uppercase tracking-widest ${isToday ? 'text-teal-500' : 'text-slate-400 dark:text-slate-500'}`}>
                             {WEEK_LABELS[idx]}
                           </p>
                           <div className={`w-6 h-6 rounded-full flex items-center justify-center mx-auto mt-0.5 ${isToday ? 'bg-teal-500' : ''}`}>
-                            <span className={`text-xs font-bold ${isToday ? 'text-white' : 'text-slate-600'}`}>{dayNum}</span>
+                            <span className={`text-xs font-bold ${isToday ? 'text-white' : 'text-slate-600 dark:text-slate-300'}`}>{dayNum}</span>
                           </div>
                         </div>
                       )
@@ -643,7 +643,7 @@ export default function SchedulePage() {
                   {weekDates.some(date => (grouped[date] ?? []).some(a => !a.start_time)) && (
                     <div className="flex border-b border-slate-100 bg-slate-50/70">
                       <div className="w-8 flex-shrink-0 flex items-start justify-end pt-1.5 pr-1.5">
-                        <span className="text-[8px] text-slate-400 uppercase tracking-wider leading-tight text-right">No time</span>
+                        <span className="text-[8px] text-slate-400 dark:text-slate-500 uppercase tracking-wider leading-tight text-right">No time</span>
                       </div>
                       {weekDates.map(date => {
                         const timeless = (grouped[date] ?? []).filter(a => !a.start_time)
@@ -678,7 +678,7 @@ export default function SchedulePage() {
                       {HOURS.slice(1).map(h => (
                         <div key={h}
                           style={{ position: 'absolute', top: (h - START_H) * HOUR_H - 7, right: 4 }}
-                          className="text-[9px] text-slate-400 leading-none">
+                          className="text-[9px] text-slate-400 dark:text-slate-500 leading-none">
                           {formatHourLabel(h)}
                         </div>
                       ))}
@@ -753,24 +753,24 @@ export default function SchedulePage() {
       {/* Move scope modal — recurring drag reschedule */}
       {pendingReschedule && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.45)' }}>
-          <div className="bg-white rounded-2xl p-5 w-[320px] mx-4 shadow-xl">
-            <h3 className="text-[15px] font-semibold text-slate-900 mb-1">Move recurring job</h3>
-            <p className="text-sm text-slate-400 mb-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 w-[320px] mx-4 shadow-xl">
+            <h3 className="text-[15px] font-semibold text-slate-900 dark:text-white mb-1">Move recurring job</h3>
+            <p className="text-sm text-slate-400 dark:text-slate-500 mb-4">
               {formatDate(pendingReschedule.newDate)} at {formatTime(pendingReschedule.newTime)}
             </p>
             <div className="space-y-2">
               <button onClick={confirmMoveSingle}
-                className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 hover:border-teal-400 hover:bg-teal-50 transition-colors">
-                <p className="text-sm font-semibold text-slate-900">Move just this job</p>
-                <p className="text-xs text-slate-400 mt-0.5">Move only this occurrence to the new date and time</p>
+                className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/30 transition-colors">
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">Move just this job</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Move only this occurrence to the new date and time</p>
               </button>
               <button onClick={confirmMoveAllFuture}
-                className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 hover:border-teal-400 hover:bg-teal-50 transition-colors">
-                <p className="text-sm font-semibold text-slate-900">Move all future jobs in this series</p>
-                <p className="text-xs text-slate-400 mt-0.5">Move this job and update the time for all upcoming jobs in the series</p>
+                className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/30 transition-colors">
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">Move all future jobs in this series</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Move this job and update the time for all upcoming jobs in the series</p>
               </button>
             </div>
-            <button onClick={() => setPendingReschedule(null)} className="mt-3 w-full text-sm text-slate-400 py-2 hover:text-slate-600 transition-colors">Cancel</button>
+            <button onClick={() => setPendingReschedule(null)} className="mt-3 w-full text-sm text-slate-400 dark:text-slate-500 py-2 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">Cancel</button>
           </div>
         </div>
       )}
@@ -778,22 +778,22 @@ export default function SchedulePage() {
       {/* Edit scope modal */}
       {pendingEdit && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.45)' }}>
-          <div className="bg-white rounded-2xl p-5 w-[320px] mx-4 shadow-xl">
-            <h3 className="text-[15px] font-semibold text-slate-900 mb-1">Edit recurring job</h3>
-            <p className="text-sm text-slate-400 mb-4">Which jobs should be updated?</p>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 w-[320px] mx-4 shadow-xl">
+            <h3 className="text-[15px] font-semibold text-slate-900 dark:text-white mb-1">Edit recurring job</h3>
+            <p className="text-sm text-slate-400 dark:text-slate-500 mb-4">Which jobs should be updated?</p>
             <div className="space-y-2">
               <button onClick={confirmEditSingle}
-                className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 hover:border-teal-400 hover:bg-teal-50 transition-colors">
-                <p className="text-sm font-semibold text-slate-900">Edit just this job</p>
-                <p className="text-xs text-slate-400 mt-0.5">Save changes to this one occurrence only</p>
+                className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/30 transition-colors">
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">Edit just this job</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Save changes to this one occurrence only</p>
               </button>
               <button onClick={confirmEditAllFuture}
-                className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 hover:border-teal-400 hover:bg-teal-50 transition-colors">
-                <p className="text-sm font-semibold text-slate-900">Edit all future jobs in this series</p>
-                <p className="text-xs text-slate-400 mt-0.5">Update time, price, and notes for this and all upcoming jobs</p>
+                className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/30 transition-colors">
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">Edit all future jobs in this series</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Update time, price, and notes for this and all upcoming jobs</p>
               </button>
             </div>
-            <button onClick={() => setPendingEdit(null)} className="mt-3 w-full text-sm text-slate-400 py-2 hover:text-slate-600 transition-colors">Cancel</button>
+            <button onClick={() => setPendingEdit(null)} className="mt-3 w-full text-sm text-slate-400 dark:text-slate-500 py-2 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">Cancel</button>
           </div>
         </div>
       )}
@@ -801,22 +801,22 @@ export default function SchedulePage() {
       {/* Delete scope modal */}
       {pendingDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.45)' }}>
-          <div className="bg-white rounded-2xl p-5 w-[320px] mx-4 shadow-xl">
-            <h3 className="text-[15px] font-semibold text-slate-900 mb-1">Delete recurring job</h3>
-            <p className="text-sm text-slate-400 mb-4">Which jobs should be deleted?</p>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 w-[320px] mx-4 shadow-xl">
+            <h3 className="text-[15px] font-semibold text-slate-900 dark:text-white mb-1">Delete recurring job</h3>
+            <p className="text-sm text-slate-400 dark:text-slate-500 mb-4">Which jobs should be deleted?</p>
             <div className="space-y-2">
               <button onClick={confirmDeleteSingle}
-                className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 hover:border-red-200 hover:bg-red-50 transition-colors">
-                <p className="text-sm font-semibold text-slate-900">Delete just this job</p>
-                <p className="text-xs text-slate-400 mt-0.5">Remove this one occurrence only</p>
+                className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-red-200 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">Delete just this job</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Remove this one occurrence only</p>
               </button>
               <button onClick={confirmDeleteAllFuture}
-                className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 hover:border-red-200 hover:bg-red-50 transition-colors">
-                <p className="text-sm font-semibold text-slate-900">Delete all future jobs in this series</p>
-                <p className="text-xs text-slate-400 mt-0.5">Remove this and all upcoming jobs in the series</p>
+                className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-red-200 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">Delete all future jobs in this series</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Remove this and all upcoming jobs in the series</p>
               </button>
             </div>
-            <button onClick={() => setPendingDelete(null)} className="mt-3 w-full text-sm text-slate-400 py-2 hover:text-slate-600 transition-colors">Cancel</button>
+            <button onClick={() => setPendingDelete(null)} className="mt-3 w-full text-sm text-slate-400 dark:text-slate-500 py-2 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">Cancel</button>
           </div>
         </div>
       )}

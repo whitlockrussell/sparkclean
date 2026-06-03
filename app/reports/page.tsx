@@ -308,7 +308,7 @@ export default function ReportsPage() {
           ) : (
             <Link
               href="/upgrade"
-              className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 border border-slate-200 bg-slate-50 hover:bg-slate-100 rounded-xl px-3 py-1.5 transition-colors"
+              className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl px-3 py-1.5 transition-colors"
             >
               <Lock className="w-3.5 h-3.5" />
               Export PDF
@@ -533,7 +533,7 @@ function MileageCard({ km, deduction, trips, annual }: { km: number; deduction: 
       {km === 0 ? (
         <div className="flex items-center gap-3 py-1">
           <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
-            <Car className="w-4 h-4 text-slate-400" strokeWidth={1.8} />
+            <Car className="w-4 h-4 text-slate-400 dark:text-slate-500" strokeWidth={1.8} />
           </div>
           <p className="text-sm text-slate-400 dark:text-slate-500">
             No trips logged{annual ? ' this year' : ' this quarter'}. <a href="/mileage" className="text-teal-600 underline">Start tracking</a>.
