@@ -24,7 +24,12 @@ export default function ForgotPasswordPage() {
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
 
     if (error) {
-      setError(error.message)
+      const msg = error.message.toLowerCase()
+      if (msg.includes('rate limit') || msg.includes('too many')) {
+        setError('Too many password reset attempts. Please wait a few minutes before trying again.')
+      } else {
+        setError('Something went wrong. Please try again.')
+      }
       setLoading(false)
     } else {
       setSent(true)
