@@ -109,7 +109,7 @@ function groupByDate(appts: Appointment[]): Record<string, Appointment[]> {
   }, {} as Record<string, Appointment[]>)
 }
 
-// ── per-client pastel colors ──────────────────────────────────────────────────
+// ── calendar job colors ───────────────────────────────────────────────────────
 
 const CLIENT_COLORS = [
   'bg-teal-100 dark:bg-teal-900 border-teal-400 text-teal-900 dark:text-teal-200',
@@ -122,22 +122,25 @@ const CLIENT_COLORS = [
   'bg-pink-100 dark:bg-pink-900 border-pink-400 text-pink-900 dark:text-pink-200',
 ]
 
-function clientColorIndex(id: string): number {
-  let h = 0
-  for (let i = 0; i < id.length; i++) h = ((h * 31) + id.charCodeAt(i)) >>> 0
-  return h % CLIENT_COLORS.length
-}
-function getClientColor(clientId: string | null | undefined, fallbackId?: string): string {
-  const id = clientId ?? fallbackId
-  if (!id) return 'bg-slate-100 dark:bg-slate-700 border-slate-400 text-slate-600 dark:text-slate-300'
-  return CLIENT_COLORS[clientColorIndex(id)]
+// Assign colors by position so no two vertically adjacent jobs in a column share a color.
+function assignColumnColors(jobs: Appointment[]): Map<string, string> {
+  const sorted = [...jobs].sort((a, b) => (a.start_time ?? '').localeCompare(b.start_time ?? ''))
+  const map = new Map<string, string>()
+  let prevIdx = -1
+  sorted.forEach((job, i) => {
+    let idx = i % CLIENT_COLORS.length
+    if (idx === prevIdx) idx = (idx + 1) % CLIENT_COLORS.length
+    map.set(job.id, CLIENT_COLORS[idx])
+    prevIdx = idx
+  })
+  return map
 }
 
 // ── week-view draggable job block ─────────────────────────────────────────────
 
-type JobBlockProps = { appt: Appointment; onTap: () => void }
+type JobBlockProps = { appt: Appointment; colorClass: string; onTap: () => void }
 
-function JobBlock({ appt, onTap }: JobBlockProps) {
+function JobBlock({ appt, colorClass, onTap }: JobBlockProps) {
   if (!appt.start_time) return null
 
   const top    = timeToY(appt.start_time)
@@ -156,7 +159,7 @@ function JobBlock({ appt, onTap }: JobBlockProps) {
 
   const bg = isPaid ? 'bg-green-100 dark:bg-green-900 border-green-400 text-green-900 dark:text-green-200'
     : isDone ? 'bg-slate-100 dark:bg-slate-700 border-slate-400 text-slate-500 dark:text-slate-400'
-    : getClientColor(appt.client_id, appt.id)
+    : colorClass
 
   return (
     <div
@@ -642,11 +645,11 @@ export default function SchedulePage() {
                         const timeless = (grouped[date] ?? []).filter(a => !a.start_time)
                         return (
                           <div key={date} className="flex-1 py-1 px-0.5 border-r border-slate-100 last:border-r-0 min-h-[28px]">
-                            {timeless.map(appt => {
+                            {timeless.map((appt, ti) => {
                               const name   = appt.clients?.first_name ?? '?'
                               const isDone = appt.status === 'completed' || appt.status === 'payment_received'
                               const isPaid = appt.status === 'payment_received'
-                              const cc     = getClientColor(appt.client_id, appt.id)
+                              const cc     = CLIENT_COLORS[ti % CLIENT_COLORS.length]
                               return (
                                 <button key={appt.id} onClick={() => openEdit(appt)}
                                   className={`w-full text-left text-[9px] font-semibold px-1 py-0.5 rounded mb-0.5 truncate border
@@ -726,10 +729,12 @@ export default function SchedulePage() {
                           }
                         }
 
+                        const colorMap = assignColumnColors(dayJobs)
+
                         return (
                           <TimeColumn key={idx} date={date} isToday={date === today}>
                             {dayJobs.map(appt => (
-                              <JobBlock key={appt.id} appt={appt} onTap={() => openEdit(appt)} />
+                              <JobBlock key={appt.id} appt={appt} colorClass={colorMap.get(appt.id) ?? CLIENT_COLORS[0]} onTap={() => openEdit(appt)} />
                             ))}
                           </TimeColumn>
                         )
