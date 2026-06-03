@@ -116,7 +116,7 @@ export default async function Home() {
       <section className="bg-teal-600 text-white px-6 py-14 lg:py-16">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-2xl lg:text-3xl font-bold mb-10 text-center">
-            Professional tools at a price that makes sense.
+            Simple tools built for how you actually work.
           </h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
