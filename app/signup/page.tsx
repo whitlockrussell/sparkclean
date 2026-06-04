@@ -48,6 +48,7 @@ export default function SignupPage() {
             required
             className={inputClass}
             placeholder="Maria Rodriguez"
+            style={{ backgroundColor: 'white', color: '#111827' }}
           />
         </div>
 
@@ -60,6 +61,7 @@ export default function SignupPage() {
             required
             className={inputClass}
             placeholder="you@example.com"
+            style={{ backgroundColor: 'white', color: '#111827' }}
           />
         </div>
 
@@ -73,6 +75,7 @@ export default function SignupPage() {
             minLength={6}
             className={inputClass}
             placeholder="••••••••"
+            style={{ backgroundColor: 'white', color: '#111827' }}
           />
         </div>
 

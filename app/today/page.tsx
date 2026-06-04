@@ -52,6 +52,15 @@ function getWeekRange() {
   }
 }
 
+function getMonthRange() {
+  const now = new Date()
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+  return {
+    monthStart: localDateStr(monthStart),
+    monthEnd: localDateStr(now),
+  }
+}
+
 export default function TodayPage() {
   const { addAppointment, updateAppointment, deleteAppointment, fetchToday, fetchUnpaid } = useAppointments()
   const { clients } = useClients()
@@ -60,6 +69,7 @@ export default function TodayPage() {
   const [todayJobs, setTodayJobs] = useState<Appointment[]>([])
   const [unpaidJobs, setUnpaidJobs] = useState<Appointment[]>([])
   const [weekIncome, setWeekIncome] = useState(0)
+  const [monthIncome, setMonthIncome] = useState(0)
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editingJob, setEditingJob] = useState<Appointment | undefined>()
@@ -75,12 +85,13 @@ export default function TodayPage() {
 
   const refresh = async () => {
     const { weekStart, weekEnd } = getWeekRange()
+    const { monthStart, monthEnd } = getMonthRange()
     const now = new Date()
     const localToday   = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`
     const twoWeeksOut  = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 14)
     const localTwoWeeks = `${twoWeeksOut.getFullYear()}-${String(twoWeeksOut.getMonth()+1).padStart(2,'0')}-${String(twoWeeksOut.getDate()).padStart(2,'0')}`
 
-    const [jobs, unpaid, weekJobs, expiring] = await Promise.all([
+    const [jobs, unpaid, weekJobs, monthJobs, expiring] = await Promise.all([
       fetchToday(),
       fetchUnpaid(),
       supabase
@@ -89,6 +100,12 @@ export default function TodayPage() {
         .eq('status', 'payment_received')
         .gte('scheduled_date', weekStart)
         .lte('scheduled_date', weekEnd),
+      supabase
+        .from('appointments')
+        .select('price')
+        .eq('status', 'payment_received')
+        .gte('scheduled_date', monthStart)
+        .lte('scheduled_date', monthEnd),
       supabase
         .from('appointments')
         .select('client_id, recurrence_end, clients(first_name, last_name)')
@@ -102,6 +119,7 @@ export default function TodayPage() {
     setTodayJobs(jobs)
     setUnpaidJobs(unpaid)
     setWeekIncome((weekJobs.data ?? []).reduce((s, j) => s + j.price, 0))
+    setMonthIncome((monthJobs.data ?? []).reduce((s, j) => s + j.price, 0))
 
     const seen = new Set<string>()
     const banners: { clientName: string; clientId: string; endDate: string }[] = []
@@ -192,6 +210,15 @@ export default function TodayPage() {
                 accent={weekIncome > 0 ? 'teal' : 'slate'}
                 sub="Payment received"
               />
+              <div className="col-span-2">
+                <StatCard
+                  label="This month's income"
+                  value={`$${monthIncome.toFixed(0)}`}
+                  icon={TrendingUp}
+                  accent={monthIncome > 0 ? 'amber' : 'slate'}
+                  sub="Payment received"
+                />
+              </div>
             </div>
 
             {/* Renewal banners */}

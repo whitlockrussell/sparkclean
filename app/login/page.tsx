@@ -69,6 +69,7 @@ export default function LoginPage() {
             required
             className={inputClass}
             placeholder="you@example.com"
+            style={{ backgroundColor: 'white', color: '#111827' }}
           />
         </div>
 
@@ -86,6 +87,7 @@ export default function LoginPage() {
             required
             className={inputClass}
             placeholder="••••••••"
+            style={{ backgroundColor: 'white', color: '#111827' }}
           />
         </div>
 
