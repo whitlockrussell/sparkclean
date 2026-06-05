@@ -44,6 +44,7 @@ export function useAppointments() {
     setLoading(true)
     setError(null)
     const today = new Date()
+    const windowStart = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate())
     const windowEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 90)
     const { data, error } = await supabase
       .from('appointments')
@@ -59,7 +60,7 @@ export function useAppointments() {
         )
       `)
       .neq('status', 'cancelled')
-      .gte('scheduled_date', localDateStr(today))
+      .gte('scheduled_date', localDateStr(windowStart))
       .lte('scheduled_date', localDateStr(windowEnd))
       .order('scheduled_date', { ascending: true })
       .order('start_time', { ascending: true })
