@@ -22,7 +22,7 @@ function SignupContent() {
     setLoading(true)
     setError('')
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { full_name: fullName } },
@@ -32,6 +32,11 @@ function SignupContent() {
       setError(error.message)
       setLoading(false)
     } else {
+      if (data.user) {
+        await supabase
+          .from('businesses')
+          .upsert([{ user_id: data.user.id, business_name: '' }], { onConflict: 'user_id', ignoreDuplicates: true })
+      }
       router.push('/today')
     }
   }
