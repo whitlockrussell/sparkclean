@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { useBusiness } from '@/lib/hooks/useBusiness'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Building2, FileText, LogOut, Save, ChevronDown, ChevronUp, Camera, X, Moon, Calculator, Sparkles, CreditCard } from 'lucide-react'
+import { Building2, FileText, LogOut, Save, ChevronDown, ChevronUp, Camera, X, Moon, Calculator, Sparkles, CreditCard, Trash2, AlertTriangle } from 'lucide-react'
 import type { BusinessUpdate } from '@/lib/hooks/useBusiness'
 import { useTheme } from '@/components/ThemeProvider'
 import { usePlan } from '@/lib/hooks/usePlan'
@@ -41,6 +41,8 @@ export default function SettingsPage() {
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
   const [portalLoading, setPortalLoading] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const logoInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
   const supabase = createClient()
@@ -138,6 +140,23 @@ export default function SettingsPage() {
   const handleSignOut = async () => {
     await supabase.auth.signOut()
     router.push('/login')
+  }
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true)
+    try {
+      const res = await fetch('/api/delete-account', { method: 'DELETE' })
+      if (!res.ok) {
+        const json = await res.json()
+        throw new Error(json.error ?? 'Deletion failed')
+      }
+      await supabase.auth.signOut()
+      router.push('/login')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Something went wrong')
+      setDeleting(false)
+      setShowDeleteConfirm(false)
+    }
   }
 
   const handleManageBilling = async () => {
@@ -467,6 +486,25 @@ export default function SettingsPage() {
           Sign out
         </Button>
 
+        {/* Danger zone */}
+        <div className="mt-6 mb-2">
+          <h2 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">Danger zone</h2>
+          <Card>
+            <button
+              className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors rounded-2xl"
+              onClick={() => setShowDeleteConfirm(true)}
+            >
+              <div className="w-8 h-8 rounded-xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center flex-shrink-0">
+                <Trash2 className="w-4 h-4 text-red-500" strokeWidth={1.8} />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-sm font-medium text-red-600 dark:text-red-400">Delete account</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">Permanently remove your account and all data</p>
+              </div>
+            </button>
+          </Card>
+        </div>
+
         <div className="flex items-center justify-center gap-4 mt-6 pb-2">
           <a href="/privacy" className="text-xs text-slate-400 hover:text-teal-600 transition-colors">Privacy Policy</a>
           <span className="text-slate-300 dark:text-slate-700">·</span>
@@ -474,6 +512,42 @@ export default function SettingsPage() {
         </div>
 
       </PageContainer>
+
+      {/* Delete account confirmation modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => !deleting && setShowDeleteConfirm(false)} />
+          <div className="relative w-full sm:max-w-sm bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl p-6 shadow-xl">
+            <div className="flex flex-col items-center text-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                <AlertTriangle className="w-6 h-6 text-red-500" strokeWidth={1.8} />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold text-slate-900 dark:text-white">Delete your account?</h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                  This will permanently delete your account, all clients, jobs, invoices, expenses, and every other piece of data. This cannot be undone.
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleting}
+                className="w-full py-3 rounded-xl bg-red-500 hover:bg-red-600 disabled:opacity-60 text-white font-semibold text-sm transition-colors"
+              >
+                {deleting ? 'Deleting…' : 'Yes, delete my account'}
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+                className="w-full py-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-60 text-slate-700 dark:text-slate-300 font-semibold text-sm transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AppShell>
   )
 }
