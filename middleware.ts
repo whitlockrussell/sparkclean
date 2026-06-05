@@ -36,7 +36,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/terms') ||
     pathname.startsWith('/forgot-password') ||
     pathname.startsWith('/reset-password') ||
-    pathname.startsWith('/api/stripe/webhook')
+    pathname.startsWith('/api/stripe/webhook') ||
+    pathname.startsWith('/delete-account')
 
   // Not logged in — redirect to login
   if (!user && !isPublic) {
@@ -66,6 +67,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|sw\\.js|manifest\\.json|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|sw\\.js|manifest\\.json|\\.well-known|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
