@@ -31,7 +31,7 @@ export default async function Home({
       {/* ── HERO ────────────────────────────────────────────────────────────── */}
       <section>
         <Image
-          src="/screenshots/banner.jpg"
+          src="/screenshots/banner.png"
           alt="SparkClean - Simple tools for Canadian cleaning businesses"
           width={1200}
           height={600}
