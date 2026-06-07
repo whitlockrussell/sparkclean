@@ -37,7 +37,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/forgot-password') ||
     pathname.startsWith('/reset-password') ||
     pathname.startsWith('/api/stripe/webhook') ||
-    pathname.startsWith('/delete-account')
+    pathname.startsWith('/delete-account') ||
+    pathname.startsWith('/monitoring')          // Sentry tunnel — must be public
 
   // Not logged in — redirect to login
   if (!user && !isPublic) {
