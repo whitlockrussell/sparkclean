@@ -273,13 +273,14 @@ export function AppointmentForm({
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 mb-1.5">End date (optional)</label>
+                  <label className="block text-xs font-medium text-slate-500 mb-1.5">End date <span className="text-slate-400 font-normal">(optional, max 3 months)</span></label>
                   <input
                     type="date"
                     value={form.recurrence_end ?? ''}
                     onChange={e => set('recurrence_end', e.target.value || null)}
                     className={inputClass}
                   />
+                  <p className="text-xs text-slate-400 mt-1.5">Jobs are booked up to 3 months ahead. You&apos;ll get a reminder to extend before the series runs out.</p>
                 </div>
               </div>
             )}

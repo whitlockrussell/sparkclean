@@ -15,22 +15,23 @@ function generateOccurrenceDates(
   rule: 'weekly' | 'biweekly' | 'monthly',
   end: string | null,
 ): string[] {
-  console.log('[recurring] generateOccurrenceDates called — start:', start, 'rule:', rule, 'end:', end)
   const [sy, sm, sd] = start.split('-').map(Number)
   let cur = new Date(sy, sm - 1, sd)
-  const endDate = end
+  const cap = new Date(sy, sm - 1 + 3, sd) // 3 months from start
+  const requested = end
     ? (() => { const [y, m, d] = end.split('-').map(Number); return new Date(y, m - 1, d) })()
-    : new Date(sy + 1, sm - 1, sd) // default 1 year ahead
+    : null
+  // Never generate past the 3-month cap, regardless of user-specified end date
+  const endDate = requested && requested < cap ? requested : cap
   const fmt = (d: Date) =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
   const dates: string[] = []
-  while (cur <= endDate && dates.length < 52) {
+  while (cur <= endDate) {
     dates.push(fmt(cur))
-    if (rule === 'weekly')    cur.setDate(cur.getDate() + 7)
+    if (rule === 'weekly') cur.setDate(cur.getDate() + 7)
     else if (rule === 'biweekly') cur.setDate(cur.getDate() + 14)
     else cur.setMonth(cur.getMonth() + 1)
   }
-  console.log('[recurring] generated', dates.length, 'dates — first:', dates[0], 'last:', dates[dates.length - 1])
   return dates
 }
 
@@ -106,10 +107,10 @@ export function useAppointments() {
 
     if (appt.is_recurring && appt.recurrence_rule) {
       const dates = generateOccurrenceDates(appt.scheduled_date, appt.recurrence_rule, appt.recurrence_end ?? null)
-      console.log('[recurring] inserting', dates.length, 'records into Supabase')
-      const records = dates.map(date => ({ ...appt, user_id: user.id, scheduled_date: date }))
+      // Always stamp recurrence_end with the last generated date so the reminder query has a value
+      const seriesEnd = dates[dates.length - 1] ?? appt.scheduled_date
+      const records = dates.map(date => ({ ...appt, user_id: user.id, scheduled_date: date, recurrence_end: seriesEnd }))
       const { data, error } = await supabase.from('appointments').insert(records).select(CLIENT_SELECT)
-      console.log('[recurring] insert result — inserted:', data?.length ?? 0, 'error:', error?.message ?? null)
       if (error) throw new Error(error.message)
       const newAppts = (data ?? []) as Appointment[]
       setAppointments(prev =>
@@ -138,22 +139,26 @@ export function useAppointments() {
     if (!user) throw new Error('Not logged in')
     if (!data.recurrence_rule) throw new Error('recurrence_rule is required')
 
+    // Generate all dates first so we know the series end before writing any rows
+    const dates = generateOccurrenceDates(data.scheduled_date, data.recurrence_rule, data.recurrence_end ?? null)
+    const seriesEnd = dates[dates.length - 1] ?? data.scheduled_date
+
     // Update the existing row to be the first occurrence
     const { data: updated, error: updateErr } = await supabase
       .from('appointments')
-      .update({ ...data, is_recurring: true })
+      .update({ ...data, is_recurring: true, recurrence_end: seriesEnd })
       .eq('id', id)
       .select(CLIENT_SELECT)
       .single()
     if (updateErr) throw new Error(updateErr.message)
 
-    // Generate all dates, skip the first (the existing row covers it)
-    const dates = generateOccurrenceDates(data.scheduled_date, data.recurrence_rule, data.recurrence_end ?? null)
+    // Skip the first date (the existing row covers it)
     const future = dates.slice(1).map(date => ({
       ...data,
       user_id: user.id,
       scheduled_date: date,
       is_recurring: true,
+      recurrence_end: seriesEnd,
       status: 'scheduled' as const,
     }))
 

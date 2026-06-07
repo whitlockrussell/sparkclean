@@ -78,8 +78,8 @@ export default function TodayPage() {
     const { weekStart, weekEnd } = getWeekRange()
     const now = new Date()
     const localToday   = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`
-    const twoWeeksOut  = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 14)
-    const localTwoWeeks = `${twoWeeksOut.getFullYear()}-${String(twoWeeksOut.getMonth()+1).padStart(2,'0')}-${String(twoWeeksOut.getDate()).padStart(2,'0')}`
+    const threeWeeksOut  = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 21)
+    const localTwoWeeks = `${threeWeeksOut.getFullYear()}-${String(threeWeeksOut.getMonth()+1).padStart(2,'0')}-${String(threeWeeksOut.getDate()).padStart(2,'0')}`
 
     const [jobs, unpaid, weekJobs, expiring] = await Promise.all([
       fetchToday(),
@@ -198,16 +198,29 @@ export default function TodayPage() {
             {/* Renewal banners */}
             {expiringRecurring.map(job => {
               const [y, m, d] = job.endDate.split('-').map(Number)
-              const label = new Date(y, m - 1, d).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' })
+              const endDateObj = new Date(y, m - 1, d)
+              const label = endDateObj.toLocaleDateString('en-CA', { month: 'short', day: 'numeric' })
+              const daysLeft = Math.ceil((endDateObj.getTime() - Date.now()) / 86400000)
+              const urgency = daysLeft <= 7 ? 'red' : 'amber'
               return (
                 <div key={job.clientId}
-                  className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-3 flex items-center gap-3 cursor-pointer"
+                  className={`border rounded-xl px-4 py-3 mb-3 flex items-center gap-3 cursor-pointer ${
+                    urgency === 'red'
+                      ? 'bg-red-50 border-red-200'
+                      : 'bg-amber-50 border-amber-200'
+                  }`}
                   onClick={() => setRenewClientId(job.clientId)}>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-amber-800 truncate">{job.clientName}'s recurring clean ends soon</p>
-                    <p className="text-xs text-amber-600 mt-0.5">Last occurrence: {label}</p>
+                    <p className={`text-sm font-semibold truncate ${urgency === 'red' ? 'text-red-800' : 'text-amber-800'}`}>
+                      {job.clientName}&apos;s recurring jobs end {daysLeft <= 0 ? 'today' : `in ${daysLeft} day${daysLeft === 1 ? '' : 's'}`}
+                    </p>
+                    <p className={`text-xs mt-0.5 ${urgency === 'red' ? 'text-red-600' : 'text-amber-600'}`}>
+                      Last job: {label} · Tap to book the next series
+                    </p>
                   </div>
-                  <span className="text-xs font-semibold text-amber-700 bg-amber-100 rounded-lg px-2.5 py-1.5 flex-shrink-0">Renew →</span>
+                  <span className={`text-xs font-semibold rounded-lg px-2.5 py-1.5 flex-shrink-0 ${
+                    urgency === 'red' ? 'text-red-700 bg-red-100' : 'text-amber-700 bg-amber-100'
+                  }`}>Extend →</span>
                 </div>
               )
             })}
@@ -386,6 +399,7 @@ export default function TodayPage() {
         <AppointmentForm
           clients={clients}
           defaultClientId={renewClientId}
+          isPro={isPro}
           onSave={async (data) => { await handleAdd(data); setRenewClientId(null) }}
           onClose={() => setRenewClientId(null)}
         />
