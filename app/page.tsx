@@ -1,8 +1,9 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import Image from 'next/image'
 import {
-  Sparkles, LayoutDashboard, CalendarDays, FileText, Receipt,
+  LayoutDashboard, CalendarDays, FileText, Receipt,
   UsersRound, Car, BarChart2, DollarSign, Smartphone, MapPin, Check,
 } from 'lucide-react'
 import { ScrollButton } from '@/components/landing/ScrollButton'
@@ -28,30 +29,16 @@ export default async function Home({
     <div className="scroll-smooth">
 
       {/* ── HERO ────────────────────────────────────────────────────────────── */}
-      <section className="bg-teal-600 text-white px-6 py-16 lg:py-24">
-        <div className="max-w-3xl mx-auto text-center">
-
-          {/* Logo */}
-          <div className="flex items-center justify-center gap-2.5 mb-8">
-            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-semibold tracking-tight">SparkClean</span>
-          </div>
-
-          {/* Badge */}
-          <div className="inline-flex items-center gap-1.5 bg-white/15 border border-white/30 rounded-full px-3 py-1 text-xs font-medium mb-6">
-            <MapPin className="w-3 h-3" />
-            Built for Canadian cleaners
-          </div>
-
-          <h1 className="text-3xl lg:text-5xl font-bold leading-tight mb-5">
-            Your entire cleaning business,<br className="hidden lg:block" /> run from your phone.
-          </h1>
-          <p className="text-teal-100 text-base lg:text-lg max-w-xl mx-auto mb-8 leading-relaxed">
-            Schedule jobs, send invoices, track expenses, and manage your team — all from one app that fits in your pocket.
-          </p>
-
+      <section>
+        <Image
+          src="/screenshots/banner.jpg"
+          alt="SparkClean - Simple tools for Canadian cleaning businesses"
+          width={1200}
+          height={600}
+          className="w-full h-auto"
+          priority
+        />
+        <div className="bg-teal-600 text-white px-6 py-8 text-center">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
               href="/signup"
@@ -64,39 +51,161 @@ export default async function Home({
         </div>
       </section>
 
-      {/* ── HIGHLIGHT BAND ──────────────────────────────────────────────────── */}
-      <section className="bg-teal-50 px-6 py-14 lg:py-16">
-        <div className="max-w-3xl mx-auto">
-          <p className="text-xs font-bold text-teal-600 uppercase tracking-widest mb-3 text-center lg:text-left">
-            Look professional. Work smarter.
-          </p>
-          <h2 className="text-2xl lg:text-3xl font-bold text-slate-900 mb-3 text-center lg:text-left">
-            Send branded invoices right from the job site.
-          </h2>
-          <p className="text-slate-500 text-base mb-8 max-w-xl text-center lg:text-left">
-            Finish a clean, tap to create an invoice, and send a professional PDF with your logo — all before you leave the driveway. No laptop needed.
-          </p>
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div className="bg-white rounded-2xl p-5 border border-teal-100 shadow-sm">
-              <div className="w-9 h-9 rounded-xl bg-teal-100 flex items-center justify-center mb-3">
-                <Smartphone className="w-5 h-5 text-teal-600" strokeWidth={1.8} />
+      {/* ── SCHEDULE SECTION ────────────────────────────────────────────────── */}
+      <section className="bg-white px-6 py-16 lg:py-24 overflow-hidden">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex flex-col lg:flex-row-reverse items-center gap-12">
+
+            {/* Right: Phone mockup */}
+            <div className="flex-shrink-0">
+              <div className="relative mx-auto" style={{ width: '240px' }}>
+                <div className="relative bg-slate-900 rounded-[2.5rem] p-2 shadow-xl ring-1 ring-slate-200">
+                  <div className="absolute top-4 left-1/2 -translate-x-1/2 w-20 h-5 bg-slate-900 rounded-full z-10" />
+                  <div className="rounded-[2rem] overflow-hidden">
+                    <Image
+                      src="/screenshots/schedule.jpg"
+                      alt="SparkClean weekly schedule"
+                      width={400}
+                      height={800}
+                      className="w-full h-auto"
+                    />
+                  </div>
+                </div>
               </div>
-              <p className="font-semibold text-slate-900 mb-1">Works on any phone</p>
-              <p className="text-sm text-slate-500">Installs like a native app on iOS and Android. No App Store required.</p>
             </div>
-            <div className="bg-white rounded-2xl p-5 border border-teal-100 shadow-sm">
-              <div className="w-9 h-9 rounded-xl bg-teal-100 flex items-center justify-center mb-3">
-                <FileText className="w-5 h-5 text-teal-600" strokeWidth={1.8} />
+
+            {/* Left: Text */}
+            <div className="flex-1 text-center lg:text-left">
+              <p className="text-xs font-bold text-teal-600 uppercase tracking-widest mb-3">
+                Smart scheduling
+              </p>
+              <h2 className="text-2xl lg:text-3xl font-bold text-slate-900 mb-4">
+                See your whole week at a glance.
+              </h2>
+              <p className="text-slate-500 text-base mb-6 max-w-lg mx-auto lg:mx-0 leading-relaxed">
+                Book one-time or recurring jobs, drag to reschedule, and see all your clients colour-coded by day. Never miss a clean.
+              </p>
+              <div className="grid sm:grid-cols-2 gap-4 max-w-lg mx-auto lg:mx-0">
+                <div className="bg-teal-50 rounded-xl p-4">
+                  <p className="font-semibold text-slate-900 text-sm mb-1">Recurring jobs</p>
+                  <p className="text-xs text-slate-500">Set weekly, biweekly, or monthly — SparkClean handles the rest.</p>
+                </div>
+                <div className="bg-teal-50 rounded-xl p-4">
+                  <p className="font-semibold text-slate-900 text-sm mb-1">Drag to reschedule</p>
+                  <p className="text-xs text-slate-500">Client needs to move? Just drag the job to the new time.</p>
+                </div>
               </div>
-              <p className="font-semibold text-slate-900 mb-1">One tap from job to invoice</p>
-              <p className="text-sm text-slate-500">Mark a job done and create a pre-filled invoice in seconds, right from the schedule.</p>
             </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ── INVOICE SECTION ─────────────────────────────────────────────────── */}
+      <section className="bg-teal-50 px-6 py-16 lg:py-24 overflow-hidden">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex flex-col lg:flex-row items-center gap-12">
+
+            {/* Left: Phone mockup */}
+            <div className="flex-shrink-0">
+              <div className="relative mx-auto" style={{ width: '240px' }}>
+                <div className="relative bg-slate-900 rounded-[2.5rem] p-2 shadow-xl ring-1 ring-teal-200">
+                  <div className="absolute top-4 left-1/2 -translate-x-1/2 w-20 h-5 bg-slate-900 rounded-full z-10" />
+                  <div className="rounded-[2rem] overflow-hidden">
+                    <Image
+                      src="/screenshots/invoices.jpg"
+                      alt="SparkClean invoices"
+                      width={400}
+                      height={800}
+                      className="w-full h-auto"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Text */}
+            <div className="flex-1 text-center lg:text-left">
+              <p className="text-xs font-bold text-teal-600 uppercase tracking-widest mb-3">
+                Look professional. Work smarter.
+              </p>
+              <h2 className="text-2xl lg:text-3xl font-bold text-slate-900 mb-4">
+                Send branded invoices right from the job site.
+              </h2>
+              <p className="text-slate-500 text-base mb-6 max-w-lg mx-auto lg:mx-0 leading-relaxed">
+                Finish a clean, tap to create an invoice, and send a professional PDF with your logo — all before you leave the driveway. No laptop needed.
+              </p>
+              <div className="grid sm:grid-cols-2 gap-4 max-w-lg mx-auto lg:mx-0">
+                <div className="bg-white rounded-xl p-4 border border-teal-100 shadow-sm">
+                  <div className="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center mb-2">
+                    <Smartphone className="w-4 h-4 text-teal-600" strokeWidth={1.8} />
+                  </div>
+                  <p className="font-semibold text-slate-900 text-sm mb-1">Works on any phone</p>
+                  <p className="text-xs text-slate-500">Installs like a native app on iOS and Android. No App Store required.</p>
+                </div>
+                <div className="bg-white rounded-xl p-4 border border-teal-100 shadow-sm">
+                  <div className="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center mb-2">
+                    <FileText className="w-4 h-4 text-teal-600" strokeWidth={1.8} />
+                  </div>
+                  <p className="font-semibold text-slate-900 text-sm mb-1">One tap from job to invoice</p>
+                  <p className="text-xs text-slate-500">Mark a job done and create a pre-filled invoice in seconds.</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ── REPORTS SECTION ─────────────────────────────────────────────────── */}
+      <section className="bg-white px-6 py-16 lg:py-24 overflow-hidden">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex flex-col lg:flex-row-reverse items-center gap-12">
+
+            {/* Right: Phone mockup */}
+            <div className="flex-shrink-0">
+              <div className="relative mx-auto" style={{ width: '240px' }}>
+                <div className="relative bg-slate-900 rounded-[2.5rem] p-2 shadow-xl ring-1 ring-slate-200">
+                  <div className="absolute top-4 left-1/2 -translate-x-1/2 w-20 h-5 bg-slate-900 rounded-full z-10" />
+                  <div className="rounded-[2rem] overflow-hidden">
+                    <Image
+                      src="/screenshots/reports.jpg"
+                      alt="SparkClean HST reports"
+                      width={400}
+                      height={800}
+                      className="w-full h-auto"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Left: Text */}
+            <div className="flex-1 text-center lg:text-left">
+              <p className="text-xs font-bold text-teal-600 uppercase tracking-widest mb-3">
+                Built for Canada
+              </p>
+              <h2 className="text-2xl lg:text-3xl font-bold text-slate-900 mb-4">
+                HST handled automatically.
+              </h2>
+              <p className="text-slate-500 text-base mb-6 max-w-lg mx-auto lg:mx-0 leading-relaxed">
+                SparkClean tracks HST collected and input tax credits automatically. Quarterly reports ready to hand to your accountant — or export to PDF yourself.
+              </p>
+              <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
+                {['HST tracking', 'ITC deductions', 'Quarterly reports', 'Annual PDF export', 'CRA-ready'].map(tag => (
+                  <span key={tag} className="bg-teal-50 text-teal-700 text-xs font-medium px-3 py-1.5 rounded-full border border-teal-100">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
 
       {/* ── FEATURES ────────────────────────────────────────────────────────── */}
-      <section id="features" className="bg-white px-6 py-14 lg:py-20">
+      <section id="features" className="bg-slate-50 px-6 py-14 lg:py-20">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-2xl lg:text-3xl font-bold text-slate-900 mb-10 text-center">
             Everything your business needs.
@@ -112,7 +221,7 @@ export default async function Home({
               { icon: BarChart2,       title: 'Reports & exports',     desc: 'Quarterly and annual HST reports. Export PDFs for your accountant.' },
               { icon: DollarSign,      title: 'Payment tracking',      desc: 'Mark jobs done, payments received, and see exactly who owes you.' },
             ].map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+              <div key={title} className="bg-white rounded-2xl p-5 border border-slate-100">
                 <div className="w-9 h-9 rounded-xl bg-teal-100 flex items-center justify-center mb-3">
                   <Icon className="w-5 h-5 text-teal-600" strokeWidth={1.8} />
                 </div>
