@@ -15,7 +15,7 @@ import { useInvoices } from '@/lib/hooks/useInvoices'
 import { useClients } from '@/lib/hooks/useClients'
 import { usePlan } from '@/lib/hooks/usePlan'
 import { createClient } from '@/lib/supabase/client'
-import { FileText, Plus, CheckCircle, Send, Download, Pencil, RotateCcw, Lock } from 'lucide-react'
+import { FileText, Plus, CheckCircle, Send, Share2, Pencil, RotateCcw, Lock } from 'lucide-react'
 import Link from 'next/link'
 import type { Invoice } from '@/lib/types'
 import type { NewInvoice } from '@/lib/hooks/useInvoices'
@@ -48,6 +48,27 @@ export default function InvoicesPage() {
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null)
   const [tab, setTab] = useState<Tab>('all')
   const [actionId, setActionId] = useState<string | null>(null)
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+
+  const handleShare = async (e: React.MouseEvent, inv: Invoice) => {
+    e.stopPropagation()
+    const url = `${window.location.origin}/invoice/${inv.id}`
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: inv.invoice_number, url })
+      } catch {
+        // user cancelled
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(url)
+        setCopiedId(inv.id)
+        setTimeout(() => setCopiedId(prev => prev === inv.id ? null : prev), 2000)
+      } catch {
+        // clipboard unavailable
+      }
+    }
+  }
 
   const filtered = invoices.filter(inv => {
     if (tab === 'unpaid') return ['draft', 'sent', 'overdue'].includes(inv.status)
@@ -182,22 +203,19 @@ export default function InvoicesPage() {
 
                   <div className="flex gap-2 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex-wrap">
                     {isPro ? (
-                      <a
-                        href={`/invoices/${inv.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={e => e.stopPropagation()}
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={(e) => handleShare(e, inv)}
                       >
-                        <Button size="sm" variant="ghost">
-                          <Download className="w-3 h-3" />
-                          PDF
-                        </Button>
-                      </a>
+                        <Share2 className="w-3 h-3" />
+                        {copiedId === inv.id ? 'Copied!' : 'Share'}
+                      </Button>
                     ) : (
                       <Link href="/upgrade" onClick={e => e.stopPropagation()}>
                         <Button size="sm" variant="ghost" className="text-slate-400">
                           <Lock className="w-3 h-3" />
-                          PDF
+                          Share
                         </Button>
                       </Link>
                     )}

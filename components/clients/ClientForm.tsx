@@ -5,6 +5,13 @@ import { Button } from '@/components/ui/Button'
 import type { Client, NewClient } from '@/lib/types'
 import { X, Trash2 } from 'lucide-react'
 
+function formatPhone(raw: string): string {
+  const digits = raw.replace(/\D/g, '').slice(0, 10)
+  if (digits.length <= 3) return digits
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
+}
+
 interface ClientFormProps {
   client?: Client
   onSave: (data: NewClient) => Promise<void>
@@ -34,7 +41,7 @@ export function ClientForm({ client, onSave, onClose, onDelete }: ClientFormProp
           first_name: client.first_name,
           last_name: client.last_name,
           email: client.email ?? '',
-          phone: client.phone ?? '',
+          phone: formatPhone(client.phone ?? ''),
           address: client.address ?? '',
           city: client.city ?? '',
           province: client.province,
@@ -47,6 +54,7 @@ export function ClientForm({ client, onSave, onClose, onDelete }: ClientFormProp
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [addressWarning, setAddressWarning] = useState(false)
 
   const set = (field: keyof NewClient, value: string | boolean) =>
     setForm(prev => ({ ...prev, [field]: value }))
@@ -57,6 +65,20 @@ export function ClientForm({ client, onSave, onClose, onDelete }: ClientFormProp
       setError('First name is required.')
       return
     }
+
+    const phoneDigits = (form.phone ?? '').replace(/\D/g, '')
+    if (form.phone && phoneDigits.length < 10) {
+      setError('Phone number must be 10 digits.')
+      return
+    }
+
+    const addr = form.address?.trim() ?? ''
+    const addrLooksIncomplete = addr.length > 0 && (addr.length < 5 || !/^\d/.test(addr))
+    if (addrLooksIncomplete && !addressWarning) {
+      setAddressWarning(true)
+      return
+    }
+
     setSaving(true)
     setError(null)
     try {
@@ -153,8 +175,9 @@ export function ClientForm({ client, onSave, onClose, onDelete }: ClientFormProp
             <input
               type="tel"
               value={form.phone ?? ''}
-              onChange={e => set('phone', e.target.value)}
-              placeholder="613-555-0100"
+              onChange={e => set('phone', formatPhone(e.target.value))}
+              placeholder="(613) 555-0100"
+              inputMode="numeric"
               className={inputClass}
             />
           </div>
@@ -176,7 +199,7 @@ export function ClientForm({ client, onSave, onClose, onDelete }: ClientFormProp
             <input
               type="text"
               value={form.address ?? ''}
-              onChange={e => set('address', e.target.value)}
+              onChange={e => { set('address', e.target.value); setAddressWarning(false) }}
               placeholder="123 Main St"
               className={inputClass}
             />
@@ -233,6 +256,11 @@ export function ClientForm({ client, onSave, onClose, onDelete }: ClientFormProp
 
           {error && (
             <p className="text-sm text-red-500 bg-red-50 rounded-xl px-3 py-2">{error}</p>
+          )}
+          {addressWarning && !error && (
+            <p className="text-sm text-amber-700 bg-amber-50 rounded-xl px-3 py-2">
+              Address looks incomplete — it should start with a street number (e.g. 123 Main St). Tap Save again to proceed anyway.
+            </p>
           )}
 
           <div className="flex gap-3 pt-1 pb-2">

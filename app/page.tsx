@@ -3,8 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import Image from 'next/image'
 import {
-  LayoutDashboard, CalendarDays, FileText, Receipt,
-  UsersRound, Car, BarChart2, DollarSign, Smartphone, MapPin, Check,
+  CalendarDays, FileText, Receipt,
+  UsersRound, Car, BarChart2, DollarSign, Smartphone, MapPin, Check, LayoutDashboard,
 } from 'lucide-react'
 import { ScrollButton } from '@/components/landing/ScrollButton'
 
@@ -26,23 +26,24 @@ export default async function Home({
   }
 
   return (
-    <div className="scroll-smooth">
+    <div className="bg-[#0a1a1a] text-white">
 
-      {/* ── HERO ────────────────────────────────────────────────────────────── */}
-      <section>
+      {/* ── HERO ── */}
+      <section className="bg-teal-700">
         <Image
           src="/screenshots/banner.png"
-          alt="SparkClean - Simple tools for Canadian cleaning businesses"
-          width={1200}
-          height={600}
-          className="w-full h-auto"
+          alt="SparkClean"
+          width={1024}
+          height={500}
+          className="w-full h-auto max-w-5xl mx-auto block"
+          quality={100}
           priority
         />
-        <div className="bg-teal-600 text-white px-6 py-8 text-center">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <div className="bg-teal-800 px-6 py-6">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-xs mx-auto">
             <Link
               href="/signup"
-              className="w-full sm:w-auto bg-white text-teal-700 font-semibold px-6 py-3 rounded-xl hover:bg-teal-50 transition-colors text-sm"
+              className="w-full bg-white text-teal-700 font-semibold px-6 py-3 rounded-xl hover:bg-teal-50 transition-colors text-sm text-center"
             >
               Start for free
             </Link>
@@ -51,280 +52,218 @@ export default async function Home({
         </div>
       </section>
 
-      {/* ── SCHEDULE SECTION ────────────────────────────────────────────────── */}
-      <section className="bg-white px-6 py-16 lg:py-24 overflow-hidden">
-        <div className="max-w-5xl mx-auto">
-          <div className="flex flex-col lg:flex-row-reverse items-center gap-12">
-
-            {/* Right: Phone mockup */}
-            <div className="flex-shrink-0">
-              <div className="relative mx-auto" style={{ width: '240px' }}>
-                <div className="relative bg-slate-900 rounded-[2.5rem] p-2 shadow-xl ring-1 ring-slate-200">
-                  <div className="absolute top-4 left-1/2 -translate-x-1/2 w-20 h-5 bg-slate-900 rounded-full z-10" />
-                  <div className="rounded-[2rem] overflow-hidden">
-                    <Image
-                      src="/screenshots/schedule.jpg"
-                      alt="SparkClean weekly schedule"
-                      width={400}
-                      height={800}
-                      className="w-full h-auto"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Left: Text */}
-            <div className="flex-1 text-center lg:text-left">
-              <p className="text-xs font-bold text-teal-600 uppercase tracking-widest mb-3">
-                Smart scheduling
-              </p>
-              <h2 className="text-2xl lg:text-3xl font-bold text-slate-900 mb-4">
-                See your whole week at a glance.
-              </h2>
-              <p className="text-slate-500 text-base mb-6 max-w-lg mx-auto lg:mx-0 leading-relaxed">
-                Book one-time or recurring jobs, drag to reschedule, and see all your clients colour-coded by day. Never miss a clean.
-              </p>
-              <div className="grid sm:grid-cols-2 gap-4 max-w-lg mx-auto lg:mx-0">
-                <div className="bg-teal-50 rounded-xl p-4">
-                  <p className="font-semibold text-slate-900 text-sm mb-1">Recurring jobs</p>
-                  <p className="text-xs text-slate-500">Set weekly, biweekly, or monthly — SparkClean handles the rest.</p>
-                </div>
-                <div className="bg-teal-50 rounded-xl p-4">
-                  <p className="font-semibold text-slate-900 text-sm mb-1">Drag to reschedule</p>
-                  <p className="text-xs text-slate-500">Client needs to move? Just drag the job to the new time.</p>
-                </div>
-              </div>
-            </div>
-
-          </div>
+      {/* ── SOCIAL PROOF STRIP ── */}
+      <div className="border-y border-slate-800 py-4 px-6">
+        <div className="max-w-3xl mx-auto flex flex-wrap items-center justify-center gap-6 text-xs text-slate-500 font-medium">
+          {['Free to start', 'No credit card required', 'HST & CRA ready', 'Built for Canadian cleaners', 'Cancel anytime'].map(t => (
+            <span key={t} className="flex items-center gap-1.5">
+              <span className="w-1 h-1 rounded-full bg-teal-500 inline-block" />
+              {t}
+            </span>
+          ))}
         </div>
-      </section>
+      </div>
 
-      {/* ── INVOICE SECTION ─────────────────────────────────────────────────── */}
-      <section className="bg-teal-50 px-6 py-16 lg:py-24 overflow-hidden">
-        <div className="max-w-5xl mx-auto">
-          <div className="flex flex-col lg:flex-row items-center gap-12">
-
-            {/* Left: Phone mockup */}
-            <div className="flex-shrink-0">
-              <div className="relative mx-auto" style={{ width: '240px' }}>
-                <div className="relative bg-slate-900 rounded-[2.5rem] p-2 shadow-xl ring-1 ring-teal-200">
-                  <div className="absolute top-4 left-1/2 -translate-x-1/2 w-20 h-5 bg-slate-900 rounded-full z-10" />
-                  <div className="rounded-[2rem] overflow-hidden">
-                    <Image
-                      src="/screenshots/invoices.jpg"
-                      alt="SparkClean invoices"
-                      width={400}
-                      height={800}
-                      className="w-full h-auto"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right: Text */}
-            <div className="flex-1 text-center lg:text-left">
-              <p className="text-xs font-bold text-teal-600 uppercase tracking-widest mb-3">
-                Look professional. Work smarter.
-              </p>
-              <h2 className="text-2xl lg:text-3xl font-bold text-slate-900 mb-4">
-                Send branded invoices right from the job site.
-              </h2>
-              <p className="text-slate-500 text-base mb-6 max-w-lg mx-auto lg:mx-0 leading-relaxed">
-                Finish a clean, tap to create an invoice, and send a professional PDF with your logo — all before you leave the driveway. No laptop needed.
-              </p>
-              <div className="grid sm:grid-cols-2 gap-4 max-w-lg mx-auto lg:mx-0">
-                <div className="bg-white rounded-xl p-4 border border-teal-100 shadow-sm">
-                  <div className="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center mb-2">
-                    <Smartphone className="w-4 h-4 text-teal-600" strokeWidth={1.8} />
-                  </div>
-                  <p className="font-semibold text-slate-900 text-sm mb-1">Works on any phone</p>
-                  <p className="text-xs text-slate-500">Installs like a native app on iOS and Android. No App Store required.</p>
-                </div>
-                <div className="bg-white rounded-xl p-4 border border-teal-100 shadow-sm">
-                  <div className="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center mb-2">
-                    <FileText className="w-4 h-4 text-teal-600" strokeWidth={1.8} />
-                  </div>
-                  <p className="font-semibold text-slate-900 text-sm mb-1">One tap from job to invoice</p>
-                  <p className="text-xs text-slate-500">Mark a job done and create a pre-filled invoice in seconds.</p>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* ── REPORTS SECTION ─────────────────────────────────────────────────── */}
-      <section className="bg-white px-6 py-16 lg:py-24 overflow-hidden">
-        <div className="max-w-5xl mx-auto">
-          <div className="flex flex-col lg:flex-row-reverse items-center gap-12">
-
-            {/* Right: Phone mockup */}
-            <div className="flex-shrink-0">
-              <div className="relative mx-auto" style={{ width: '240px' }}>
-                <div className="relative bg-slate-900 rounded-[2.5rem] p-2 shadow-xl ring-1 ring-slate-200">
-                  <div className="absolute top-4 left-1/2 -translate-x-1/2 w-20 h-5 bg-slate-900 rounded-full z-10" />
-                  <div className="rounded-[2rem] overflow-hidden">
-                    <Image
-                      src="/screenshots/reports.jpg"
-                      alt="SparkClean HST reports"
-                      width={400}
-                      height={800}
-                      className="w-full h-auto"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Left: Text */}
-            <div className="flex-1 text-center lg:text-left">
-              <p className="text-xs font-bold text-teal-600 uppercase tracking-widest mb-3">
-                Built for Canada
-              </p>
-              <h2 className="text-2xl lg:text-3xl font-bold text-slate-900 mb-4">
-                HST handled automatically.
-              </h2>
-              <p className="text-slate-500 text-base mb-6 max-w-lg mx-auto lg:mx-0 leading-relaxed">
-                SparkClean tracks HST collected and input tax credits automatically. Quarterly reports ready to hand to your accountant — or export to PDF yourself.
-              </p>
-              <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
-                {['HST tracking', 'ITC deductions', 'Quarterly reports', 'Annual PDF export', 'CRA-ready'].map(tag => (
-                  <span key={tag} className="bg-teal-50 text-teal-700 text-xs font-medium px-3 py-1.5 rounded-full border border-teal-100">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* ── FEATURES ────────────────────────────────────────────────────────── */}
-      <section id="features" className="bg-slate-50 px-6 py-14 lg:py-20">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl lg:text-3xl font-bold text-slate-900 mb-10 text-center">
-            Everything your business needs.
+      {/* ── SCHEDULE ── */}
+      <section className="px-6 py-16 lg:py-24">
+        <div className="max-w-4xl mx-auto text-center">
+          <p className="text-xs font-bold text-teal-400 uppercase tracking-widest mb-4">Smart scheduling</p>
+          <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4 leading-tight">
+            See your whole week<br className="hidden sm:block" /> at a glance.
           </h2>
+          <p className="text-slate-400 text-base max-w-xl mx-auto mb-10 leading-relaxed">
+            Book one-time or recurring jobs, and see all your clients colour-coded by day. Never miss a clean.
+          </p>
+          {/* Phone mockup centered */}
+          <div className="flex justify-center mb-10">
+            <div className="relative" style={{ width: '260px' }}>
+              <div className="bg-slate-800 rounded-[2.8rem] p-[10px] shadow-2xl ring-1 ring-slate-700">
+                <div className="absolute top-[18px] left-1/2 -translate-x-1/2 w-24 h-5 bg-slate-800 rounded-full z-10" />
+                <div className="rounded-[2.2rem] overflow-hidden">
+                  <Image src="/screenshots/schedule.jpg" alt="Schedule" width={400} height={800} className="w-full h-auto block" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-4 max-w-xl mx-auto">
+            <div className="bg-[#0d2020] border border-slate-800 rounded-2xl p-5 text-left">
+              <p className="font-semibold text-white text-sm mb-1">Recurring jobs</p>
+              <p className="text-xs text-slate-400 leading-relaxed">Set weekly, biweekly, or monthly — SparkClean handles the rest.</p>
+            </div>
+            <div className="bg-[#0d2020] border border-slate-800 rounded-2xl p-5 text-left">
+              <p className="font-semibold text-white text-sm mb-1">Colour-coded clients</p>
+              <p className="text-xs text-slate-400 leading-relaxed">Every client gets their own colour so your week is instantly readable.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── DIVIDER ── */}
+      <div className="border-t border-slate-800 mx-6" />
+
+      {/* ── INVOICES ── */}
+      <section className="px-6 py-16 lg:py-24">
+        <div className="max-w-4xl mx-auto text-center">
+          <p className="text-xs font-bold text-teal-400 uppercase tracking-widest mb-4">Invoicing</p>
+          <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4 leading-tight">
+            Professional invoices<br className="hidden sm:block" /> sent from the job site.
+          </h2>
+          <p className="text-slate-400 text-base max-w-xl mx-auto mb-10 leading-relaxed">
+            Finish a clean, tap to create an invoice, and send a professional PDF with your logo — all before you leave the driveway.
+          </p>
+          <div className="flex justify-center mb-10">
+            <div className="relative" style={{ width: '260px' }}>
+              <div className="bg-slate-800 rounded-[2.8rem] p-[10px] shadow-2xl ring-1 ring-slate-700">
+                <div className="absolute top-[18px] left-1/2 -translate-x-1/2 w-24 h-5 bg-slate-800 rounded-full z-10" />
+                <div className="rounded-[2.2rem] overflow-hidden">
+                  <Image src="/screenshots/invoices.jpg" alt="Invoices" width={400} height={800} className="w-full h-auto block" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-4 max-w-xl mx-auto">
+            <div className="bg-[#0d2020] border border-slate-800 rounded-2xl p-5 text-left">
+              <p className="font-semibold text-white text-sm mb-1">Your logo, your brand</p>
+              <p className="text-xs text-slate-400 leading-relaxed">Upload your logo and every invoice looks like it came from a real business.</p>
+            </div>
+            <div className="bg-[#0d2020] border border-slate-800 rounded-2xl p-5 text-left">
+              <p className="font-semibold text-white text-sm mb-1">HST calculated automatically</p>
+              <p className="text-xs text-slate-400 leading-relaxed">Ontario HST at 13% applied instantly. No manual math.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── DIVIDER ── */}
+      <div className="border-t border-slate-800 mx-6" />
+
+      {/* ── REPORTS ── */}
+      <section className="px-6 py-16 lg:py-24">
+        <div className="max-w-4xl mx-auto text-center">
+          <p className="text-xs font-bold text-teal-400 uppercase tracking-widest mb-4">Built for Canada</p>
+          <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4 leading-tight">
+            HST reports ready<br className="hidden sm:block" /> for your accountant.
+          </h2>
+          <p className="text-slate-400 text-base max-w-xl mx-auto mb-10 leading-relaxed">
+            SparkClean tracks HST collected and input tax credits automatically. Quarterly reports you can hand straight to your accountant.
+          </p>
+          <div className="flex justify-center mb-10">
+            <div className="relative" style={{ width: '260px' }}>
+              <div className="bg-slate-800 rounded-[2.8rem] p-[10px] shadow-2xl ring-1 ring-slate-700">
+                <div className="absolute top-[18px] left-1/2 -translate-x-1/2 w-24 h-5 bg-slate-800 rounded-full z-10" />
+                <div className="rounded-[2.2rem] overflow-hidden">
+                  <Image src="/screenshots/reports.jpg" alt="Reports" width={400} height={800} className="w-full h-auto block" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-wrap justify-center gap-3">
+            {['HST tracking', 'ITC deductions', 'Quarterly reports', 'CRA-ready'].map(tag => (
+              <span key={tag} className="bg-[#0d2020] text-teal-400 text-xs font-medium px-4 py-2 rounded-full border border-slate-800">
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FEATURES GRID ── */}
+      <section id="features" className="bg-[#0d2020] px-6 py-16 lg:py-20">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-2xl lg:text-3xl font-bold text-white mb-2 text-center">
+            Everything you need. Nothing you don't.
+          </h2>
+          <p className="text-slate-400 text-sm text-center mb-10">Built specifically for solo cleaners and small teams in Canada.</p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { icon: LayoutDashboard, title: 'Today dashboard',      desc: 'See your day at a glance — jobs, payments owed, and weekly income.' },
-              { icon: CalendarDays,    title: 'Smart scheduling',      desc: 'Book one-time or recurring jobs. Drag to reschedule. Never miss a clean.' },
-              { icon: FileText,        title: 'Invoices & estimates',  desc: 'Professional PDFs with your logo, HST number, and payment tracking.' },
-              { icon: Receipt,         title: 'Expense tracking',      desc: 'Log costs, capture receipts with AI, and track HST for CRA deductions.' },
-              { icon: UsersRound,      title: 'Team management',       desc: 'Invite cleaners, track hours, and control what each person can see.' },
-              { icon: Car,             title: 'Mileage tracker',       desc: 'Log trips and calculate CRA deductions automatically.' },
-              { icon: BarChart2,       title: 'Reports & exports',     desc: 'Quarterly and annual HST reports. Export PDFs for your accountant.' },
-              { icon: DollarSign,      title: 'Payment tracking',      desc: 'Mark jobs done, payments received, and see exactly who owes you.' },
+              { icon: LayoutDashboard, title: 'Today dashboard',     desc: 'Jobs, money owed, and weekly income at a glance.' },
+              { icon: CalendarDays,   title: 'Smart scheduling',     desc: 'One-time or recurring jobs. Never miss a clean.' },
+              { icon: FileText,       title: 'Invoices & estimates', desc: 'Professional PDFs with your logo and HST number.' },
+              { icon: Receipt,        title: 'Expense tracking',     desc: 'AI receipt scanning and HST deduction tracking.' },
+              { icon: UsersRound,     title: 'Team management',      desc: 'Invite cleaners and control what they can see.' },
+              { icon: Car,            title: 'Mileage tracker',      desc: 'Log trips and calculate CRA deductions.' },
+              { icon: BarChart2,      title: 'Reports & exports',    desc: 'Quarterly HST reports. Export PDFs for your accountant.' },
+              { icon: DollarSign,     title: 'Payment tracking',     desc: 'See exactly who owes you and what\'s been paid.' },
             ].map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="bg-white rounded-2xl p-5 border border-slate-100">
-                <div className="w-9 h-9 rounded-xl bg-teal-100 flex items-center justify-center mb-3">
-                  <Icon className="w-5 h-5 text-teal-600" strokeWidth={1.8} />
+              <div key={title} className="bg-[#0a1a1a] rounded-2xl p-5 border border-slate-800">
+                <div className="w-9 h-9 rounded-xl bg-teal-950 flex items-center justify-center mb-3">
+                  <Icon className="w-5 h-5 text-teal-400" strokeWidth={1.8} />
                 </div>
-                <p className="font-semibold text-slate-900 text-sm mb-1">{title}</p>
-                <p className="text-xs text-slate-500 leading-relaxed">{desc}</p>
+                <p className="font-semibold text-white text-sm mb-1">{title}</p>
+                <p className="text-xs text-slate-400 leading-relaxed">{desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── WHY SPARKCLEAN BAND ─────────────────────────────────────────────── */}
-      <section className="bg-teal-600 text-white px-6 py-14 lg:py-16">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl lg:text-3xl font-bold mb-10 text-center">
-            Simple tools built for how you actually work.
+      {/* ── TEAL BAND ── */}
+      <section className="bg-teal-600 px-6 py-14">
+        <div className="max-w-2xl mx-auto text-center">
+          <h2 className="text-2xl lg:text-3xl font-bold text-white mb-3">
+            Built for how you actually work.
           </h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <p className="text-teal-100 text-sm mb-8 leading-relaxed">
+            Run your whole business from your phone. No laptop, no complicated software, no Jobber pricing.
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
-              { icon: Smartphone, stat: null,   label: 'Run your whole business from your phone' },
-              { icon: null,       stat: '5 min', label: 'To get set up and running' },
-              { icon: null,       stat: '100%',  label: 'Mobile-first, no laptop required' },
-              { icon: MapPin,     stat: null,    label: 'Built for Canadian tax requirements' },
-            ].map(({ icon: Icon, stat, label }, i) => (
-              <div key={i} className="bg-white/10 border border-white/20 rounded-2xl p-5 text-center">
-                {stat ? (
-                  <p className="text-3xl font-bold mb-2">{stat}</p>
-                ) : Icon ? (
-                  <div className="flex justify-center mb-2">
-                    <Icon className="w-8 h-8 opacity-90" strokeWidth={1.6} />
-                  </div>
-                ) : null}
-                <p className="text-sm text-teal-100 leading-snug">{label}</p>
+              { stat: '$0',    label: 'to start' },
+              { stat: '5 min', label: 'to set up' },
+              { stat: '100%',  label: 'mobile-first' },
+              { stat: 'HST',   label: 'built in' },
+            ].map(({ stat, label }) => (
+              <div key={stat} className="bg-white/10 border border-white/20 rounded-2xl p-4 text-center">
+                <p className="text-2xl font-bold text-white mb-1">{stat}</p>
+                <p className="text-xs text-teal-100">{label}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── PRICING ─────────────────────────────────────────────────────────── */}
-      <section className="bg-white px-6 py-14 lg:py-20">
+      {/* ── PRICING ── */}
+      <section className="bg-[#0a1a1a] px-6 py-16 lg:py-20">
         <div className="max-w-2xl mx-auto">
-          <h2 className="text-2xl lg:text-3xl font-bold text-slate-900 mb-10 text-center">
-            Simple, honest pricing.
-          </h2>
+          <h2 className="text-2xl lg:text-3xl font-bold text-white mb-2 text-center">Simple, honest pricing.</h2>
+          <p className="text-slate-400 text-sm text-center mb-10">No contracts. Cancel anytime.</p>
           <div className="grid sm:grid-cols-2 gap-5">
 
             {/* Free */}
-            <div className="border border-slate-200 rounded-2xl p-6">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Free</p>
-              <p className="text-3xl font-bold text-slate-900 mb-0.5">$0</p>
-              <p className="text-xs text-slate-400 mb-5">forever</p>
-              <ul className="space-y-2.5 text-sm text-slate-600">
-                {[
-                  'Up to 5 clients',
-                  'Scheduling & invoicing',
-                  'Basic expense tracking',
-                  'Installs like an app',
-                ].map(f => (
-                  <li key={f} className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" strokeWidth={2} />
+            <div className="border border-slate-800 rounded-2xl p-6 bg-[#0d2020]">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Free</p>
+              <p className="text-4xl font-bold text-white mb-0.5">$0</p>
+              <p className="text-xs text-slate-500 mb-6">forever</p>
+              <ul className="space-y-3 text-sm text-slate-300 mb-6">
+                {['Up to 5 clients', 'Scheduling & invoicing', 'Basic expense tracking', 'Installs like an app'].map(f => (
+                  <li key={f} className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-slate-600 flex-shrink-0" strokeWidth={2} />
                     {f}
                   </li>
                 ))}
               </ul>
-              <Link
-                href="/signup"
-                className="mt-6 block text-center text-sm font-medium text-teal-600 border border-teal-200 rounded-xl py-2.5 hover:bg-teal-50 transition-colors"
-              >
+              <Link href="/signup" className="block text-center text-sm font-medium text-teal-400 border border-slate-700 rounded-xl py-2.5 hover:bg-slate-800 transition-colors">
                 Get started free
               </Link>
             </div>
 
             {/* Pro */}
-            <div className="border-2 border-teal-500 rounded-2xl p-6 relative">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <span className="bg-teal-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wide">
-                  Most popular
-                </span>
+            <div className="border-2 border-teal-500 rounded-2xl p-6 relative bg-[#0d2020]">
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+                <span className="bg-teal-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wide">Most popular</span>
               </div>
-              <p className="text-xs font-semibold text-teal-600 uppercase tracking-wider mb-2">Pro</p>
-              <p className="text-3xl font-bold text-slate-900 mb-0.5">$19</p>
-              <p className="text-xs text-slate-400 mb-5">CAD per month</p>
-              <ul className="space-y-2.5 text-sm text-slate-600">
-                {[
-                  'Unlimited clients',
-                  'Estimates & quotes',
-                  'Team management',
-                  'AI receipt scanning',
-                  'Mileage tracker',
-                  'PDF reports',
-                  'Priority support',
-                ].map(f => (
-                  <li key={f} className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-teal-500 flex-shrink-0 mt-0.5" strokeWidth={2.5} />
+              <p className="text-xs font-semibold text-teal-400 uppercase tracking-wider mb-2">Pro</p>
+              <p className="text-4xl font-bold text-white mb-0.5">$19</p>
+              <p className="text-xs text-slate-500 mb-6">CAD / month</p>
+              <ul className="space-y-3 text-sm text-slate-300 mb-6">
+                {['Unlimited clients', 'Estimates & quotes', 'Team management', 'AI receipt scanning', 'Mileage tracker', 'PDF reports', 'Priority support'].map(f => (
+                  <li key={f} className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-teal-500 flex-shrink-0" strokeWidth={2.5} />
                     {f}
                   </li>
                 ))}
               </ul>
-              <Link
-                href="/signup"
-                className="mt-6 block text-center text-sm font-semibold text-white bg-teal-500 rounded-xl py-2.5 hover:bg-teal-600 transition-colors"
-              >
+              <Link href="/signup" className="block text-center text-sm font-semibold text-white bg-teal-500 rounded-xl py-2.5 hover:bg-teal-400 transition-colors">
                 Start for free
               </Link>
             </div>
@@ -333,14 +272,14 @@ export default async function Home({
         </div>
       </section>
 
-      {/* ── FOOTER ──────────────────────────────────────────────────────────── */}
-      <footer className="bg-slate-50 border-t border-slate-200 px-6 py-8">
-        <div className="max-w-3xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+      {/* ── FOOTER ── */}
+      <footer className="bg-[#0d2020] border-t border-slate-800 px-6 py-8">
+        <div className="max-w-3xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
           <p>© 2026 SparkClean · Ottawa, Ontario, Canada</p>
           <div className="flex items-center gap-4">
-            <Link href="/privacy" className="hover:text-teal-600 transition-colors">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-teal-600 transition-colors">Terms of Service</Link>
-            <a href="mailto:hello@sparkcleanapp.ca" className="hover:text-teal-600 transition-colors">hello@sparkcleanapp.ca</a>
+            <Link href="/privacy" className="hover:text-teal-400 transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-teal-400 transition-colors">Terms of Service</Link>
+            <a href="mailto:hello@sparkcleanapp.ca" className="hover:text-teal-400 transition-colors">hello@sparkcleanapp.ca</a>
           </div>
         </div>
       </footer>

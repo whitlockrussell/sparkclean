@@ -113,6 +113,7 @@ export default function ReportsPage() {
   const [loading, setLoading]     = useState(true)
   const [business, setBusiness]   = useState<Business | null>(null)
   const [exporting, setExporting] = useState(false)
+  const [exportingAccountant, setExportingAccountant] = useState(false)
 
   // ── quarter selectors ──────────────────────────────────────────────────────
   const now = new Date()
@@ -286,6 +287,59 @@ export default function ReportsPage() {
     }
   }
 
+  const handleAccountantExport = async () => {
+    if (!d) return
+    setExportingAccountant(true)
+    try {
+      const { start, end } = getQuarterRange(quarter)
+
+      const { data: invoices } = await supabase
+        .from('invoices')
+        .select('*, clients(first_name, last_name, address, city, province, postal_code, email, phone)')
+        .eq('status', 'paid')
+        .gte('issue_date', start)
+        .lte('issue_date', end)
+        .order('issue_date')
+
+      if (!invoices?.length) {
+        alert('No paid invoices for this quarter.')
+        return
+      }
+
+      const { data: allItems } = await supabase
+        .from('invoice_items')
+        .select('invoice_id, description, quantity, unit_price, amount, sort_order')
+        .in('invoice_id', invoices.map(i => i.id))
+        .order('sort_order')
+
+      const itemsByInvoice: Record<string, typeof allItems> = {}
+      for (const item of allItems ?? []) {
+        if (!itemsByInvoice[item.invoice_id]) itemsByInvoice[item.invoice_id] = []
+        itemsByInvoice[item.invoice_id]!.push(item)
+      }
+
+      const { generateAccountantPDF } = await import('@/lib/pdf/generateAccountantPDF')
+      await generateAccountantPDF({
+        quarter,
+        business: {
+          name:      business?.business_name ?? 'My Business',
+          hstNumber: business?.hst_number    ?? null,
+          address:   business?.address       ?? null,
+          city:      business?.city          ?? null,
+          province:  business?.province      ?? null,
+          phone:     business?.phone         ?? null,
+          email:     business?.email         ?? null,
+        },
+        invoices: invoices.map(inv => ({
+          ...inv,
+          items: itemsByInvoice[inv.id] ?? [],
+        })),
+      })
+    } finally {
+      setExportingAccountant(false)
+    }
+  }
+
   const canExport = !loading && (mode === 'quarterly' ? !!d : !!ad)
   const subtitle  = mode === 'quarterly' ? formatQuarter(quarter) : String(annualYear)
 
@@ -358,7 +412,37 @@ export default function ReportsPage() {
         {loading ? (
           <PageSkeleton />
         ) : mode === 'quarterly' && d ? (
-          <QuarterlyView data={d} netHST={netHST} profit={profit} />
+          <>
+            <QuarterlyView data={d} netHST={netHST} profit={profit} />
+            <div className="mt-3">
+              {isPro ? (
+                <button
+                  onClick={handleAccountantExport}
+                  disabled={exportingAccountant}
+                  className="w-full flex items-center justify-between px-4 py-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors"
+                >
+                  <div className="text-left">
+                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Export for accountant</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">All paid invoices · {formatQuarter(quarter)}</p>
+                  </div>
+                  {exportingAccountant
+                    ? <span className="text-xs text-slate-400">Generating…</span>
+                    : <Download className="w-4 h-4 text-slate-400" />}
+                </button>
+              ) : (
+                <Link
+                  href="/upgrade"
+                  className="w-full flex items-center justify-between px-4 py-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                >
+                  <div className="text-left">
+                    <p className="text-sm font-semibold text-slate-400">Export for accountant</p>
+                    <p className="text-xs text-slate-400 mt-0.5">All paid invoices · {formatQuarter(quarter)}</p>
+                  </div>
+                  <Lock className="w-4 h-4 text-slate-400" />
+                </Link>
+              )}
+            </div>
+          </>
         ) : mode === 'annual' && ad ? (
           <AnnualView data={ad} netHST={netHST} profit={profit} />
         ) : null}

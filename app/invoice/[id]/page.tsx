@@ -1,8 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import { Download, Printer } from 'lucide-react'
+import { Download } from 'lucide-react'
 
 type InvoiceData = {
   id: string
@@ -61,44 +60,28 @@ function fmt(date: string | null) {
   if (!date) return ''
   const d = new Date(date.split('T')[0] + 'T12:00:00')
   if (isNaN(d.getTime())) return ''
-  return d.toLocaleDateString('en-CA', {
-    year: 'numeric', month: 'long', day: 'numeric',
-  })
+  return d.toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' })
 }
 
-export default function InvoicePDFPage({ params }: { params: Promise<{ id: string }> }) {
+export default function PublicInvoicePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params)
   const [invoice, setInvoice] = useState<InvoiceData | null>(null)
   const [items, setItems] = useState<InvoiceItem[]>([])
   const [business, setBusiness] = useState<BusinessData | null>(null)
   const [loading, setLoading] = useState(true)
-  const supabase = createClient()
+  const [notFound, setNotFound] = useState(false)
 
   useEffect(() => {
-    async function load() {
-      const [invRes, busRes] = await Promise.all([
-        supabase
-          .from('invoices')
-          .select(`*, clients(first_name, last_name, email, phone, address, city, province, postal_code)`)
-          .eq('id', id)
-          .single(),
-        supabase.from('businesses').select('*').single(),
-      ])
-
-      if (invRes.data) {
-        setInvoice(invRes.data)
-        const { data: itemsData } = await supabase
-          .from('invoice_items')
-          .select('*')
-          .eq('invoice_id', id)
-          .order('sort_order')
-        setItems(itemsData ?? [])
-      }
-
-      if (busRes.data) setBusiness(busRes.data)
-      setLoading(false)
-    }
-    load()
+    fetch(`/api/public-invoice/${id}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data) { setNotFound(true); return }
+        setInvoice(data.invoice)
+        setItems(data.items)
+        setBusiness(data.business)
+      })
+      .catch(() => setNotFound(true))
+      .finally(() => setLoading(false))
   }, [id])
 
   if (loading) return (
@@ -107,7 +90,7 @@ export default function InvoicePDFPage({ params }: { params: Promise<{ id: strin
     </div>
   )
 
-  if (!invoice) return (
+  if (notFound || !invoice) return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50">
       <p className="text-slate-400 text-sm">Invoice not found.</p>
     </div>
@@ -120,23 +103,19 @@ export default function InvoicePDFPage({ params }: { params: Promise<{ id: strin
     <>
       {/* Toolbar */}
       <div className="print:hidden fixed top-0 left-0 right-0 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between z-10">
-        <p className="text-sm font-medium text-slate-700">{invoice.invoice_number}</p>
-        <div className="flex gap-2">
-          <button
-            onClick={() => window.print()}
-            className="flex items-center gap-1.5 text-sm text-slate-600 border border-slate-200 rounded-lg px-3 py-1.5 hover:bg-slate-50 transition-colors"
-          >
-            <Printer className="w-3.5 h-3.5" />
-            Print
-          </button>
-          <button
-            onClick={() => window.print()}
-            className="flex items-center gap-1.5 text-sm text-white bg-teal-500 rounded-lg px-3 py-1.5 hover:bg-teal-600 transition-colors"
-          >
-            <Download className="w-3.5 h-3.5" />
-            Save as PDF
-          </button>
+        <div>
+          <p className="text-sm font-semibold text-slate-800">{invoice.invoice_number}</p>
+          {business?.business_name && (
+            <p className="text-xs text-slate-400">{business.business_name}</p>
+          )}
         </div>
+        <button
+          onClick={() => window.print()}
+          className="flex items-center gap-1.5 text-sm text-white bg-teal-500 rounded-lg px-3 py-1.5 hover:bg-teal-600 transition-colors"
+        >
+          <Download className="w-3.5 h-3.5" />
+          Download PDF
+        </button>
       </div>
 
       {/* Invoice */}
@@ -146,7 +125,6 @@ export default function InvoicePDFPage({ params }: { params: Promise<{ id: strin
           {/* Header */}
           <div className="flex items-start justify-between mb-10">
             <div>
-              {/* Logo */}
               {business?.logo_url && (
                 <img
                   src={business.logo_url}
