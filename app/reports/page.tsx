@@ -349,26 +349,46 @@ export default function ReportsPage() {
       <TopHeader
         title="Reports"
         subtitle={subtitle}
-        action={canExport ? (
-          isPro ? (
-            <button
-              onClick={handleExport}
-              disabled={exporting}
-              className="flex items-center gap-1.5 text-xs font-semibold text-teal-600 border border-teal-200 bg-teal-50 hover:bg-teal-100 disabled:opacity-50 rounded-xl px-3 py-1.5 transition-colors"
-            >
-              <Download className="w-3.5 h-3.5" />
-              {exporting ? 'Generating…' : 'Export PDF'}
-            </button>
-          ) : (
-            <Link
-              href="/upgrade"
-              className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl px-3 py-1.5 transition-colors"
-            >
-              <Lock className="w-3.5 h-3.5" />
-              Export PDF
-            </Link>
-          )
-        ) : undefined}
+        action={
+          <>
+            {canExport && (isPro ? (
+              <button
+                onClick={handleExport}
+                disabled={exporting}
+                className="flex items-center gap-1.5 text-xs font-semibold text-teal-600 border border-teal-200 bg-teal-50 hover:bg-teal-100 disabled:opacity-50 rounded-xl px-3 py-1.5 transition-colors"
+              >
+                <Download className="w-3.5 h-3.5" />
+                {exporting ? 'Generating…' : 'Export PDF'}
+              </button>
+            ) : (
+              <Link
+                href="/upgrade"
+                className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl px-3 py-1.5 transition-colors"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                Export PDF
+              </Link>
+            ))}
+            {mode === 'quarterly' && canExport && (isPro ? (
+              <button
+                onClick={handleAccountantExport}
+                disabled={exportingAccountant}
+                className="flex items-center gap-1.5 text-xs font-semibold text-teal-600 border border-teal-200 bg-teal-50 hover:bg-teal-100 disabled:opacity-50 rounded-xl px-3 py-1.5 transition-colors"
+              >
+                <Download className="w-3.5 h-3.5" />
+                {exportingAccountant ? 'Generating…' : 'Invoice Export'}
+              </button>
+            ) : (
+              <Link
+                href="/upgrade"
+                className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl px-3 py-1.5 transition-colors"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                Invoice Export
+              </Link>
+            ))}
+          </>
+        }
       />
       <PageContainer>
 
@@ -412,37 +432,7 @@ export default function ReportsPage() {
         {loading ? (
           <PageSkeleton />
         ) : mode === 'quarterly' && d ? (
-          <>
-            <QuarterlyView data={d} netHST={netHST} profit={profit} />
-            <div className="mt-3">
-              {isPro ? (
-                <button
-                  onClick={handleAccountantExport}
-                  disabled={exportingAccountant}
-                  className="w-full flex items-center justify-between px-4 py-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 transition-colors"
-                >
-                  <div className="text-left">
-                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Export for accountant</p>
-                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">All paid invoices · {formatQuarter(quarter)}</p>
-                  </div>
-                  {exportingAccountant
-                    ? <span className="text-xs text-slate-400">Generating…</span>
-                    : <Download className="w-4 h-4 text-slate-400" />}
-                </button>
-              ) : (
-                <Link
-                  href="/upgrade"
-                  className="w-full flex items-center justify-between px-4 py-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-                >
-                  <div className="text-left">
-                    <p className="text-sm font-semibold text-slate-400">Export for accountant</p>
-                    <p className="text-xs text-slate-400 mt-0.5">All paid invoices · {formatQuarter(quarter)}</p>
-                  </div>
-                  <Lock className="w-4 h-4 text-slate-400" />
-                </Link>
-              )}
-            </div>
-          </>
+          <QuarterlyView data={d} netHST={netHST} profit={profit} />
         ) : mode === 'annual' && ad ? (
           <AnnualView data={ad} netHST={netHST} profit={profit} />
         ) : null}
