@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
-import { X, Trash2, MapPin, Lock, UserPlus } from 'lucide-react'
+import { X, Trash2, MapPin, Lock } from 'lucide-react'
 import type { Appointment, NewAppointment, Client, NewClient } from '@/lib/types'
 import { ClientForm } from '@/components/clients/ClientForm'
 import { createClient as createSupabaseClient } from '@/lib/supabase/client'
@@ -165,50 +165,37 @@ export function AppointmentForm({
             <label className="block text-xs font-medium text-slate-500 mb-1.5">
               Client <span className="text-red-400">*</span>
             </label>
-            {localClients.length === 0 ? (
-              <button
-                type="button"
-                onClick={() => setShowAddClient(true)}
-                className="w-full flex items-center justify-center gap-2 text-sm text-teal-600 font-medium border-2 border-dashed border-teal-200 rounded-xl px-3 py-3 hover:bg-teal-50 transition-colors"
-              >
-                <UserPlus className="w-4 h-4" />
-                Add your first client
-              </button>
-            ) : (
-              <>
-                <select
-                  value={form.client_id}
-                  onChange={e => set('client_id', e.target.value)}
-                  className={inputClass}
-                >
-                  <option value="">Select a client…</option>
-                  {localClients.map(c => (
-                    <option key={c.id} value={c.id}>
-                      {c.first_name} {c.last_name}
-                    </option>
-                  ))}
-                </select>
-                {(() => {
-                  const sel = localClients.find(c => c.id === form.client_id)
-                  if (!sel?.address) return null
-                  const addr = [sel.address, sel.city].filter(Boolean).join(', ')
-                  return (
-                    <p className="flex items-center gap-1 mt-1.5 text-xs text-slate-400">
-                      <MapPin className="w-3 h-3 flex-shrink-0" strokeWidth={1.8} />
-                      {addr}
-                    </p>
-                  )
-                })()}
-                <button
-                  type="button"
-                  onClick={() => setShowAddClient(true)}
-                  className="mt-2 flex items-center gap-1 text-xs text-teal-600 font-medium hover:text-teal-700 transition-colors"
-                >
-                  <UserPlus className="w-3 h-3" />
-                  Add new client
-                </button>
-              </>
-            )}
+            <select
+              value={form.client_id}
+              onChange={e => {
+                if (e.target.value === '__add_new__') {
+                  e.target.value = form.client_id  // reset visual selection
+                  setShowAddClient(true)
+                } else {
+                  set('client_id', e.target.value)
+                }
+              }}
+              className={inputClass}
+            >
+              <option value="">Select a client…</option>
+              <option value="__add_new__">+ Add new client</option>
+              {localClients.map(c => (
+                <option key={c.id} value={c.id}>
+                  {c.first_name} {c.last_name}
+                </option>
+              ))}
+            </select>
+            {(() => {
+              const sel = localClients.find(c => c.id === form.client_id)
+              if (!sel?.address) return null
+              const addr = [sel.address, sel.city].filter(Boolean).join(', ')
+              return (
+                <p className="flex items-center gap-1 mt-1.5 text-xs text-slate-400">
+                  <MapPin className="w-3 h-3 flex-shrink-0" strokeWidth={1.8} />
+                  {addr}
+                </p>
+              )
+            })()}
           </div>
 
           {/* Date + Time */}
