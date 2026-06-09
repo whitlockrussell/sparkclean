@@ -15,7 +15,7 @@ import { useInvoices } from '@/lib/hooks/useInvoices'
 import { useClients } from '@/lib/hooks/useClients'
 import { usePlan } from '@/lib/hooks/usePlan'
 import { createClient } from '@/lib/supabase/client'
-import { FileText, Plus, CheckCircle, Send, Share2, Pencil, RotateCcw, Lock } from 'lucide-react'
+import { FileText, Plus, CheckCircle, Send, Share2, Download, Pencil, RotateCcw, Lock } from 'lucide-react'
 import Link from 'next/link'
 import type { Invoice } from '@/lib/types'
 import type { NewInvoice } from '@/lib/hooks/useInvoices'
@@ -219,6 +219,18 @@ export default function InvoicesPage() {
                         </Button>
                       </Link>
                     )}
+
+                    <a
+                      href={`/invoice/${inv.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={e => e.stopPropagation()}
+                    >
+                      <Button size="sm" variant="ghost">
+                        <Download className="w-3 h-3" />
+                        PDF
+                      </Button>
+                    </a>
 
                     {inv.status !== 'cancelled' && (
                       <Button
