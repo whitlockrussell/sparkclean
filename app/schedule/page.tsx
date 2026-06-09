@@ -209,7 +209,7 @@ function TimeColumn({ date, isToday, children }: { date: string; isToday: boolea
 
 export default function SchedulePage() {
   const { appointments, loading, error, addAppointment, updateAppointment, convertToRecurring, updateFutureAppointments, moveFutureAppointments, deleteAppointment, deleteFutureAppointments } = useAppointments()
-  const { clients } = useClients()
+  const { clients, refetch: refetchClients } = useClients()
   const { createInvoice } = useInvoices()
   const { isPro } = usePlan()
 
@@ -816,7 +816,8 @@ export default function SchedulePage() {
         <AppointmentForm clients={clients} appointment={editingAppt}
           isPro={isPro}
           onSave={editingAppt ? handleEdit : handleAdd} onClose={closeForm}
-          onDelete={editingAppt ? handleDelete : undefined} />
+          onDelete={editingAppt ? handleDelete : undefined}
+          onClientCreated={refetchClients} />
       )}
       {invoiceAppt && (
         <InvoiceForm clients={clients}

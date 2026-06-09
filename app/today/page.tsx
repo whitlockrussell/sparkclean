@@ -55,7 +55,7 @@ function getWeekRange() {
 
 export default function TodayPage() {
   const { addAppointment, updateAppointment, deleteAppointment, fetchToday, fetchUnpaid } = useAppointments()
-  const { clients } = useClients()
+  const { clients, refetch: refetchClients } = useClients()
   const { createInvoice } = useInvoices()
   const { isPro } = usePlan()
   const [todayJobs, setTodayJobs] = useState<Appointment[]>([])
@@ -383,7 +383,7 @@ export default function TodayPage() {
       </PageContainer>
 
       {showForm && (
-        <AppointmentForm clients={clients} isPro={isPro} onSave={handleAdd} onClose={() => setShowForm(false)} />
+        <AppointmentForm clients={clients} isPro={isPro} onSave={handleAdd} onClose={() => setShowForm(false)} onClientCreated={refetchClients} />
       )}
       {editingJob && (
         <AppointmentForm
@@ -393,6 +393,7 @@ export default function TodayPage() {
           onSave={handleJobSave}
           onClose={() => setEditingJob(undefined)}
           onDelete={handleJobDelete}
+          onClientCreated={refetchClients}
         />
       )}
       {renewClientId && (
@@ -402,6 +403,7 @@ export default function TodayPage() {
           isPro={isPro}
           onSave={async (data) => { await handleAdd(data); setRenewClientId(null) }}
           onClose={() => setRenewClientId(null)}
+          onClientCreated={refetchClients}
         />
       )}
       {invoiceJob && (

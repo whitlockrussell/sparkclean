@@ -2,8 +2,10 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
-import { X, Trash2, MapPin, Lock } from 'lucide-react'
-import type { Appointment, NewAppointment, Client } from '@/lib/types'
+import { X, Trash2, MapPin, Lock, UserPlus } from 'lucide-react'
+import type { Appointment, NewAppointment, Client, NewClient } from '@/lib/types'
+import { ClientForm } from '@/components/clients/ClientForm'
+import { createClient as createSupabaseClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 
 interface AppointmentFormProps {
@@ -14,6 +16,7 @@ interface AppointmentFormProps {
   onSave: (data: NewAppointment) => Promise<void>
   onClose: () => void
   onDelete?: () => Promise<void>
+  onClientCreated?: (client: Client) => void
 }
 
 const empty = (clientId = ''): NewAppointment => ({
@@ -37,6 +40,7 @@ export function AppointmentForm({
   onSave,
   onClose,
   onDelete,
+  onClientCreated,
 }: AppointmentFormProps) {
   const [form, setForm] = useState<NewAppointment>(
     appointment
@@ -54,9 +58,32 @@ export function AppointmentForm({
         }
       : empty(defaultClientId)
   )
+  const [localClients, setLocalClients] = useState<Client[]>(clients)
+  const [showAddClient, setShowAddClient] = useState(false)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const handleCreateClient = async (data: NewClient) => {
+    const supabase = createSupabaseClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Not logged in')
+
+    const { data: newClient, error } = await supabase
+      .from('clients')
+      .insert([{ ...data, user_id: user.id }])
+      .select()
+      .single()
+
+    if (error) throw new Error(error.message)
+
+    setLocalClients(prev =>
+      [...prev, newClient].sort((a, b) => a.first_name.localeCompare(b.first_name))
+    )
+    set('client_id', newClient.id)
+    onClientCreated?.(newClient)
+    // ClientForm calls onClose() after onSave() resolves, closing itself
+  }
 
   const set = <K extends keyof NewAppointment>(field: K, value: NewAppointment[K]) =>
     setForm(prev => ({ ...prev, [field]: value }))
@@ -102,6 +129,7 @@ export function AppointmentForm({
   const inputClass = 'w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent bg-white'
 
   return (
+    <>
     <div
       className="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
       style={{ background: 'rgba(0,0,0,0.4)' }}
@@ -137,10 +165,15 @@ export function AppointmentForm({
             <label className="block text-xs font-medium text-slate-500 mb-1.5">
               Client <span className="text-red-400">*</span>
             </label>
-            {clients.length === 0 ? (
-              <p className="text-sm text-amber-600 bg-amber-50 rounded-xl px-3 py-2.5">
-                Add a client first before booking a job.
-              </p>
+            {localClients.length === 0 ? (
+              <button
+                type="button"
+                onClick={() => setShowAddClient(true)}
+                className="w-full flex items-center justify-center gap-2 text-sm text-teal-600 font-medium border-2 border-dashed border-teal-200 rounded-xl px-3 py-3 hover:bg-teal-50 transition-colors"
+              >
+                <UserPlus className="w-4 h-4" />
+                Add your first client
+              </button>
             ) : (
               <>
                 <select
@@ -149,14 +182,14 @@ export function AppointmentForm({
                   className={inputClass}
                 >
                   <option value="">Select a client…</option>
-                  {clients.map(c => (
+                  {localClients.map(c => (
                     <option key={c.id} value={c.id}>
                       {c.first_name} {c.last_name}
                     </option>
                   ))}
                 </select>
                 {(() => {
-                  const sel = clients.find(c => c.id === form.client_id)
+                  const sel = localClients.find(c => c.id === form.client_id)
                   if (!sel?.address) return null
                   const addr = [sel.address, sel.city].filter(Boolean).join(', ')
                   return (
@@ -166,6 +199,14 @@ export function AppointmentForm({
                     </p>
                   )
                 })()}
+                <button
+                  type="button"
+                  onClick={() => setShowAddClient(true)}
+                  className="mt-2 flex items-center gap-1 text-xs text-teal-600 font-medium hover:text-teal-700 transition-colors"
+                >
+                  <UserPlus className="w-3 h-3" />
+                  Add new client
+                </button>
               </>
             )}
           </div>
@@ -313,5 +354,12 @@ export function AppointmentForm({
         </form>
       </div>
     </div>
+    {showAddClient && (
+      <ClientForm
+        onSave={handleCreateClient}
+        onClose={() => setShowAddClient(false)}
+      />
+    )}
+    </>
   )
 }
