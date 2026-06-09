@@ -99,21 +99,31 @@ function calcMileageDeduction(logs: MileageLog[], priorKm = 0): number {
   return deduction
 }
 
+const CAT_LABELS: Record<string, string> = {
+  supplies:  'Supplies',
+  gas:       'Gas & Fuel',
+  equipment: 'Equipment',
+  insurance: 'Insurance',
+  phone:     'Phone & Internet',
+  other:     'Other',
+}
+
 // ── page ──────────────────────────────────────────────────────────────────────
 
 export default function ReportsPage() {
   const supabase = createClient()
 
   const { isPro } = usePlan()
-  const [mode, setMode]           = useState<'quarterly' | 'annual'>('quarterly')
-  const [quarter, setQuarter]     = useState(getCurrentQuarter())
+  const [mode, setMode]             = useState<'quarterly' | 'annual' | 'tax-summary'>('quarterly')
+  const [quarter, setQuarter]       = useState(getCurrentQuarter())
   const [annualYear, setAnnualYear] = useState(new Date().getFullYear())
-  const [data, setData]           = useState<QuarterData | null>(null)
+  const [data, setData]             = useState<QuarterData | null>(null)
   const [annualData, setAnnualData] = useState<AnnualData | null>(null)
-  const [loading, setLoading]     = useState(true)
-  const [business, setBusiness]   = useState<Business | null>(null)
-  const [exporting, setExporting] = useState(false)
+  const [loading, setLoading]       = useState(true)
+  const [business, setBusiness]     = useState<Business | null>(null)
+  const [exporting, setExporting]   = useState(false)
   const [exportingAccountant, setExportingAccountant] = useState(false)
+  const [exportingTax, setExportingTax] = useState(false)
 
   // ── quarter selectors ──────────────────────────────────────────────────────
   const now = new Date()
@@ -171,9 +181,9 @@ export default function ReportsPage() {
     load()
   }, [quarter, mode])
 
-  // ── annual data load ───────────────────────────────────────────────────────
+  // ── annual + tax-summary data load ─────────────────────────────────────────
   useEffect(() => {
-    if (mode !== 'annual') return
+    if (mode !== 'annual' && mode !== 'tax-summary') return
     async function load() {
       setLoading(true)
       const yearStart = `${annualYear}-01-01`
@@ -229,13 +239,13 @@ export default function ReportsPage() {
   }, [annualYear, mode])
 
   // ── derived values ─────────────────────────────────────────────────────────
-  const d       = mode === 'quarterly' ? data       : null
-  const ad      = mode === 'annual'    ? annualData : null
+  const d       = mode === 'quarterly'   ? data       : null
+  const ad      = mode !== 'quarterly'   ? annualData : null
   const netHST  = d  ? d.hstCollected  - d.hstPaid  : ad ? ad.hstCollected - ad.hstPaid : 0
   const profit  = d  ? d.income - d.expenses - netHST
                      : ad ? ad.income - ad.expenses - netHST : 0
 
-  // ── export ─────────────────────────────────────────────────────────────────
+  // ── HST report export (unchanged) ─────────────────────────────────────────
   const handleExport = async () => {
     setExporting(true)
     try {
@@ -340,8 +350,51 @@ export default function ReportsPage() {
     }
   }
 
+  // ── tax summary export ─────────────────────────────────────────────────────
+  const handleTaxExport = async () => {
+    if (!ad) return
+    setExportingTax(true)
+    try {
+      const { generateTaxSummaryPDF } = await import('@/lib/pdf/generateTaxSummaryPDF')
+      await generateTaxSummaryPDF({
+        year: annualYear,
+        business: {
+          name:      business?.business_name ?? 'My Business',
+          hstNumber: business?.hst_number    ?? null,
+          city:      business?.city          ?? null,
+          province:  business?.province      ?? null,
+          email:     business?.email         ?? null,
+          phone:     business?.phone         ?? null,
+          logoUrl:   business?.logo_url      ?? null,
+        },
+        revenue: {
+          totalPaid:    ad.income,
+          invoiceCount: ad.invoiceCount,
+        },
+        expenses: {
+          total:      ad.expenses,
+          byCategory: ad.expensesByCategory,
+        },
+        mileage: {
+          km:        ad.totalKm,
+          deduction: ad.mileageDeduction,
+          tripCount: ad.tripCount,
+        },
+        netProfit: ad.income - ad.expenses - ad.mileageDeduction,
+      })
+    } finally {
+      setExportingTax(false)
+    }
+  }
+
   const canExport = !loading && (mode === 'quarterly' ? !!d : !!ad)
-  const subtitle  = mode === 'quarterly' ? formatQuarter(quarter) : String(annualYear)
+  const subtitle  = mode === 'quarterly' ? formatQuarter(quarter)
+                  : mode === 'annual'    ? String(annualYear)
+                  : `Tax Summary ${annualYear}`
+
+  // ── shared button style ────────────────────────────────────────────────────
+  const exportBtnClass = 'flex items-center gap-1.5 text-xs font-semibold text-teal-600 border border-teal-200 bg-teal-50 hover:bg-teal-100 disabled:opacity-50 rounded-xl px-3 py-1.5 transition-colors'
+  const lockBtnClass   = 'flex items-center gap-1.5 text-xs font-semibold text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl px-3 py-1.5 transition-colors'
 
   // ── render ─────────────────────────────────────────────────────────────────
   return (
@@ -351,40 +404,42 @@ export default function ReportsPage() {
         subtitle={subtitle}
         action={
           <>
-            {canExport && (isPro ? (
-              <button
-                onClick={handleExport}
-                disabled={exporting}
-                className="flex items-center gap-1.5 text-xs font-semibold text-teal-600 border border-teal-200 bg-teal-50 hover:bg-teal-100 disabled:opacity-50 rounded-xl px-3 py-1.5 transition-colors"
-              >
+            {/* HST Report PDF — quarterly and annual modes only */}
+            {canExport && mode !== 'tax-summary' && (isPro ? (
+              <button onClick={handleExport} disabled={exporting} className={exportBtnClass}>
                 <Download className="w-3.5 h-3.5" />
-                {exporting ? 'Generating…' : 'Export PDF'}
+                {exporting ? 'Generating…' : 'HST Report PDF'}
               </button>
             ) : (
-              <Link
-                href="/upgrade"
-                className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl px-3 py-1.5 transition-colors"
-              >
+              <Link href="/upgrade" className={lockBtnClass}>
                 <Lock className="w-3.5 h-3.5" />
-                Export PDF
+                HST Report PDF
               </Link>
             ))}
+
+            {/* Invoice Export — quarterly only */}
             {mode === 'quarterly' && canExport && (isPro ? (
-              <button
-                onClick={handleAccountantExport}
-                disabled={exportingAccountant}
-                className="flex items-center gap-1.5 text-xs font-semibold text-teal-600 border border-teal-200 bg-teal-50 hover:bg-teal-100 disabled:opacity-50 rounded-xl px-3 py-1.5 transition-colors"
-              >
+              <button onClick={handleAccountantExport} disabled={exportingAccountant} className={exportBtnClass}>
                 <Download className="w-3.5 h-3.5" />
                 {exportingAccountant ? 'Generating…' : 'Invoice Export'}
               </button>
             ) : (
-              <Link
-                href="/upgrade"
-                className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl px-3 py-1.5 transition-colors"
-              >
+              <Link href="/upgrade" className={lockBtnClass}>
                 <Lock className="w-3.5 h-3.5" />
                 Invoice Export
+              </Link>
+            ))}
+
+            {/* Tax Summary PDF — tax-summary mode only */}
+            {canExport && mode === 'tax-summary' && (isPro ? (
+              <button onClick={handleTaxExport} disabled={exportingTax} className={exportBtnClass}>
+                <Download className="w-3.5 h-3.5" />
+                {exportingTax ? 'Generating…' : `Tax Summary ${annualYear}`}
+              </button>
+            ) : (
+              <Link href="/upgrade" className={lockBtnClass}>
+                <Lock className="w-3.5 h-3.5" />
+                Tax Summary {annualYear}
               </Link>
             ))}
           </>
@@ -392,14 +447,21 @@ export default function ReportsPage() {
       />
       <PageContainer>
 
-        {/* Mode toggle */}
+        {/* Contextual description */}
+        <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
+          {mode === 'tax-summary'
+            ? 'Share this with your accountant at tax time.'
+            : 'Use this to calculate and remit HST to CRA. Most businesses remit quarterly.'}
+        </p>
+
+        {/* Mode toggle — three tabs */}
         <div className="flex gap-1 bg-slate-100 rounded-xl p-1 mb-4">
-          {(['quarterly', 'annual'] as const).map(m => (
+          {(['quarterly', 'annual', 'tax-summary'] as const).map(m => (
             <button key={m} onClick={() => setMode(m)}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all capitalize ${
+              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
                 mode === m ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
               }`}>
-              {m === 'quarterly' ? '⊞ Quarterly' : '📅 Annual'}
+              {m === 'quarterly' ? '⊞ Quarterly' : m === 'annual' ? '📅 Annual' : '📋 Tax Summary'}
             </button>
           ))}
         </div>
@@ -435,6 +497,8 @@ export default function ReportsPage() {
           <QuarterlyView data={d} netHST={netHST} profit={profit} />
         ) : mode === 'annual' && ad ? (
           <AnnualView data={ad} netHST={netHST} profit={profit} />
+        ) : mode === 'tax-summary' && ad ? (
+          <TaxSummaryView data={ad} />
         ) : null}
 
       </PageContainer>
@@ -442,7 +506,7 @@ export default function ReportsPage() {
   )
 }
 
-// ── quarterly view ────────────────────────────────────────────────────────────
+// ── quarterly view (unchanged) ────────────────────────────────────────────────
 
 function QuarterlyView({ data, netHST, profit }: { data: QuarterData; netHST: number; profit: number }) {
   return (
@@ -491,7 +555,7 @@ function QuarterlyView({ data, netHST, profit }: { data: QuarterData; netHST: nu
   )
 }
 
-// ── annual view ───────────────────────────────────────────────────────────────
+// ── annual view (unchanged) ───────────────────────────────────────────────────
 
 function AnnualView({ data, netHST, profit }: { data: AnnualData; netHST: number; profit: number }) {
   const Q_LABELS = ['Jan–Mar', 'Apr–Jun', 'Jul–Sep', 'Oct–Dec']
@@ -584,11 +648,88 @@ function AnnualView({ data, netHST, profit }: { data: AnnualData; netHST: number
   )
 }
 
+// ── tax summary view (new) ────────────────────────────────────────────────────
+
+function TaxSummaryView({ data }: { data: AnnualData }) {
+  const netProfit = data.income - data.expenses - data.mileageDeduction
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-3 mb-5">
+        <StatCard label="Revenue"   value={`$${data.income.toFixed(0)}`}            icon={TrendingUp} accent="teal"
+          sub={`${data.invoiceCount} paid invoice${data.invoiceCount !== 1 ? 's' : ''}`} />
+        <StatCard label="Expenses"  value={`$${data.expenses.toFixed(0)}`}           icon={Receipt}    accent="amber"
+          sub={`${data.expenseCount} expense${data.expenseCount !== 1 ? 's' : ''}`} />
+        <StatCard label="Mileage"   value={`$${data.mileageDeduction.toFixed(0)}`}   icon={Car}        accent="slate"
+          sub={`${data.totalKm.toFixed(1)} km · ${data.tripCount} trip${data.tripCount !== 1 ? 's' : ''}`} />
+        <StatCard label="Net Income" value={`$${netProfit.toFixed(0)}`}              icon={BarChart2}  accent={netProfit >= 0 ? 'teal' : 'red'}
+          sub="After exp & mileage" />
+      </div>
+
+      <SectionLabel>Revenue</SectionLabel>
+      <Card className="p-4 space-y-3 mb-5">
+        <DataRow
+          label={`Paid invoices (${data.invoiceCount})`}
+          value={`$${data.income.toFixed(2)}`}
+          valueClass="text-teal-600 font-semibold"
+        />
+        <div className="border-t border-slate-100 pt-3">
+          <p className="text-xs text-slate-400 dark:text-slate-500 leading-relaxed">
+            Subtotal from invoices marked paid. HST is excluded and tracked separately in the HST Report.
+          </p>
+        </div>
+      </Card>
+
+      <SectionLabel>Business expenses by category</SectionLabel>
+      <Card className="p-4 space-y-3 mb-5">
+        {Object.keys(data.expensesByCategory).length === 0 ? (
+          <p className="text-sm text-slate-400 dark:text-slate-500">No expenses recorded this year.</p>
+        ) : (
+          <>
+            {Object.entries(data.expensesByCategory).map(([cat, v]) => (
+              <DataRow
+                key={cat}
+                label={CAT_LABELS[cat] ?? cat}
+                value={`$${v.amount.toFixed(2)}`}
+                valueClass="text-slate-700 dark:text-slate-200"
+              />
+            ))}
+            <div className="border-t border-slate-100 pt-3">
+              <DataRow
+                label="Total expenses"
+                value={`$${data.expenses.toFixed(2)}`}
+                valueClass="text-amber-600 font-semibold"
+              />
+            </div>
+          </>
+        )}
+      </Card>
+
+      <SectionLabel>Mileage deduction</SectionLabel>
+      <MileageCard km={data.totalKm} deduction={data.mileageDeduction} trips={data.tripCount} annual />
+
+      <SectionLabel>Net income</SectionLabel>
+      <Card className="p-4 space-y-3 mb-5">
+        {[
+          { label: 'Revenue (excl. HST)',    value: `$${data.income.toFixed(2)}`,             color: 'text-teal-600' },
+          { label: 'Business expenses',      value: `−$${data.expenses.toFixed(2)}`,          color: 'text-slate-500 dark:text-slate-400' },
+          { label: 'Mileage deduction',      value: `−$${data.mileageDeduction.toFixed(2)}`,  color: 'text-slate-500 dark:text-slate-400' },
+          { label: 'Estimated net income',   value: `$${netProfit.toFixed(2)}`,
+            color: netProfit >= 0 ? 'text-teal-600 font-semibold' : 'text-red-500 font-semibold' },
+        ].map(r => <DataRow key={r.label} label={r.label} value={r.value} valueClass={r.color} />)}
+      </Card>
+
+      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/50 rounded-xl px-4 py-3 text-xs text-amber-800 dark:text-amber-300 leading-relaxed mb-5">
+        SparkClean is designed with sole proprietors in mind. Your situation may differ — consult a tax professional to confirm what reports and deductions apply to you.
+      </div>
+    </>
+  )
+}
+
 // ── shared small components ───────────────────────────────────────────────────
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">{children}</h2>
+    <h2 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3 mt-5 first:mt-0">{children}</h2>
   )
 }
 
@@ -603,7 +744,7 @@ function DataRow({ label, value, valueClass }: { label: string; value: string; v
 
 function MileageCard({ km, deduction, trips, annual }: { km: number; deduction: number; trips: number; annual?: boolean }) {
   return (
-    <Card className="p-4">
+    <Card className="p-4 mb-5">
       {km === 0 ? (
         <div className="flex items-center gap-3 py-1">
           <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
