@@ -46,7 +46,9 @@ export async function middleware(request: NextRequest) {
   if (!user && !isPublic) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
-    return NextResponse.redirect(url)
+    const redirect = NextResponse.redirect(url)
+    supabaseResponse.cookies.getAll().forEach(({ name, value }) => redirect.cookies.set(name, value))
+    return redirect
   }
 
   // Logged in user hitting owner pages — check if they're a team member
@@ -61,7 +63,9 @@ export async function middleware(request: NextRequest) {
     if (member) {
       const url = request.nextUrl.clone()
       url.pathname = '/member'
-      return NextResponse.redirect(url)
+      const redirect = NextResponse.redirect(url)
+      supabaseResponse.cookies.getAll().forEach(({ name, value }) => redirect.cookies.set(name, value))
+      return redirect
     }
   }
 

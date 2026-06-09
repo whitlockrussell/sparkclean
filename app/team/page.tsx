@@ -322,10 +322,11 @@ export default function TeamPage() {
     const w = d.toISOString().split('T')[0]; setWeekStart(w); fetchHours(w)
   }
 
-  const getPerms = (member: TeamMember) => localPerms[member.id] ?? member.permissions
+  const fallbackPerms: TeamMember['permissions'] = { view_today: true, view_schedule: true, mark_job_done: true, view_address: true, view_contact_info: false, view_job_notes: true, view_own_hours: true, view_job_price: false, view_invoices: false, view_expenses: false, can_clock_self: false, can_edit_hours: false }
+  const getPerms = (member: TeamMember) => localPerms[member.id] ?? member.permissions ?? fallbackPerms
 
   const setPermField = (memberId: string, field: keyof TeamMember['permissions'], value: boolean) => {
-    const current = localPerms[memberId] ?? members.find(m => m.id === memberId)!.permissions
+    const current = localPerms[memberId] ?? members.find(m => m.id === memberId)?.permissions ?? fallbackPerms
     setLocalPerms(prev => ({ ...prev, [memberId]: { ...current, [field]: value } }))
   }
 
@@ -405,7 +406,7 @@ export default function TeamPage() {
                               <p className="font-semibold text-slate-900 dark:text-white text-[15px]">{member.full_name}</p>
                               <div className="flex items-center gap-2">
                                 <p className="text-xs text-slate-400 dark:text-slate-400">{!member.invite_accepted ? '⏳ Pending' : '✓ Active'}</p>
-                                {member.permissions.can_clock_self
+                                {member.permissions?.can_clock_self
                                   ? <span className="text-[10px] bg-teal-50 text-teal-600 px-1.5 py-0.5 rounded-full">Self-clocking</span>
                                   : <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded-full">Owner tracks</span>
                                 }
