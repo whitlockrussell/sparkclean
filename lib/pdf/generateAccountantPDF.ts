@@ -48,7 +48,7 @@ type FullInvoice = {
 }
 
 export type AccountantPDFOptions = {
-  quarter: string
+  quarter?: string   // omit for an all-time export
   business: {
     name: string
     hstNumber: string | null
@@ -73,9 +73,18 @@ type DocWithPlugin = jsPDF & { lastAutoTable: { finalY: number } }
 export async function generateAccountantPDF({ quarter, business, invoices }: AccountantPDFOptions): Promise<void> {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' }) as DocWithPlugin
 
-  const [year, q] = quarter.split('-Q')
-  const qLabels = ['Jan–Mar', 'Apr–Jun', 'Jul–Sep', 'Oct–Dec']
-  const quarterLabel = `Q${q} ${year} · ${qLabels[parseInt(q) - 1]}`
+  let headerLabel: string
+  let saveFilename: string
+  if (quarter) {
+    const [year, q] = quarter.split('-Q')
+    const qLabels = ['Jan–Mar', 'Apr–Jun', 'Jul–Sep', 'Oct–Dec']
+    headerLabel = `Q${q} ${year} · ${qLabels[parseInt(q) - 1]}`
+    saveFilename = `invoices-Q${q}-${year}.pdf`
+  } else {
+    headerLabel = 'All Invoices'
+    saveFilename = 'invoices-all.pdf'
+  }
+  const quarterLabel = headerLabel
 
   invoices.forEach((inv, index) => {
     if (index > 0) doc.addPage()
@@ -244,5 +253,5 @@ export async function generateAccountantPDF({ quarter, business, invoices }: Acc
     }
   })
 
-  doc.save(`invoices-Q${q}-${year}.pdf`)
+  doc.save(saveFilename)
 }

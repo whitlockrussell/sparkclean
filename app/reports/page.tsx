@@ -122,7 +122,6 @@ export default function ReportsPage() {
   const [loading, setLoading]       = useState(true)
   const [business, setBusiness]     = useState<Business | null>(null)
   const [exporting, setExporting]   = useState(false)
-  const [exportingAccountant, setExportingAccountant] = useState(false)
   const [exportingTax, setExportingTax] = useState(false)
 
   // ── quarter selectors ──────────────────────────────────────────────────────
@@ -297,59 +296,6 @@ export default function ReportsPage() {
     }
   }
 
-  const handleAccountantExport = async () => {
-    if (!d) return
-    setExportingAccountant(true)
-    try {
-      const { start, end } = getQuarterRange(quarter)
-
-      const { data: invoices } = await supabase
-        .from('invoices')
-        .select('*, clients(first_name, last_name, address, city, province, postal_code, email, phone)')
-        .eq('status', 'paid')
-        .gte('issue_date', start)
-        .lte('issue_date', end)
-        .order('issue_date')
-
-      if (!invoices?.length) {
-        alert('No paid invoices for this quarter.')
-        return
-      }
-
-      const { data: allItems } = await supabase
-        .from('invoice_items')
-        .select('invoice_id, description, quantity, unit_price, amount, sort_order')
-        .in('invoice_id', invoices.map(i => i.id))
-        .order('sort_order')
-
-      const itemsByInvoice: Record<string, typeof allItems> = {}
-      for (const item of allItems ?? []) {
-        if (!itemsByInvoice[item.invoice_id]) itemsByInvoice[item.invoice_id] = []
-        itemsByInvoice[item.invoice_id]!.push(item)
-      }
-
-      const { generateAccountantPDF } = await import('@/lib/pdf/generateAccountantPDF')
-      await generateAccountantPDF({
-        quarter,
-        business: {
-          name:      business?.business_name ?? 'My Business',
-          hstNumber: business?.hst_number    ?? null,
-          address:   business?.address       ?? null,
-          city:      business?.city          ?? null,
-          province:  business?.province      ?? null,
-          phone:     business?.phone         ?? null,
-          email:     business?.email         ?? null,
-        },
-        invoices: invoices.map(inv => ({
-          ...inv,
-          items: itemsByInvoice[inv.id] ?? [],
-        })),
-      })
-    } finally {
-      setExportingAccountant(false)
-    }
-  }
-
   // ── tax summary export ─────────────────────────────────────────────────────
   const handleTaxExport = async () => {
     if (!ad) return
@@ -414,19 +360,6 @@ export default function ReportsPage() {
               <Link href="/upgrade" className={lockBtnClass}>
                 <Lock className="w-3.5 h-3.5" />
                 HST Report PDF
-              </Link>
-            ))}
-
-            {/* Invoice Export — quarterly only */}
-            {mode === 'quarterly' && canExport && (isPro ? (
-              <button onClick={handleAccountantExport} disabled={exportingAccountant} className={exportBtnClass}>
-                <Download className="w-3.5 h-3.5" />
-                {exportingAccountant ? 'Generating…' : 'Invoice Export'}
-              </button>
-            ) : (
-              <Link href="/upgrade" className={lockBtnClass}>
-                <Lock className="w-3.5 h-3.5" />
-                Invoice Export
               </Link>
             ))}
 

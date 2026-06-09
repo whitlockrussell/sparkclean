@@ -14,6 +14,7 @@ import { EditInvoiceForm } from '@/components/invoices/EditInvoiceForm'
 import { useInvoices } from '@/lib/hooks/useInvoices'
 import { useClients } from '@/lib/hooks/useClients'
 import { usePlan } from '@/lib/hooks/usePlan'
+import { useBusiness } from '@/lib/hooks/useBusiness'
 import { createClient } from '@/lib/supabase/client'
 import { FileText, Plus, CheckCircle, Send, Share2, Download, Pencil, RotateCcw, Lock } from 'lucide-react'
 import Link from 'next/link'
@@ -43,12 +44,14 @@ export default function InvoicesPage() {
   const { invoices, loading, error, createInvoice, markPaid, markUnpaid, markSent, refetch } = useInvoices()
   const { clients } = useClients()
   const { isPro } = usePlan()
+  const { business } = useBusiness()
   const supabase = createClient()
   const [showForm, setShowForm] = useState(false)
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null)
   const [tab, setTab] = useState<Tab>('all')
   const [actionId, setActionId] = useState<string | null>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [exportingAll, setExportingAll] = useState(false)
 
   const handleShare = async (e: React.MouseEvent, inv: Invoice) => {
     e.stopPropagation()
@@ -112,6 +115,53 @@ export default function InvoicesPage() {
     refetch()
   }
 
+  const handleExportAll = async () => {
+    setExportingAll(true)
+    try {
+      const { data: allInvoices } = await supabase
+        .from('invoices')
+        .select('*, clients(first_name, last_name, address, city, province, postal_code, email, phone)')
+        .eq('status', 'paid')
+        .order('issue_date')
+
+      if (!allInvoices?.length) {
+        alert('No paid invoices to export.')
+        return
+      }
+
+      const { data: allItems } = await supabase
+        .from('invoice_items')
+        .select('invoice_id, description, quantity, unit_price, amount, sort_order')
+        .in('invoice_id', allInvoices.map(i => i.id))
+        .order('sort_order')
+
+      const itemsByInvoice: Record<string, typeof allItems> = {}
+      for (const item of allItems ?? []) {
+        if (!itemsByInvoice[item.invoice_id]) itemsByInvoice[item.invoice_id] = []
+        itemsByInvoice[item.invoice_id]!.push(item)
+      }
+
+      const { generateAccountantPDF } = await import('@/lib/pdf/generateAccountantPDF')
+      await generateAccountantPDF({
+        business: {
+          name:      business?.business_name ?? 'My Business',
+          hstNumber: business?.hst_number    ?? null,
+          address:   business?.address       ?? null,
+          city:      business?.city          ?? null,
+          province:  business?.province      ?? null,
+          phone:     business?.phone         ?? null,
+          email:     business?.email         ?? null,
+        },
+        invoices: allInvoices.map(inv => ({
+          ...inv,
+          items: itemsByInvoice[inv.id] ?? [],
+        })),
+      })
+    } finally {
+      setExportingAll(false)
+    }
+  }
+
   const tabs: { key: Tab; label: string }[] = [
     { key: 'all', label: 'All' },
     { key: 'unpaid', label: 'Unpaid' },
@@ -124,10 +174,30 @@ export default function InvoicesPage() {
         title="Invoices"
         subtitle={unpaidTotal > 0 ? `$${unpaidTotal.toFixed(2)} outstanding` : 'All paid up'}
         action={
-          <Button size="sm" onClick={() => setShowForm(true)}>
-            <Plus className="w-3.5 h-3.5" />
-            New invoice
-          </Button>
+          <>
+            {isPro ? (
+              <button
+                onClick={handleExportAll}
+                disabled={exportingAll}
+                className="flex items-center gap-1.5 text-xs font-semibold text-teal-600 border border-teal-200 bg-teal-50 hover:bg-teal-100 disabled:opacity-50 rounded-xl px-3 py-1.5 transition-colors"
+              >
+                <Download className="w-3.5 h-3.5" />
+                {exportingAll ? 'Generating…' : 'Export All'}
+              </button>
+            ) : (
+              <Link
+                href="/upgrade"
+                className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl px-3 py-1.5 transition-colors"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                Export All
+              </Link>
+            )}
+            <Button size="sm" onClick={() => setShowForm(true)}>
+              <Plus className="w-3.5 h-3.5" />
+              New invoice
+            </Button>
+          </>
         }
       />
 
