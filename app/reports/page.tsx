@@ -394,7 +394,7 @@ export default function ReportsPage() {
               className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
                 mode === m ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
               }`}>
-              {m === 'quarterly' ? '⊞ Quarterly' : m === 'annual' ? '📅 Annual' : '📋 Tax Summary'}
+              {m === 'quarterly' ? '⊞ Quarterly HST' : m === 'annual' ? '📅 Annual HST' : '📋 Annual Tax Summary'}
             </button>
           ))}
         </div>
