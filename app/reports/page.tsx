@@ -124,6 +124,16 @@ export default function ReportsPage() {
   const [exporting, setExporting]   = useState(false)
   const [exportingTax, setExportingTax] = useState(false)
 
+  const taxLabel   = business?.tax_label  ?? 'HST'
+  const taxEnabled = (business?.tax_rate  ?? 13) > 0
+
+  // If tax is disabled, stay in Business Summary
+  useEffect(() => {
+    if (business && business.tax_rate === 0 && mode !== 'tax-summary') {
+      setMode('tax-summary')
+    }
+  }, [business])
+
   // ── quarter selectors ──────────────────────────────────────────────────────
   const now = new Date()
   const uniqueQuarters = [...new Set(
@@ -204,7 +214,6 @@ export default function ReportsPage() {
 
       const paidInvoices = invoices.filter(i => i.status === 'paid')
 
-      // Per-quarter grouping for the breakdown table
       const quarterBreakdown = [1, 2, 3, 4].map(q => {
         const qInv = paidInvoices.filter(i => Math.ceil(parseInt(i.issue_date.split('-')[1]) / 3) === q)
         const qExp = expenses.filter(e => Math.ceil(parseInt(e.expense_date.split('-')[1]) / 3) === q)
@@ -238,19 +247,21 @@ export default function ReportsPage() {
   }, [annualYear, mode])
 
   // ── derived values ─────────────────────────────────────────────────────────
-  const d       = mode === 'quarterly'   ? data       : null
-  const ad      = mode !== 'quarterly'   ? annualData : null
-  const netHST  = d  ? d.hstCollected  - d.hstPaid  : ad ? ad.hstCollected - ad.hstPaid : 0
-  const profit  = d  ? d.income - d.expenses - netHST
-                     : ad ? ad.income - ad.expenses - netHST : 0
+  const d      = mode === 'quarterly' ? data       : null
+  const ad     = mode !== 'quarterly' ? annualData : null
+  const netHST = d  ? d.hstCollected  - d.hstPaid  : ad ? ad.hstCollected - ad.hstPaid : 0
+  const profit = d  ? d.income - d.expenses - netHST
+                    : ad ? ad.income - ad.expenses - netHST : 0
 
-  // ── HST report export (unchanged) ─────────────────────────────────────────
+  // ── export handlers ────────────────────────────────────────────────────────
   const handleExport = async () => {
     setExporting(true)
     try {
       const biz = {
         name:      business?.business_name ?? 'My Business',
         hstNumber: business?.hst_number    ?? null,
+        taxLabel:  business?.tax_label     ?? null,
+        taxNumberLabel: business?.tax_number_label ?? null,
         city:      business?.city          ?? null,
         province:  business?.province      ?? null,
         email:     business?.email         ?? null,
@@ -296,7 +307,6 @@ export default function ReportsPage() {
     }
   }
 
-  // ── tax summary export ─────────────────────────────────────────────────────
   const handleTaxExport = async () => {
     if (!ad) return
     setExportingTax(true)
@@ -336,9 +346,15 @@ export default function ReportsPage() {
   const canExport = !loading && (mode === 'quarterly' ? !!d : !!ad)
   const subtitle  = mode === 'quarterly' ? formatQuarter(quarter)
                   : mode === 'annual'    ? String(annualYear)
-                  : `Tax Summary ${annualYear}`
+                  : `Summary ${annualYear}`
 
-  // ── shared button style ────────────────────────────────────────────────────
+  const tabClass = (m: string) =>
+    `flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+      mode === m
+        ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+    }`
+
   const exportBtnClass = 'flex items-center gap-1.5 text-xs font-semibold text-teal-600 border border-teal-200 bg-teal-50 hover:bg-teal-100 disabled:opacity-50 rounded-xl px-3 py-1.5 transition-colors'
   const lockBtnClass   = 'flex items-center gap-1.5 text-xs font-semibold text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl px-3 py-1.5 transition-colors'
 
@@ -350,20 +366,18 @@ export default function ReportsPage() {
         subtitle={subtitle}
         action={
           <>
-            {/* HST Report PDF — quarterly and annual modes only */}
-            {canExport && mode !== 'tax-summary' && (isPro ? (
+            {canExport && (mode === 'quarterly' || mode === 'annual') && (isPro ? (
               <button onClick={handleExport} disabled={exporting} className={exportBtnClass}>
                 <Download className="w-3.5 h-3.5" />
-                {exporting ? 'Generating…' : 'HST Report PDF'}
+                {exporting ? 'Generating…' : `${taxLabel} Report PDF`}
               </button>
             ) : (
               <Link href="/upgrade" className={lockBtnClass}>
                 <Lock className="w-3.5 h-3.5" />
-                HST Report PDF
+                {taxLabel} Report PDF
               </Link>
             ))}
 
-            {/* Tax Summary PDF — tax-summary mode only */}
             {canExport && mode === 'tax-summary' && (isPro ? (
               <button onClick={handleTaxExport} disabled={exportingTax} className={exportBtnClass}>
                 <Download className="w-3.5 h-3.5" />
@@ -380,28 +394,41 @@ export default function ReportsPage() {
       />
       <PageContainer>
 
-        {/* Contextual description */}
+        {/* Description */}
         <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
           {mode === 'tax-summary'
             ? 'Share this with your accountant at tax time.'
-            : 'Use this to calculate and remit HST to CRA. Most businesses remit quarterly.'}
+            : `Use this to calculate and remit ${taxLabel} to CRA. Most businesses remit quarterly.`}
         </p>
 
-        {/* Mode toggle — three tabs */}
-        <div className="flex gap-1 bg-slate-100 rounded-xl p-1 mb-4">
-          {(['quarterly', 'annual', 'tax-summary'] as const).map(m => (
-            <button key={m} onClick={() => setMode(m)}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
-                mode === m ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-              }`}>
-              {m === 'quarterly' ? '⊞ Quarterly HST' : m === 'annual' ? '📅 Annual HST' : '📋 Annual Tax Summary'}
+        {/* Section 1: Business Summary */}
+        <div className="mb-4">
+          <h2 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Business Summary</h2>
+          <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
+            <button onClick={() => setMode('tax-summary')} className={tabClass('tax-summary')}>
+              📋 Annual Tax Summary
             </button>
-          ))}
+          </div>
         </div>
 
-        {/* Quarter / Year selector */}
+        {/* Section 2: Tax Report — only shown if tax rate > 0 */}
+        {taxEnabled && (
+          <div className="mb-4">
+            <h2 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Tax Report</h2>
+            <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
+              <button onClick={() => setMode('quarterly')} className={tabClass('quarterly')}>
+                ⊞ Quarterly {taxLabel}
+              </button>
+              <button onClick={() => setMode('annual')} className={tabClass('annual')}>
+                📅 Annual {taxLabel}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Period selector */}
         {mode === 'quarterly' ? (
-          <div className="flex gap-1 bg-slate-100 rounded-xl p-1 mb-5 overflow-x-auto">
+          <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 mb-5 overflow-x-auto">
             {uniqueQuarters.map(q => (
               <button key={q} onClick={() => setQuarter(q)}
                 className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
@@ -412,7 +439,7 @@ export default function ReportsPage() {
             ))}
           </div>
         ) : (
-          <div className="flex gap-1 bg-slate-100 rounded-xl p-1 mb-5">
+          <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 mb-5">
             {availableYears.map(y => (
               <button key={y} onClick={() => setAnnualYear(y)}
                 className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
@@ -427,11 +454,11 @@ export default function ReportsPage() {
         {loading ? (
           <PageSkeleton />
         ) : mode === 'quarterly' && d ? (
-          <QuarterlyView data={d} netHST={netHST} profit={profit} />
+          <QuarterlyView data={d} netHST={netHST} profit={profit} taxLabel={taxLabel} />
         ) : mode === 'annual' && ad ? (
-          <AnnualView data={ad} netHST={netHST} profit={profit} />
+          <AnnualView data={ad} netHST={netHST} profit={profit} taxLabel={taxLabel} />
         ) : mode === 'tax-summary' && ad ? (
-          <TaxSummaryView data={ad} />
+          <TaxSummaryView data={ad} taxLabel={taxLabel} taxEnabled={taxEnabled} />
         ) : null}
 
       </PageContainer>
@@ -439,9 +466,9 @@ export default function ReportsPage() {
   )
 }
 
-// ── quarterly view (unchanged) ────────────────────────────────────────────────
+// ── quarterly view ────────────────────────────────────────────────────────────
 
-function QuarterlyView({ data, netHST, profit }: { data: QuarterData; netHST: number; profit: number }) {
+function QuarterlyView({ data, netHST, profit, taxLabel }: { data: QuarterData; netHST: number; profit: number; taxLabel: string }) {
   return (
     <>
       <div className="grid grid-cols-2 gap-3 mb-5">
@@ -449,24 +476,24 @@ function QuarterlyView({ data, netHST, profit }: { data: QuarterData; netHST: nu
           sub={`${data.invoiceCount} paid invoice${data.invoiceCount !== 1 ? 's' : ''}`} />
         <StatCard label="Expenses"    value={`$${data.expenses.toFixed(0)}`} icon={Receipt}    accent="amber"
           sub={`${data.expenseCount} expense${data.expenseCount !== 1 ? 's' : ''}`} />
-        <StatCard label="HST to remit" value={`$${netHST.toFixed(2)}`}       icon={DollarSign} accent={netHST > 0 ? 'red' : 'slate'}
+        <StatCard label={`${taxLabel} to remit`} value={`$${netHST.toFixed(2)}`} icon={DollarSign} accent={netHST > 0 ? 'red' : 'slate'}
           sub="For this quarter" />
         <StatCard label="Est. profit"  value={`$${profit.toFixed(0)}`}        icon={BarChart2}  accent="slate"
-          sub="After HST remittance" />
+          sub={`After ${taxLabel} remittance`} />
       </div>
 
-      <SectionLabel>HST summary</SectionLabel>
+      <SectionLabel>{taxLabel} summary</SectionLabel>
       <Card className="p-4 space-y-3 mb-5">
         {[
-          { label: 'HST collected on invoices', value: `+$${data.hstCollected.toFixed(2)}`, color: 'text-teal-600' },
-          { label: 'HST paid on expenses (ITC)', value: `−$${data.hstPaid.toFixed(2)}`, color: 'text-slate-500 dark:text-slate-400' },
-          { label: 'Net HST to remit to CRA', value: `$${netHST.toFixed(2)}`,
+          { label: `${taxLabel} collected on invoices`, value: `+$${data.hstCollected.toFixed(2)}`, color: 'text-teal-600' },
+          { label: `${taxLabel} paid on expenses (ITC)`, value: `−$${data.hstPaid.toFixed(2)}`, color: 'text-slate-500 dark:text-slate-400' },
+          { label: `Net ${taxLabel} to remit`, value: `$${netHST.toFixed(2)}`,
             color: netHST > 0 ? 'text-red-500 font-semibold' : 'text-green-600 font-semibold' },
         ].map(r => <DataRow key={r.label} label={r.label} value={r.value} valueClass={r.color} />)}
         <div className="border-t border-slate-100 pt-3">
           <p className="text-xs text-slate-400 dark:text-slate-500 leading-relaxed">
-            File your HST return with the CRA quarterly. Keep all receipts for 6 years.
-            {netHST <= 0 && ' You have more input tax credits than HST collected this quarter.'}
+            File your {taxLabel} return with the CRA quarterly. Keep all receipts for 6 years.
+            {netHST <= 0 && ' You have more input tax credits than tax collected this quarter.'}
           </p>
         </div>
       </Card>
@@ -474,10 +501,10 @@ function QuarterlyView({ data, netHST, profit }: { data: QuarterData; netHST: nu
       <SectionLabel>Income breakdown</SectionLabel>
       <Card className="p-4 space-y-3 mb-5">
         {[
-          { label: 'Gross revenue (excl. HST)', value: `$${data.income.toFixed(2)}`,    color: 'text-slate-700 dark:text-slate-200' },
-          { label: 'Business expenses',          value: `−$${data.expenses.toFixed(2)}`, color: 'text-slate-500 dark:text-slate-400' },
-          { label: 'HST remittance',             value: `−$${netHST.toFixed(2)}`,        color: 'text-slate-500 dark:text-slate-400' },
-          { label: 'Estimated net profit',       value: `$${profit.toFixed(2)}`,
+          { label: `Gross revenue (excl. ${taxLabel})`, value: `$${data.income.toFixed(2)}`,    color: 'text-slate-700 dark:text-slate-200' },
+          { label: 'Business expenses',                  value: `−$${data.expenses.toFixed(2)}`, color: 'text-slate-500 dark:text-slate-400' },
+          { label: `${taxLabel} remittance`,             value: `−$${netHST.toFixed(2)}`,        color: 'text-slate-500 dark:text-slate-400' },
+          { label: 'Estimated net profit',               value: `$${profit.toFixed(2)}`,
             color: profit >= 0 ? 'text-teal-600 font-semibold' : 'text-red-500 font-semibold' },
         ].map(r => <DataRow key={r.label} label={r.label} value={r.value} valueClass={r.color} />)}
       </Card>
@@ -488,9 +515,9 @@ function QuarterlyView({ data, netHST, profit }: { data: QuarterData; netHST: nu
   )
 }
 
-// ── annual view (unchanged) ───────────────────────────────────────────────────
+// ── annual view ───────────────────────────────────────────────────────────────
 
-function AnnualView({ data, netHST, profit }: { data: AnnualData; netHST: number; profit: number }) {
+function AnnualView({ data, netHST, profit, taxLabel }: { data: AnnualData; netHST: number; profit: number; taxLabel: string }) {
   const Q_LABELS = ['Jan–Mar', 'Apr–Jun', 'Jul–Sep', 'Oct–Dec']
   return (
     <>
@@ -499,13 +526,12 @@ function AnnualView({ data, netHST, profit }: { data: AnnualData; netHST: number
           sub={`${data.invoiceCount} paid invoice${data.invoiceCount !== 1 ? 's' : ''}`} />
         <StatCard label="Annual expenses" value={`$${data.expenses.toFixed(0)}`} icon={Receipt}    accent="amber"
           sub={`${data.expenseCount} expense${data.expenseCount !== 1 ? 's' : ''}`} />
-        <StatCard label="HST to remit"    value={`$${netHST.toFixed(2)}`}        icon={DollarSign} accent={netHST > 0 ? 'red' : 'slate'}
+        <StatCard label={`${taxLabel} to remit`} value={`$${netHST.toFixed(2)}`} icon={DollarSign} accent={netHST > 0 ? 'red' : 'slate'}
           sub="For the year" />
         <StatCard label="Est. net income" value={`$${profit.toFixed(0)}`}         icon={BarChart2}  accent="slate"
-          sub="After HST remittance" />
+          sub={`After ${taxLabel} remittance`} />
       </div>
 
-      {/* Quarterly breakdown */}
       <SectionLabel>Quarterly breakdown</SectionLabel>
       <Card className="p-4 mb-5 overflow-x-auto">
         <table className="w-full text-xs">
@@ -522,10 +548,10 @@ function AnnualView({ data, netHST, profit }: { data: AnnualData; netHST: number
           </thead>
           <tbody className="divide-y divide-slate-100">
             {[
-              { label: 'Revenue',       key: 'income'       as const, color: 'text-teal-600' },
-              { label: 'HST collected', key: 'hstCollected' as const, color: 'text-slate-700 dark:text-slate-200' },
-              { label: 'ITC',           key: 'hstPaid'      as const, color: 'text-slate-700 dark:text-slate-200' },
-              { label: 'Net HST',       key: null,                    color: 'text-red-500' },
+              { label: 'Revenue',                    key: 'income'       as const, color: 'text-teal-600' },
+              { label: `${taxLabel} collected`,      key: 'hstCollected' as const, color: 'text-slate-700 dark:text-slate-200' },
+              { label: 'ITC',                        key: 'hstPaid'      as const, color: 'text-slate-700 dark:text-slate-200' },
+              { label: `Net ${taxLabel}`,            key: null,                    color: 'text-red-500' },
             ].map(row => (
               <tr key={row.label}>
                 <td className="py-2 text-slate-500 dark:text-slate-400">{row.label}</td>
@@ -549,17 +575,17 @@ function AnnualView({ data, netHST, profit }: { data: AnnualData; netHST: number
         </table>
       </Card>
 
-      <SectionLabel>Annual HST summary</SectionLabel>
+      <SectionLabel>Annual {taxLabel} summary</SectionLabel>
       <Card className="p-4 space-y-3 mb-5">
         {[
-          { label: 'HST collected on invoices', value: `+$${data.hstCollected.toFixed(2)}`, color: 'text-teal-600' },
-          { label: 'HST paid on expenses (ITC)', value: `−$${data.hstPaid.toFixed(2)}`, color: 'text-slate-500 dark:text-slate-400' },
-          { label: 'Net HST to remit to CRA', value: `$${netHST.toFixed(2)}`,
+          { label: `${taxLabel} collected on invoices`, value: `+$${data.hstCollected.toFixed(2)}`, color: 'text-teal-600' },
+          { label: `${taxLabel} paid on expenses (ITC)`, value: `−$${data.hstPaid.toFixed(2)}`, color: 'text-slate-500 dark:text-slate-400' },
+          { label: `Net ${taxLabel} to remit`, value: `$${netHST.toFixed(2)}`,
             color: netHST > 0 ? 'text-red-500 font-semibold' : 'text-green-600 font-semibold' },
         ].map(r => <DataRow key={r.label} label={r.label} value={r.value} valueClass={r.color} />)}
         <div className="border-t border-slate-100 pt-3">
           <p className="text-xs text-slate-400 dark:text-slate-500 leading-relaxed">
-            File your HST return with the CRA quarterly. Keep all receipts for 6 years.
+            File your {taxLabel} return with the CRA quarterly. Keep all receipts for 6 years.
           </p>
         </div>
       </Card>
@@ -567,10 +593,10 @@ function AnnualView({ data, netHST, profit }: { data: AnnualData; netHST: number
       <SectionLabel>Annual income summary</SectionLabel>
       <Card className="p-4 space-y-3 mb-5">
         {[
-          { label: 'Gross revenue (excl. HST)', value: `$${data.income.toFixed(2)}`,    color: 'text-slate-700 dark:text-slate-200' },
-          { label: 'Business expenses',          value: `−$${data.expenses.toFixed(2)}`, color: 'text-slate-500 dark:text-slate-400' },
-          { label: 'HST remittance',             value: `−$${netHST.toFixed(2)}`,        color: 'text-slate-500 dark:text-slate-400' },
-          { label: 'Estimated net income',       value: `$${profit.toFixed(2)}`,
+          { label: `Gross revenue (excl. ${taxLabel})`, value: `$${data.income.toFixed(2)}`,    color: 'text-slate-700 dark:text-slate-200' },
+          { label: 'Business expenses',                  value: `−$${data.expenses.toFixed(2)}`, color: 'text-slate-500 dark:text-slate-400' },
+          { label: `${taxLabel} remittance`,             value: `−$${netHST.toFixed(2)}`,        color: 'text-slate-500 dark:text-slate-400' },
+          { label: 'Estimated net income',               value: `$${profit.toFixed(2)}`,
             color: profit >= 0 ? 'text-teal-600 font-semibold' : 'text-red-500 font-semibold' },
         ].map(r => <DataRow key={r.label} label={r.label} value={r.value} valueClass={r.color} />)}
       </Card>
@@ -581,9 +607,9 @@ function AnnualView({ data, netHST, profit }: { data: AnnualData; netHST: number
   )
 }
 
-// ── tax summary view (new) ────────────────────────────────────────────────────
+// ── tax summary view ──────────────────────────────────────────────────────────
 
-function TaxSummaryView({ data }: { data: AnnualData }) {
+function TaxSummaryView({ data, taxLabel, taxEnabled }: { data: AnnualData; taxLabel: string; taxEnabled: boolean }) {
   const netProfit = data.income - data.expenses - data.mileageDeduction
   return (
     <>
@@ -605,11 +631,13 @@ function TaxSummaryView({ data }: { data: AnnualData }) {
           value={`$${data.income.toFixed(2)}`}
           valueClass="text-teal-600 font-semibold"
         />
-        <div className="border-t border-slate-100 pt-3">
-          <p className="text-xs text-slate-400 dark:text-slate-500 leading-relaxed">
-            Subtotal from invoices marked paid. HST is excluded and tracked separately in the HST Report.
-          </p>
-        </div>
+        {taxEnabled && (
+          <div className="border-t border-slate-100 pt-3">
+            <p className="text-xs text-slate-400 dark:text-slate-500 leading-relaxed">
+              Subtotal from invoices marked paid. {taxLabel} is excluded and tracked separately in the Tax Report.
+            </p>
+          </div>
+        )}
       </Card>
 
       <SectionLabel>Business expenses by category</SectionLabel>
@@ -643,10 +671,10 @@ function TaxSummaryView({ data }: { data: AnnualData }) {
       <SectionLabel>Net income</SectionLabel>
       <Card className="p-4 space-y-3 mb-5">
         {[
-          { label: 'Revenue (excl. HST)',    value: `$${data.income.toFixed(2)}`,             color: 'text-teal-600' },
-          { label: 'Business expenses',      value: `−$${data.expenses.toFixed(2)}`,          color: 'text-slate-500 dark:text-slate-400' },
-          { label: 'Mileage deduction',      value: `−$${data.mileageDeduction.toFixed(2)}`,  color: 'text-slate-500 dark:text-slate-400' },
-          { label: 'Estimated net income',   value: `$${netProfit.toFixed(2)}`,
+          { label: taxEnabled ? `Revenue (excl. ${taxLabel})` : 'Revenue', value: `$${data.income.toFixed(2)}`,            color: 'text-teal-600' },
+          { label: 'Business expenses',                                      value: `−$${data.expenses.toFixed(2)}`,         color: 'text-slate-500 dark:text-slate-400' },
+          { label: 'Mileage deduction',                                      value: `−$${data.mileageDeduction.toFixed(2)}`, color: 'text-slate-500 dark:text-slate-400' },
+          { label: 'Estimated net income',                                   value: `$${netProfit.toFixed(2)}`,
             color: netProfit >= 0 ? 'text-teal-600 font-semibold' : 'text-red-500 font-semibold' },
         ].map(r => <DataRow key={r.label} label={r.label} value={r.value} valueClass={r.color} />)}
       </Card>
