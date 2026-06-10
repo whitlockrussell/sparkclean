@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { useBusiness } from '@/lib/hooks/useBusiness'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Building2, FileText, LogOut, Save, ChevronDown, ChevronUp, Camera, X, Moon, Calculator, Sparkles, CreditCard, Trash2, AlertTriangle } from 'lucide-react'
+import { Building2, FileText, LogOut, Save, ChevronDown, ChevronUp, Camera, X, Moon, Calculator, Sparkles, CreditCard, Trash2, AlertTriangle, Receipt } from 'lucide-react'
 import type { BusinessUpdate } from '@/lib/hooks/useBusiness'
 import { useTheme } from '@/components/ThemeProvider'
 import { usePlan } from '@/lib/hooks/usePlan'
@@ -59,6 +59,10 @@ export default function SettingsPage() {
     website: '',
     invoice_prefix: 'INV',
     invoice_notes: 'Thank you for your business!',
+    tax_label: 'HST',
+    tax_rate: 13,
+    tax_number_label: 'HST#',
+    tax_default_on: true,
     hourly_rate: 45,
   })
 
@@ -76,6 +80,10 @@ export default function SettingsPage() {
         website: business.website ?? '',
         invoice_prefix: business.invoice_prefix ?? 'INV',
         invoice_notes: business.invoice_notes ?? '',
+        tax_label: business.tax_label ?? 'HST',
+        tax_rate: business.tax_rate ?? 13,
+        tax_number_label: business.tax_number_label ?? 'HST#',
+        tax_default_on: business.tax_default_on ?? true,
         hourly_rate: business.hourly_rate ?? 45,
       })
     }
@@ -381,6 +389,80 @@ export default function SettingsPage() {
                     rows={2}
                     className="w-full border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 resize-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                   />
+                </div>
+              </div>
+            )}
+          </Card>
+        </div>
+
+        {/* Tax settings */}
+        <div className="mb-4">
+          <h2 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3">Tax</h2>
+          <Card>
+            <button
+              className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              onClick={() => toggle('tax')}
+            >
+              <div className="w-8 h-8 rounded-xl bg-teal-50 flex items-center justify-center flex-shrink-0">
+                <Receipt className="w-4 h-4 text-teal-500" strokeWidth={1.8} />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-sm font-medium text-slate-800 dark:text-slate-100">Tax settings</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">{form.tax_label ?? 'HST'} · {form.tax_rate ?? 13}%</p>
+              </div>
+              {openSection === 'tax'
+                ? <ChevronUp className="w-4 h-4 text-slate-300" strokeWidth={1.8} />
+                : <ChevronDown className="w-4 h-4 text-slate-300" strokeWidth={1.8} />
+              }
+            </button>
+
+            {openSection === 'tax' && (
+              <div className="px-4 pb-4 space-y-3 border-t border-slate-100 dark:border-slate-800 pt-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Tax label</label>
+                  <input type="text" value={form.tax_label ?? 'HST'} onChange={e => set('tax_label', e.target.value)} placeholder="HST" className={inputClass} />
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">e.g. HST, GST, PST, VAT, Sales Tax</p>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Tax rate</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      value={form.tax_rate ?? 13}
+                      onChange={e => set('tax_rate', parseFloat(e.target.value) || 0)}
+                      className="w-full border border-slate-200 dark:border-slate-700 rounded-xl px-3 pr-8 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">%</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">Set to 0 to disable tax.</p>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Tax number label</label>
+                  <input type="text" value={form.tax_number_label ?? 'HST#'} onChange={e => set('tax_number_label', e.target.value)} placeholder="HST#" className={inputClass} />
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">Label shown on invoices next to your tax number. Leave blank to hide.</p>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-slate-800 dark:text-slate-100">Apply tax to new invoices</p>
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Tax is on by default when creating a new invoice</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setForm(prev => ({ ...prev, tax_default_on: !prev.tax_default_on }))}
+                    aria-label="Toggle apply tax by default"
+                    className={`relative w-11 h-6 flex-shrink-0 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-offset-2 ${
+                      form.tax_default_on !== false ? 'bg-teal-500' : 'bg-slate-200 dark:bg-slate-700'
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-[2px] w-5 h-5 bg-white rounded-full shadow transition-all duration-200 ${
+                        form.tax_default_on !== false ? 'left-[22px]' : 'left-[2px]'
+                      }`}
+                    />
+                  </button>
                 </div>
               </div>
             )}
