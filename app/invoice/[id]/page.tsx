@@ -12,6 +12,8 @@ type InvoiceData = {
   subtotal: number
   hst_amount: number
   total: number
+  tax_rate: number
+  tax_enabled: boolean
   notes: string | null
   payment_method: 'cash' | 'e_transfer' | 'cheque' | null
   paid_at: string | null
@@ -39,6 +41,8 @@ type InvoiceItem = {
 type BusinessData = {
   business_name: string
   hst_number: string | null
+  tax_label: string | null
+  tax_number_label: string | null
   address: string | null
   city: string | null
   province: string
@@ -144,7 +148,9 @@ export default function PublicInvoicePage({ params }: { params: Promise<{ id: st
               {business?.phone && <p className="text-sm text-slate-500">{business.phone}</p>}
               {business?.email && <p className="text-sm text-slate-500">{business.email}</p>}
               {business?.hst_number && (
-                <p className="text-sm text-slate-500 mt-1">HST# {business.hst_number}</p>
+                <p className="text-sm text-slate-500 mt-1">
+                  {business.tax_number_label || 'HST#'} {business.hst_number}
+                </p>
               )}
             </div>
 
@@ -207,9 +213,12 @@ export default function PublicInvoicePage({ params }: { params: Promise<{ id: st
               <div className="flex justify-between text-sm text-slate-600">
                 <span>Subtotal</span><span>${invoice.subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-sm text-slate-600">
-                <span>HST (13%)</span><span>${invoice.hst_amount.toFixed(2)}</span>
-              </div>
+              {invoice.tax_enabled && invoice.hst_amount > 0 && (
+                <div className="flex justify-between text-sm text-slate-600">
+                  <span>{business?.tax_label ?? 'HST'} ({invoice.tax_rate}%)</span>
+                  <span>${invoice.hst_amount.toFixed(2)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-base font-semibold text-slate-900 border-t border-slate-200 pt-2">
                 <span>Total</span><span>${invoice.total.toFixed(2)}</span>
               </div>

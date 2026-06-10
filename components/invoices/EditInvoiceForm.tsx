@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { X, Plus, Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Client, Invoice } from '@/lib/types'
+import { useBusiness } from '@/lib/hooks/useBusiness'
 
 interface LineItem {
   id?: string
@@ -21,19 +22,22 @@ interface EditInvoiceFormProps {
   onDelete?: () => Promise<void>
 }
 
-const HST_RATE = 0.13
-
 export function EditInvoiceForm({ invoice, clients, onSave, onClose, onDelete }: EditInvoiceFormProps) {
+  const { business } = useBusiness()
   const [clientId, setClientId] = useState(invoice.client_id)
   const [dueDate, setDueDate] = useState(invoice.due_date ?? '')
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'e_transfer' | 'cheque' | ''>(invoice.payment_method ?? '')
   const [notes, setNotes] = useState(invoice.notes ?? '')
   const [items, setItems] = useState<LineItem[]>([])
+  const [taxEnabled, setTaxEnabled] = useState(invoice.tax_enabled ?? true)
+  const [taxRate, setTaxRate] = useState(invoice.tax_rate ?? 13)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
+
+  const taxLabel = business?.tax_label ?? 'Tax'
 
   useEffect(() => {
     async function load() {
@@ -65,8 +69,8 @@ export function EditInvoiceForm({ invoice, clients, onSave, onClose, onDelete }:
     ))
 
   const subtotal = items.reduce((s, i) => s + i.quantity * i.unit_price, 0)
-  const hst = subtotal * HST_RATE
-  const total = subtotal + hst
+  const taxAmt = taxEnabled ? subtotal * (taxRate / 100) : 0
+  const total = subtotal + taxAmt
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -88,8 +92,10 @@ export function EditInvoiceForm({ invoice, clients, onSave, onClose, onDelete }:
           notes: notes || null,
           payment_method: paymentMethod || null,
           subtotal: Math.round(subtotal * 100) / 100,
-          hst_amount: Math.round(hst * 100) / 100,
+          hst_amount: Math.round(taxAmt * 100) / 100,
           total: Math.round(total * 100) / 100,
+          tax_rate: taxRate,
+          tax_enabled: taxEnabled,
         })
         .eq('id', invoice.id)
 
@@ -253,8 +259,39 @@ export function EditInvoiceForm({ invoice, clients, onSave, onClose, onDelete }:
               <div className="flex justify-between text-sm text-slate-600">
                 <span>Subtotal</span><span>${subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-sm text-slate-600">
-                <span>HST (13%)</span><span>${hst.toFixed(2)}</span>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <button
+                    type="button"
+                    onClick={() => setTaxEnabled(v => !v)}
+                    aria-label="Toggle tax"
+                    className={`relative w-9 h-5 flex-shrink-0 rounded-full transition-colors duration-200 focus:outline-none ${
+                      taxEnabled ? 'bg-teal-500' : 'bg-slate-200'
+                    }`}
+                  >
+                    <span className={`absolute top-[2px] w-4 h-4 bg-white rounded-full shadow transition-all duration-200 ${
+                      taxEnabled ? 'left-[18px]' : 'left-[2px]'
+                    }`} />
+                  </button>
+                  <span className="text-sm text-slate-600">{taxLabel}</span>
+                  {taxEnabled && (
+                    <div className="flex items-center gap-0.5">
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        value={taxRate}
+                        onChange={e => setTaxRate(parseFloat(e.target.value) || 0)}
+                        className="w-12 border border-slate-200 rounded-lg px-1.5 py-1 text-xs text-center text-slate-700 bg-white focus:outline-none focus:ring-1 focus:ring-teal-400"
+                      />
+                      <span className="text-xs text-slate-500">%</span>
+                    </div>
+                  )}
+                </div>
+                <span className="text-sm text-slate-600 flex-shrink-0">
+                  {taxEnabled ? `$${taxAmt.toFixed(2)}` : '—'}
+                </span>
               </div>
               <div className="flex justify-between text-[15px] font-semibold text-slate-900 border-t border-slate-200 pt-2">
                 <span>Total</span><span className="text-amber-600">${total.toFixed(2)}</span>

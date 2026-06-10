@@ -25,7 +25,7 @@ export async function GET(
       .order('sort_order'),
     adminClient
       .from('businesses')
-      .select('business_name, hst_number, address, city, province, postal_code, phone, email, invoice_notes, logo_url')
+      .select('business_name, hst_number, tax_label, tax_number_label, address, city, province, postal_code, phone, email, invoice_notes, logo_url')
       .eq('user_id', invoice.user_id)
       .single(),
   ])

@@ -32,6 +32,8 @@ type FullInvoice = {
   subtotal: number
   hst_amount: number
   total: number
+  tax_rate?: number
+  tax_enabled?: boolean
   notes: string | null
   payment_method: string | null
   items: InvoiceItem[]
@@ -52,6 +54,8 @@ export type AccountantPDFOptions = {
   business: {
     name: string
     hstNumber: string | null
+    taxLabel?: string | null
+    taxNumberLabel?: string | null
     address: string | null
     city: string | null
     province: string | null
@@ -110,7 +114,7 @@ export async function generateAccountantPDF({ quarter, business, invoices }: Acc
     if (business.city) bizLines.push(`${business.city}, ${business.province}`)
     if (business.phone) bizLines.push(business.phone)
     if (business.email) bizLines.push(business.email)
-    if (business.hstNumber) bizLines.push(`HST# ${business.hstNumber}`)
+    if (business.hstNumber) bizLines.push(`${business.taxNumberLabel || 'HST#'} ${business.hstNumber}`)
     for (const line of bizLines) { doc.text(line, ML, y); y += 4 }
 
     y += 4
@@ -215,7 +219,10 @@ export async function generateAccountantPDF({ quarter, business, invoices }: Acc
     }
 
     addTotalRow('Subtotal', `$${inv.subtotal.toFixed(2)}`, C.slate6)
-    addTotalRow('HST (13%)', `$${inv.hst_amount.toFixed(2)}`, C.slate6)
+    if (inv.tax_enabled !== false && inv.hst_amount > 0) {
+      const taxLine = `${business.taxLabel ?? 'HST'} (${inv.tax_rate ?? 13}%)`
+      addTotalRow(taxLine, `$${inv.hst_amount.toFixed(2)}`, C.slate6)
+    }
 
     doc.setDrawColor(...C.slate2)
     doc.line(totalsX, y - 1, MR, y - 1)

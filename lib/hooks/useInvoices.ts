@@ -11,7 +11,8 @@ export type NewInvoice = {
   notes?: string | null
   payment_method?: 'cash' | 'e_transfer' | 'cheque' | null
   items: { description: string; quantity: number; unit_price: number }[]
-  hst_rate: number
+  tax_rate: number      // percentage, e.g. 13
+  tax_enabled: boolean
 }
 
 export function useInvoices() {
@@ -47,7 +48,7 @@ export function useInvoices() {
     const invoiceNumber = `INV-${String((count ?? 0) + 1).padStart(3, '0')}`
 
     const subtotal = invoice.items.reduce((s, i) => s + i.quantity * i.unit_price, 0)
-    const hstAmount = Math.round(subtotal * invoice.hst_rate * 100) / 100
+    const hstAmount = invoice.tax_enabled ? Math.round(subtotal * (invoice.tax_rate / 100) * 100) / 100 : 0
     const total = Math.round((subtotal + hstAmount) * 100) / 100
 
     const { data: inv, error: invError } = await supabase
@@ -63,6 +64,8 @@ export function useInvoices() {
         subtotal,
         hst_amount: hstAmount,
         total,
+        tax_rate: invoice.tax_rate,
+        tax_enabled: invoice.tax_enabled,
         notes: invoice.notes ?? null,
         payment_method: invoice.payment_method ?? null,
       }])

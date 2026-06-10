@@ -49,6 +49,8 @@ export type Invoice = {
   subtotal: number
   hst_amount: number
   total: number
+  tax_rate: number
+  tax_enabled: boolean
   notes: string | null
   payment_method: 'cash' | 'e_transfer' | 'cheque' | null
   sent_at: string | null

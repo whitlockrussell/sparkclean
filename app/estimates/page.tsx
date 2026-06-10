@@ -165,7 +165,8 @@ export default function EstimatesPage() {
       await createInvoice({
         client_id: est.client_id,
         items: [{ description, quantity: 1, unit_price: est.subtotal }],
-        hst_rate: 0.13,
+        tax_rate: 13,
+        tax_enabled: true,
         notes: est.notes ?? undefined,
       })
       setConvertSuccess(est.id)
