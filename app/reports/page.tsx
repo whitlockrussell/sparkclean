@@ -114,7 +114,7 @@ export default function ReportsPage() {
   const supabase = createClient()
 
   const { isPro } = usePlan()
-  const [mode, setMode]             = useState<'quarterly' | 'annual' | 'tax-summary'>('quarterly')
+  const [mode, setMode]             = useState<'quarterly' | 'annual' | 'tax-summary'>('tax-summary')
   const [quarter, setQuarter]       = useState(getCurrentQuarter())
   const [annualYear, setAnnualYear] = useState(new Date().getFullYear())
   const [data, setData]             = useState<QuarterData | null>(null)
@@ -402,30 +402,18 @@ export default function ReportsPage() {
             : `Use this to calculate and remit ${taxLabel} to CRA. Most businesses remit quarterly.`}
         </p>
 
-        {/* Section 1: Business Summary */}
-        <div className="mb-4">
-          <h2 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Business Summary</h2>
-          <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
-            <button onClick={() => setMode('tax-summary')} className={tabClass('tax-summary')}>
-              📋 Annual Tax Summary
-            </button>
-          </div>
+        {/* Mode tabs */}
+        <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 mb-4">
+          <button onClick={() => setMode('tax-summary')} className={tabClass('tax-summary')}>
+            📋 Annual Tax Summary
+          </button>
+          <button onClick={() => setMode('quarterly')} className={tabClass('quarterly')}>
+            ⊞ Quarterly {taxLabel}
+          </button>
+          <button onClick={() => setMode('annual')} className={tabClass('annual')}>
+            📅 Annual {taxLabel}
+          </button>
         </div>
-
-        {/* Section 2: Tax Report — only shown if tax rate > 0 */}
-        {taxEnabled && (
-          <div className="mb-4">
-            <h2 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Tax Report</h2>
-            <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
-              <button onClick={() => setMode('quarterly')} className={tabClass('quarterly')}>
-                ⊞ Quarterly {taxLabel}
-              </button>
-              <button onClick={() => setMode('annual')} className={tabClass('annual')}>
-                📅 Annual {taxLabel}
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* Period selector */}
         {mode === 'quarterly' ? (
@@ -635,7 +623,7 @@ function TaxSummaryView({ data, taxLabel, taxEnabled }: { data: AnnualData; taxL
         {taxEnabled && (
           <div className="border-t border-slate-100 pt-3">
             <p className="text-xs text-slate-400 dark:text-slate-500 leading-relaxed">
-              Subtotal from invoices marked paid. {taxLabel} is excluded and tracked separately in the Tax Report.
+              Subtotal from invoices marked paid. {taxLabel} is excluded and tracked separately in the tax report tabs.
             </p>
           </div>
         )}
