@@ -29,26 +29,103 @@ export default async function Home({
     <div className="bg-[#0a1a1a] text-white">
 
       {/* ── HERO ── */}
-      <section className="bg-teal-700">
-        <Image
-          src="/screenshots/banner.png"
-          alt="SparkClean"
-          width={1024}
-          height={500}
-          className="w-full h-auto max-w-5xl mx-auto block"
-          quality={100}
-          priority
-        />
-        <div className="bg-teal-800 px-6 py-6">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-xs mx-auto">
-            <Link
-              href="/signup"
-              className="w-full bg-white text-teal-700 font-semibold px-6 py-3 rounded-xl hover:bg-teal-50 transition-colors text-sm text-center"
-            >
-              Start for free
-            </Link>
-            <ScrollButton />
+      <section
+        className="relative overflow-hidden"
+        style={{ background: 'linear-gradient(135deg, #0d7377 0%, #0a9396 40%, #14b8a6 100%)' }}
+      >
+        {/* subtle background shapes */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-20 -right-20 w-96 h-96 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #ffffff 0%, transparent 70%)' }} />
+          <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #ffffff 0%, transparent 70%)' }} />
+        </div>
+
+        <div className="relative max-w-5xl mx-auto px-6 py-12 lg:py-16 flex flex-col lg:flex-row items-center gap-10">
+
+          {/* LEFT — branding + text + buttons */}
+          <div className="flex-1 text-left">
+            {/* Logo + name */}
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="white" strokeWidth="0"/>
+                </svg>
+              </div>
+              <span className="text-3xl font-bold text-white tracking-tight">SparkClean</span>
+            </div>
+
+            <h1 className="text-2xl lg:text-3xl font-bold text-white mb-2 leading-snug">
+              Simple tools for independent<br className="hidden sm:block" /> cleaning businesses.
+            </h1>
+            <p className="text-teal-100 text-sm mb-6">Run your whole business from your phone.</p>
+
+            {/* Feature pills */}
+            <div className="flex flex-wrap gap-2 mb-8">
+              {[
+                { icon: '📅', label: 'Scheduling' },
+                { icon: '📄', label: 'Invoicing' },
+                { icon: '📊', label: 'Reports' },
+              ].map(({ icon, label }) => (
+                <span key={label} className="flex items-center gap-1.5 bg-white/15 text-white text-xs font-medium px-3 py-1.5 rounded-full border border-white/20">
+                  <span>{icon}</span>{label}
+                </span>
+              ))}
+            </div>
+
+            {/* Trust line */}
+            <p className="text-teal-200 text-xs mb-8">
+              ✦ Simple · Mobile-first · Free to start
+            </p>
+
+            {/* CTA buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 max-w-xs">
+              <Link
+                href="/signup"
+                className="w-full bg-white text-teal-700 font-semibold px-6 py-3 rounded-xl hover:bg-teal-50 transition-colors text-sm text-center"
+              >
+                Start for free
+              </Link>
+              <ScrollButton />
+            </div>
           </div>
+
+          {/* RIGHT — two phone mockups */}
+          <div className="flex-shrink-0 flex justify-center lg:justify-end w-full lg:w-auto">
+            <div className="flex items-end gap-4">
+              {/* Today screen — slightly taller/front */}
+              <div className="relative" style={{ width: '200px' }}>
+                <div className="bg-slate-900 rounded-[2.8rem] p-[10px] shadow-2xl ring-2 ring-white/10">
+                  <div className="absolute top-[18px] left-1/2 -translate-x-1/2 w-20 h-4 bg-slate-900 rounded-full z-10" />
+                  <div className="rounded-[2.2rem] overflow-hidden">
+                    <Image
+                      src="/screenshots/today.jpg"
+                      alt="SparkClean today dashboard"
+                      width={400}
+                      height={800}
+                      className="w-full h-auto block"
+                      priority
+                    />
+                  </div>
+                </div>
+              </div>
+              {/* Weekly schedule — slightly shorter/behind */}
+              <div className="relative mb-6" style={{ width: '180px' }}>
+                <div className="bg-slate-900 rounded-[2.8rem] p-[10px] shadow-xl ring-1 ring-white/10 opacity-90">
+                  <div className="absolute top-[18px] left-1/2 -translate-x-1/2 w-20 h-4 bg-slate-900 rounded-full z-10" />
+                  <div className="rounded-[2.2rem] overflow-hidden">
+                    <Image
+                      src="/screenshots/weekly.jpg"
+                      alt="SparkClean weekly schedule"
+                      width={400}
+                      height={800}
+                      className="w-full h-auto block"
+                      priority
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </section>
 
@@ -127,8 +204,8 @@ export default async function Home({
               <p className="text-xs text-slate-400 leading-relaxed">Upload your logo and every invoice looks like it came from a real business.</p>
             </div>
             <div className="bg-[#0d2020] border border-slate-800 rounded-2xl p-5 text-left">
-              <p className="font-semibold text-white text-sm mb-1">Tax calculated automatically</p>
-              <p className="text-xs text-slate-400 leading-relaxed">Tax applied instantly based on your settings. No manual math.</p>
+              <p className="font-semibold text-white text-sm mb-1">HST calculated automatically</p>
+              <p className="text-xs text-slate-400 leading-relaxed">Ontario HST at 13% applied instantly. No manual math.</p>
             </div>
           </div>
         </div>
@@ -140,12 +217,12 @@ export default async function Home({
       {/* ── REPORTS ── */}
       <section className="px-6 py-16 lg:py-24">
         <div className="max-w-4xl mx-auto text-center">
-          <p className="text-xs font-bold text-teal-400 uppercase tracking-widest mb-4">Built for independent cleaners</p>
+          <p className="text-xs font-bold text-teal-400 uppercase tracking-widest mb-4">Built for Canada</p>
           <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4 leading-tight">
-            Tax reports ready<br className="hidden sm:block" /> for your accountant.
+            HST reports ready<br className="hidden sm:block" /> for your accountant.
           </h2>
           <p className="text-slate-400 text-base max-w-xl mx-auto mb-10 leading-relaxed">
-            SparkClean tracks tax collected and input tax credits automatically. Reports you can hand straight to your accountant.
+            SparkClean tracks HST collected and input tax credits automatically. Quarterly reports you can hand straight to your accountant.
           </p>
           <div className="flex justify-center mb-10">
             <div className="relative" style={{ width: '260px' }}>
@@ -158,7 +235,7 @@ export default async function Home({
             </div>
           </div>
           <div className="flex flex-wrap justify-center gap-3">
-            {['Tax tracking', 'ITC deductions', 'Quarterly reports', 'Accountant-ready'].map(tag => (
+            {['HST tracking', 'ITC deductions', 'Quarterly reports', 'CRA-ready'].map(tag => (
               <span key={tag} className="bg-[#0d2020] text-teal-400 text-xs font-medium px-4 py-2 rounded-full border border-slate-800">
                 {tag}
               </span>
@@ -173,16 +250,16 @@ export default async function Home({
           <h2 className="text-2xl lg:text-3xl font-bold text-white mb-2 text-center">
             Everything you need. Nothing you don't.
           </h2>
-          <p className="text-slate-400 text-sm text-center mb-10">Built specifically for independent cleaners and small teams.</p>
+          <p className="text-slate-400 text-sm text-center mb-10">Built specifically for solo cleaners and small teams in Canada.</p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               { icon: LayoutDashboard, title: 'Today dashboard',     desc: 'Jobs, money owed, and weekly income at a glance.' },
               { icon: CalendarDays,   title: 'Smart scheduling',     desc: 'One-time or recurring jobs. Never miss a clean.' },
-              { icon: FileText,       title: 'Invoices & estimates', desc: 'Professional PDFs with your logo and tax details.' },
-              { icon: Receipt,        title: 'Expense tracking',     desc: 'AI receipt scanning and tax deduction tracking.' },
+              { icon: FileText,       title: 'Invoices & estimates', desc: 'Professional PDFs with your logo and HST number.' },
+              { icon: Receipt,        title: 'Expense tracking',     desc: 'AI receipt scanning and HST deduction tracking.' },
               { icon: UsersRound,     title: 'Team management',      desc: 'Invite cleaners and control what they can see.' },
-              { icon: Car,            title: 'Mileage tracker',      desc: 'Log trips and calculate mileage deductions.' },
-              { icon: BarChart2,      title: 'Reports & exports',    desc: 'Tax reports and income summaries. Export PDFs for your accountant.' },
+              { icon: Car,            title: 'Mileage tracker',      desc: 'Log trips and calculate CRA deductions.' },
+              { icon: BarChart2,      title: 'Reports & exports',    desc: 'Quarterly HST reports. Export PDFs for your accountant.' },
               { icon: DollarSign,     title: 'Payment tracking',     desc: 'See exactly who owes you and what\'s been paid.' },
             ].map(({ icon: Icon, title, desc }) => (
               <div key={title} className="bg-[#0a1a1a] rounded-2xl p-5 border border-slate-800">
@@ -211,7 +288,7 @@ export default async function Home({
               { stat: '$0',    label: 'to start' },
               { stat: '5 min', label: 'to set up' },
               { stat: '100%',  label: 'mobile-first' },
-              { stat: 'Tax',   label: 'ready' },
+              { stat: 'HST',   label: 'built in' },
             ].map(({ stat, label }) => (
               <div key={stat} className="bg-white/10 border border-white/20 rounded-2xl p-4 text-center">
                 <p className="text-2xl font-bold text-white mb-1">{stat}</p>
