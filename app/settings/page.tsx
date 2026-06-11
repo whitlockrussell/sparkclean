@@ -10,6 +10,7 @@ import { useBusiness } from '@/lib/hooks/useBusiness'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Building2, FileText, LogOut, Save, ChevronDown, ChevronUp, Camera, X, Moon, Calculator, Sparkles, CreditCard, Trash2, AlertTriangle, Receipt } from 'lucide-react'
+import { Tooltip } from '@/components/ui/Tooltip'
 import type { BusinessUpdate } from '@/lib/hooks/useBusiness'
 import { useTheme } from '@/components/ThemeProvider'
 import { usePlan } from '@/lib/hooks/usePlan'
@@ -424,7 +425,10 @@ export default function SettingsPage() {
                   <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">e.g. HST, GST, PST, VAT, Sales Tax</p>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Tax rate</label>
+                  <div className="flex items-center gap-1 mb-1.5">
+                    <label className="text-xs font-medium text-slate-500 dark:text-slate-400">Tax rate</label>
+                    <Tooltip text="Your standard tax rate applied to invoices. Set to 0 if you don't charge tax. For multiple taxes (e.g. GST + PST), enter your combined rate." />
+                  </div>
                   <div className="relative">
                     <input
                       type="number"
@@ -437,7 +441,6 @@ export default function SettingsPage() {
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">%</span>
                   </div>
-                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">Set to 0 to disable tax. For provinces with multiple taxes (e.g. GST + PST), enter your combined rate or consult your accountant. US users can set this to 0 if sales tax does not apply to your services.</p>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Tax number label</label>

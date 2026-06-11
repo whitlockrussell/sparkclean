@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/Card'
 import { PageSkeleton } from '@/components/ui/Skeleton'
 import { createClient } from '@/lib/supabase/client'
 import { DollarSign, TrendingUp, Receipt, BarChart2, Car, Download, Lock } from 'lucide-react'
+import { Tooltip } from '@/components/ui/Tooltip'
 import { CRA_RATE_TIER1, CRA_RATE_TIER2, CRA_KM_THRESHOLD } from '@/lib/hooks/useMileage'
 import type { MileageLog } from '@/lib/types'
 import type { Business } from '@/lib/hooks/useBusiness'
@@ -466,9 +467,9 @@ function QuarterlyView({ data, netHST, profit, taxLabel }: { data: QuarterData; 
         <StatCard label="Expenses"    value={`$${data.expenses.toFixed(0)}`} icon={Receipt}    accent="amber"
           sub={`${data.expenseCount} expense${data.expenseCount !== 1 ? 's' : ''}`} />
         <StatCard label={`${taxLabel} to remit`} value={`$${netHST.toFixed(2)}`} icon={DollarSign} accent={netHST > 0 ? 'red' : 'slate'}
-          sub="For this quarter" />
+          sub="For this quarter" tooltip="The net tax you owe after deducting input tax credits" />
         <StatCard label="Est. profit"  value={`$${profit.toFixed(0)}`}        icon={BarChart2}  accent="slate"
-          sub={`After ${taxLabel} remittance`} />
+          sub={`After ${taxLabel} remittance`} tooltip="Estimated profit after expenses and tax remittance" />
       </div>
 
       <SectionLabel>{taxLabel} summary</SectionLabel>
@@ -506,6 +507,8 @@ function QuarterlyView({ data, netHST, profit, taxLabel }: { data: QuarterData; 
 
 // ── annual view ───────────────────────────────────────────────────────────────
 
+const Q_TOOLTIPS = ['January – March', 'April – June', 'July – September', 'October – December']
+
 function AnnualView({ data, netHST, profit, taxLabel }: { data: AnnualData; netHST: number; profit: number; taxLabel: string }) {
   const Q_LABELS = ['Jan–Mar', 'Apr–Jun', 'Jul–Sep', 'Oct–Dec']
   return (
@@ -516,9 +519,9 @@ function AnnualView({ data, netHST, profit, taxLabel }: { data: AnnualData; netH
         <StatCard label="Annual expenses" value={`$${data.expenses.toFixed(0)}`} icon={Receipt}    accent="amber"
           sub={`${data.expenseCount} expense${data.expenseCount !== 1 ? 's' : ''}`} />
         <StatCard label={`${taxLabel} to remit`} value={`$${netHST.toFixed(2)}`} icon={DollarSign} accent={netHST > 0 ? 'red' : 'slate'}
-          sub="For the year" />
+          sub="For the year" tooltip="The net tax you owe after deducting input tax credits" />
         <StatCard label="Est. net income" value={`$${profit.toFixed(0)}`}         icon={BarChart2}  accent="slate"
-          sub={`After ${taxLabel} remittance`} />
+          sub={`After ${taxLabel} remittance`} tooltip="Estimated profit after expenses and tax remittance" />
       </div>
 
       <SectionLabel>Quarterly breakdown</SectionLabel>
@@ -529,7 +532,11 @@ function AnnualView({ data, netHST, profit, taxLabel }: { data: AnnualData; netH
               <th className="text-left pb-2 font-semibold"></th>
               {data.quarterBreakdown.map(q => (
                 <th key={q.q} className="text-right pb-2 font-semibold">
-                  Q{q.q}<br /><span className="font-normal text-[10px]">{Q_LABELS[q.q - 1]}</span>
+                  <span className="inline-flex items-center justify-end gap-0.5">
+                    <Tooltip text={Q_TOOLTIPS[q.q - 1]} />
+                    Q{q.q}
+                  </span>
+                  <br /><span className="font-normal text-[10px]">{Q_LABELS[q.q - 1]}</span>
                 </th>
               ))}
               <th className="text-right pb-2 font-semibold">Year</th>

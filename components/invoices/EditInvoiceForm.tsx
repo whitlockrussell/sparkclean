@@ -6,6 +6,7 @@ import { X, Plus, Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Client, Invoice } from '@/lib/types'
 import { useBusiness } from '@/lib/hooks/useBusiness'
+import { Tooltip } from '@/components/ui/Tooltip'
 
 interface LineItem {
   id?: string
@@ -276,6 +277,7 @@ export function EditInvoiceForm({ invoice, clients, onSave, onClose, onDelete }:
                       }`} />
                     </button>
                     <span className="text-sm text-slate-600">{taxLabel}</span>
+                    <Tooltip text="Toggle tax on or off for this invoice. Rate is set in Settings." />
                     {taxEnabled && (
                       <div className="flex items-center gap-0.5">
                         <input

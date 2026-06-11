@@ -1,4 +1,5 @@
 import { LucideIcon } from 'lucide-react'
+import { Tooltip } from '@/components/ui/Tooltip'
 
 interface StatCardProps {
   label: string
@@ -6,9 +7,10 @@ interface StatCardProps {
   icon: LucideIcon
   accent?: 'teal' | 'amber' | 'red' | 'slate'
   sub?: string
+  tooltip?: string
 }
 
-export function StatCard({ label, value, icon: Icon, accent = 'teal', sub }: StatCardProps) {
+export function StatCard({ label, value, icon: Icon, accent = 'teal', sub, tooltip }: StatCardProps) {
   const accents = {
     teal:  { bg: 'bg-teal-50 dark:bg-teal-900/30',   icon: 'text-teal-500',  value: 'text-teal-700 dark:text-teal-400' },
     amber: { bg: 'bg-amber-50 dark:bg-amber-900/30',  icon: 'text-amber-500', value: 'text-amber-700 dark:text-amber-400' },
@@ -21,7 +23,10 @@ export function StatCard({ label, value, icon: Icon, accent = 'teal', sub }: Sta
   return (
     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-4">
       <div className="flex items-start justify-between mb-3">
-        <p className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide">{label}</p>
+        <div className="flex items-center gap-1">
+          <p className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide">{label}</p>
+          {tooltip && <Tooltip text={tooltip} />}
+        </div>
         <div className={`w-7 h-7 rounded-lg ${a.bg} flex items-center justify-center flex-shrink-0`}>
           <Icon className={`w-3.5 h-3.5 ${a.icon}`} strokeWidth={2} />
         </div>

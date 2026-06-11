@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import type { Expense, NewExpense } from '@/lib/types'
 import Link from 'next/link'
 import { useBusiness } from '@/lib/hooks/useBusiness'
+import { Tooltip } from '@/components/ui/Tooltip'
 
 interface ExpenseFormProps {
   expense?: Expense
@@ -350,7 +351,10 @@ export function ExpenseForm({ expense, isPro = false, onSave, onClose }: Expense
             </div>
             {taxConfigured && (
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1.5">{taxLabel} paid ($)</label>
+                <div className="flex items-center gap-1 mb-1.5">
+                  <label className="text-xs font-medium text-slate-500">{taxLabel} paid ($)</label>
+                  <Tooltip text="Tax you paid on this purchase. Can be deducted from what you owe." />
+                </div>
                 <input
                   type="number"
                   min="0"
@@ -360,7 +364,6 @@ export function ExpenseForm({ expense, isPro = false, onSave, onClose }: Expense
                   placeholder="8.91"
                   className={inputClass}
                 />
-                <p className="text-[11px] text-slate-400 mt-1">Input tax credit</p>
               </div>
             )}
           </div>
