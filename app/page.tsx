@@ -3,8 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import Image from 'next/image'
 import {
-  CalendarDays, FileText, Receipt,
-  UsersRound, Car, BarChart2, DollarSign, Check, LayoutDashboard,
+  Check,
 } from 'lucide-react'
 import { ScrollButton } from '@/components/landing/ScrollButton'
 
@@ -83,7 +82,7 @@ export default async function Home({
               </Link>
               <ScrollButton />
             </div>
-            <a href="#install" className="text-teal-200 text-xs mt-3 inline-block hover:text-white transition-colors">
+            <a href="#install" className="text-teal-200 text-sm mt-3 inline-block hover:text-white transition-colors font-medium">
               📲 How to install on your phone →
             </a>
           </div>
@@ -219,65 +218,78 @@ export default async function Home({
         </div>
       </section>
 
-      {/* ── FEATURES GRID ── */}
+      {/* ── FEATURE COMPARISON TABLE ── */}
       <section id="features" className="bg-[#0d2020] px-6 py-16 lg:py-20">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl lg:text-3xl font-bold text-white mb-2 text-center">
-            Everything you need. Nothing you don't.
-          </h2>
-          <p className="text-slate-400 text-sm text-center mb-10">Built for independent cleaners and small teams.</p>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              { icon: LayoutDashboard, title: 'Today dashboard',     desc: 'Jobs, money owed, and weekly income at a glance.' },
-              { icon: CalendarDays,   title: 'Smart scheduling',     desc: 'One-time or recurring jobs. Never miss a clean.' },
-              { icon: FileText,       title: 'Invoices & estimates', desc: 'Professional PDFs with your logo and tax details.' },
-              { icon: Receipt,        title: 'Expense tracking',     desc: 'AI receipt scanning and tax deduction tracking.' },
-              { icon: UsersRound,     title: 'Team management',      desc: 'Invite cleaners and control what they can see.' },
-              { icon: Car,            title: 'Mileage tracker',      desc: 'Log trips and calculate mileage deductions.' },
-              { icon: BarChart2,      title: 'Reports & exports',    desc: 'Tax reports and income summaries. Export PDFs for your accountant.' },
-              { icon: DollarSign,     title: 'Payment tracking',     desc: 'See exactly who owes you and what\'s been paid.' },
-            ].map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="bg-[#0a1a1a] rounded-2xl p-5 border border-slate-800">
-                <div className="w-9 h-9 rounded-xl bg-teal-950 flex items-center justify-center mb-3">
-                  <Icon className="w-5 h-5 text-teal-400" strokeWidth={1.8} />
-                </div>
-                <p className="font-semibold text-white text-sm mb-1">{title}</p>
-                <p className="text-xs text-slate-400 leading-relaxed">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── POWER FEATURES ── */}
-      <section className="px-6 py-16 lg:py-20 bg-[#0a1a1a]">
-        <div className="max-w-3xl mx-auto">
           <p className="text-xs font-bold text-teal-400 uppercase tracking-widest mb-3 text-center">Everything at your fingertips</p>
-          <h2 className="text-2xl lg:text-3xl font-bold text-white mb-2 text-center">Built for the job site, not a desk.</h2>
-          <p className="text-slate-400 text-sm text-center mb-10">Every feature is one tap away on your phone.</p>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <h2 className="text-2xl lg:text-3xl font-bold text-white mb-2 text-center">Everything you need. Nothing you don't.</h2>
+          <p className="text-slate-400 text-sm text-center mb-10">Built for independent cleaners and small teams.</p>
+
+          <div className="rounded-2xl border border-slate-700 overflow-hidden">
+            {/* Header */}
+            <div className="grid grid-cols-3 bg-[#0a1a1a] px-5 py-3 border-b border-slate-700">
+              <p className="text-sm font-semibold text-slate-400">Feature</p>
+              <p className="text-sm font-bold text-white text-center">Free</p>
+              <p className="text-sm font-bold text-teal-400 text-center">Pro $19/mo</p>
+            </div>
+
+            {/* Rows */}
             {[
-              { emoji: '🤖', title: 'AI Receipt Scanner', desc: 'Point your camera at a receipt — SparkClean reads it and logs the expense automatically.' },
-              { emoji: '📤', title: 'Send Invoice on the Spot', desc: 'Create and send a professional PDF invoice before you leave the driveway.' },
-              { emoji: '🗺️', title: 'GPS Navigation', desc: 'Tap a client\'s address on their job card to open navigation instantly.' },
-              { emoji: '💬', title: 'SMS Client Directly', desc: 'Tap to text your client straight from the job card. No copy-pasting numbers.' },
-              { emoji: '📋', title: 'Estimate Builder', desc: 'Send professional quotes to potential clients and convert them to invoices in one tap.' },
-              { emoji: '🎨', title: 'Your Logo & Branding', desc: 'Upload your logo — it appears on every invoice and estimate you send.' },
-              { emoji: '⚙️', title: 'Flexible Tax Settings', desc: 'Set your tax label, rate, and number. Works for HST, GST, Sales Tax, or no tax at all.' },
-              { emoji: '👥', title: 'Team Roles & Permissions', desc: 'Invite team members and control exactly what each person can see and do.' },
-            ].map(({ emoji, title, desc }) => (
-              <div key={title} className="bg-[#0d2020] rounded-2xl p-5 border border-slate-800">
-                <div className="text-2xl mb-3">{emoji}</div>
-                <p className="font-semibold text-white text-sm mb-1">{title}</p>
-                <p className="text-xs text-slate-400 leading-relaxed">{desc}</p>
+              { feature: '📅 Scheduling & recurring jobs',     free: true,  pro: true },
+              { feature: '📄 Invoicing with PDF export',        free: true,  pro: true },
+              { feature: '💰 Payment tracking',                 free: true,  pro: true },
+              { feature: '📊 Expense tracking',                 free: true,  pro: true },
+              { feature: '📱 Installs like a native app',       free: true,  pro: true },
+              { feature: '🗺️ GPS tap-to-navigate to client',   free: true,  pro: true },
+              { feature: '💬 SMS client from job card',         free: true,  pro: true },
+              { feature: '👤 Up to 5 clients',                  free: true,  pro: false, proLabel: 'Unlimited' },
+              { feature: '📋 Estimate builder',                 free: false, pro: true },
+              { feature: '🤖 AI receipt scanner',               free: false, pro: true },
+              { feature: '🚗 Mileage tracker',                  free: false, pro: true },
+              { feature: '📈 Tax & income reports',             free: false, pro: true },
+              { feature: '📤 Invoice export for accountant',    free: false, pro: true },
+              { feature: '🎨 Your logo on invoices & estimates',free: false, pro: true },
+              { feature: '⚙️ Custom tax settings',             free: false, pro: true },
+              { feature: '👥 Team management & permissions',    free: false, pro: true },
+              { feature: '🔒 Priority support',                 free: false, pro: true },
+            ].map(({ feature, free, pro, proLabel }, i) => (
+              <div key={i} className={`grid grid-cols-3 px-5 py-3 border-b border-slate-800 ${i % 2 === 0 ? 'bg-[#0a1a1a]' : 'bg-[#0d2020]'}`}>
+                <p className="text-sm text-slate-300">{feature}</p>
+                <div className="flex justify-center items-center">
+                  {free ? <Check className="w-4 h-4 text-teal-400" strokeWidth={2.5} /> : <span className="text-slate-600 text-lg">—</span>}
+                </div>
+                <div className="flex justify-center items-center">
+                  {pro ? (
+                    proLabel
+                      ? <span className="text-xs font-semibold text-teal-400">{proLabel}</span>
+                      : <Check className="w-4 h-4 text-teal-400" strokeWidth={2.5} />
+                  ) : (
+                    <span className="text-slate-600 text-lg">—</span>
+                  )}
+                </div>
               </div>
             ))}
+
+            {/* Footer CTA */}
+            <div className="grid grid-cols-3 bg-[#0a1a1a] px-5 py-4">
+              <p className="text-xs text-slate-500 self-center">No credit card required</p>
+              <div className="flex justify-center">
+                <Link href="/signup" className="text-xs font-medium text-teal-400 border border-slate-700 rounded-lg px-4 py-2 hover:bg-slate-800 transition-colors">
+                  Get started
+                </Link>
+              </div>
+              <div className="flex justify-center">
+                <Link href="/signup" className="text-xs font-semibold text-white bg-teal-500 rounded-lg px-4 py-2 hover:bg-teal-400 transition-colors">
+                  Start free trial
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* ── HOW TO INSTALL ── */}
-      <section id="install" className="px-6 py-16 lg:py-20 bg-[#0d2020]">
+      <section id="install" className="px-6 py-16 lg:py-20 bg-[#0a1a1a]">
         <div className="max-w-3xl mx-auto">
           <p className="text-xs font-bold text-teal-400 uppercase tracking-widest mb-3 text-center">No App Store needed</p>
           <h2 className="text-2xl lg:text-3xl font-bold text-white mb-2 text-center">Install it like a native app.</h2>
@@ -285,9 +297,13 @@ export default async function Home({
           <div className="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
 
             {/* Android */}
-            <div className="bg-[#0a1a1a] rounded-2xl p-6 border border-slate-800">
+            <div className="bg-[#0d2020] rounded-2xl p-6 border border-slate-800">
               <div className="flex items-center gap-3 mb-5">
-                <div className="w-10 h-10 rounded-xl bg-teal-900 flex items-center justify-center text-xl">🤖</div>
+                <div className="w-10 h-10 rounded-xl bg-teal-900 flex items-center justify-center">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="#4ade80" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17.523 15.341L19.5 18.856a.5.5 0 01-.866.5l-2-3.464a9.488 9.488 0 01-4.634 1.108 9.488 9.488 0 01-4.634-1.108l-2 3.464a.5.5 0 01-.866-.5l1.977-3.515A9.5 9.5 0 012.5 9h19a9.5 9.5 0 01-3.977 6.341zM8.5 12a1 1 0 100-2 1 1 0 000 2zm7 0a1 1 0 100-2 1 1 0 000 2zM6.303 5.084l-1.8-1.8a.5.5 0 01.707-.707l1.889 1.889A9.455 9.455 0 0112 3.5c1.88 0 3.633.548 5.101 1.489l1.889-1.889a.5.5 0 01.707.707l-1.8 1.8A9.478 9.478 0 0121.5 9h-19a9.478 9.478 0 012.803-3.916z"/>
+                  </svg>
+                </div>
                 <p className="font-bold text-white text-base">Android</p>
               </div>
               <ol className="space-y-3">
@@ -306,9 +322,13 @@ export default async function Home({
             </div>
 
             {/* iPhone */}
-            <div className="bg-[#0a1a1a] rounded-2xl p-6 border border-slate-800">
+            <div className="bg-[#0d2020] rounded-2xl p-6 border border-slate-800">
               <div className="flex items-center gap-3 mb-5">
-                <div className="w-10 h-10 rounded-xl bg-teal-900 flex items-center justify-center text-xl">🍎</div>
+                <div className="w-10 h-10 rounded-xl bg-teal-900 flex items-center justify-center">
+                  <svg width="20" height="22" viewBox="0 0 814 1000" fill="white" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 376.6 0 279.5 0 185.1 0 83.5 53.3 28.9 138.6 0c52.7-17.3 113.2-27.3 168.5-27.3 53.1 0 99.5 20.7 138.2 20.7 37.2 0 90.3-22.1 144.7-22.1 20.1 0 108.1 1.9 172.6 76.4zm-259.4-96.9c31.5-39 53.9-93.5 53.9-147.9 0-7.7-.6-15.4-1.9-21.8-50.9 1.9-110.5 33.8-147.2 79.4-28.5 33.8-56.5 89.7-56.5 145.7 0 8.3 1.3 16.6 1.9 19.2 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 136.2-76z"/>
+                  </svg>
+                </div>
                 <p className="font-bold text-white text-base">iPhone</p>
               </div>
               <ol className="space-y-3">
