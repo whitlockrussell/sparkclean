@@ -46,8 +46,11 @@ export default async function Home({
             {/* Logo + name */}
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="white" strokeWidth="0"/>
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2C12 2 13 7 17 8C13 9 12 14 12 14C12 14 11 9 7 8C11 7 12 2 12 2Z" />
+                  <path d="M12 14C12 14 13 17.5 15.5 18.5C13 19.5 12 22 12 22C12 22 11 19.5 8.5 18.5C11 17.5 12 14 12 14Z" />
+                  <path d="M5 10C5 10 5.8 12.5 7.5 13C5.8 13.5 5 16 5 16C5 16 4.2 13.5 2.5 13C4.2 12.5 5 10 5 10Z" />
+                  <path d="M19 10C19 10 19.8 12.5 21.5 13C19.8 13.5 19 16 19 16C19 16 18.2 13.5 16.5 13C18.2 12.5 19 10 19 10Z" />
                 </svg>
               </div>
               <span className="text-3xl font-bold text-white tracking-tight">SparkClean</span>
@@ -72,15 +75,15 @@ export default async function Home({
             </div>
 
             {/* Trust line */}
-            <p className="text-teal-200 text-sm mb-8">
+            <p className="text-teal-200 text-base mb-8">
               ✦ Simple · Mobile-first · Free to start
             </p>
 
             {/* CTA buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 max-w-xs">
+            <div className="flex flex-row gap-3">
               <Link
                 href="/signup"
-                className="w-full bg-white text-teal-700 font-semibold px-5 py-2.5 rounded-xl hover:bg-teal-50 transition-colors text-sm text-center"
+                className="bg-white text-teal-700 font-semibold px-6 py-2.5 rounded-xl hover:bg-teal-50 transition-colors text-sm text-center whitespace-nowrap inline-block"
               >
                 Start for free
               </Link>
