@@ -15,10 +15,11 @@ import { useAppointments } from '@/lib/hooks/useAppointments'
 import { useClients } from '@/lib/hooks/useClients'
 import { useInvoices } from '@/lib/hooks/useInvoices'
 import { usePlan } from '@/lib/hooks/usePlan'
+import { useBusiness } from '@/lib/hooks/useBusiness'
 import type { NewInvoice } from '@/lib/hooks/useInvoices'
 import { createClient } from '@/lib/supabase/client'
 import {
-  CalendarDays, Clock, Plus, MapPin, TrendingUp,
+  CalendarDays, Clock, Plus, MapPin, TrendingUp, X, CheckCircle2, Circle,
 } from 'lucide-react'
 import type { Appointment, NewAppointment } from '@/lib/types'
 
@@ -58,6 +59,7 @@ export default function TodayPage() {
   const { clients, refetch: refetchClients } = useClients()
   const { createInvoice } = useInvoices()
   const { isPro } = usePlan()
+  const { business } = useBusiness()
   const [todayJobs, setTodayJobs] = useState<Appointment[]>([])
   const [unpaidJobs, setUnpaidJobs] = useState<Appointment[]>([])
   const [weekIncome, setWeekIncome] = useState(0)
@@ -67,7 +69,14 @@ export default function TodayPage() {
   const [invoiceJob, setInvoiceJob] = useState<Appointment | undefined>()
   const [expiringRecurring, setExpiringRecurring] = useState<{ clientName: string; clientId: string; endDate: string }[]>([])
   const [renewClientId, setRenewClientId] = useState<string | null>(null)
+  const [hasAnyAppointment, setHasAnyAppointment] = useState(false)
+  const [hasAnyInvoice, setHasAnyInvoice] = useState(false)
+  const [checklistDismissed, setChecklistDismissed] = useState(false)
   const supabase = createClient()
+
+  useEffect(() => {
+    setChecklistDismissed(localStorage.getItem('sparkclean_checklist_dismissed') === 'true')
+  }, [])
 
   const todayStr = localDateStr(new Date())
   const todayLabel = new Date().toLocaleDateString('en-CA', {
@@ -81,7 +90,7 @@ export default function TodayPage() {
     const threeWeeksOut  = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 21)
     const localTwoWeeks = `${threeWeeksOut.getFullYear()}-${String(threeWeeksOut.getMonth()+1).padStart(2,'0')}-${String(threeWeeksOut.getDate()).padStart(2,'0')}`
 
-    const [jobs, unpaid, weekJobs, expiring] = await Promise.all([
+    const [jobs, unpaid, weekJobs, expiring, apptCount, invoiceCount] = await Promise.all([
       fetchToday(),
       fetchUnpaid(),
       supabase
@@ -98,11 +107,15 @@ export default function TodayPage() {
         .gte('recurrence_end', localToday)
         .lte('recurrence_end', localTwoWeeks)
         .neq('status', 'cancelled'),
+      supabase.from('appointments').select('id', { count: 'exact', head: true }),
+      supabase.from('invoices').select('id', { count: 'exact', head: true }),
     ])
 
     setTodayJobs(jobs)
     setUnpaidJobs(unpaid)
     setWeekIncome((weekJobs.data ?? []).reduce((s, j) => s + j.price, 0))
+    setHasAnyAppointment((apptCount.count ?? 0) > 0)
+    setHasAnyInvoice((invoiceCount.count ?? 0) > 0)
 
     const seen = new Set<string>()
     const banners: { clientName: string; clientId: string; endDate: string }[] = []
@@ -152,6 +165,27 @@ export default function TodayPage() {
     await refresh()
   }
 
+  const checklistSteps = [
+    { label: 'Add your first client', done: clients.length > 0 },
+    { label: 'Book your first job', done: hasAnyAppointment },
+    { label: 'Create your first invoice', done: hasAnyInvoice },
+    { label: 'Set up your business info (Settings)', done: !!(business?.business_name?.trim()) },
+  ]
+  const allChecklistDone = checklistSteps.every(s => s.done)
+  const showChecklist = !checklistDismissed
+
+  useEffect(() => {
+    if (allChecklistDone && !checklistDismissed) {
+      localStorage.setItem('sparkclean_checklist_dismissed', 'true')
+      setChecklistDismissed(true)
+    }
+  }, [allChecklistDone, checklistDismissed])
+
+  const dismissChecklist = () => {
+    localStorage.setItem('sparkclean_checklist_dismissed', 'true')
+    setChecklistDismissed(true)
+  }
+
   const scheduledJobs = todayJobs.filter(j => j.status === 'scheduled')
   const completedJobs = todayJobs.filter(j => j.status === 'completed')
   const paidJobs = todayJobs.filter(j => j.status === 'payment_received')
@@ -194,6 +228,44 @@ export default function TodayPage() {
                 sub="Payment received"
               />
             </div>
+
+            {/* Getting started checklist */}
+            {showChecklist && (
+              <Card className="p-4 mb-4 relative">
+                <div className="flex items-start justify-between gap-2 mb-3">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white">Getting started</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Complete these steps to set up SparkClean</p>
+                  </div>
+                  <button
+                    onClick={dismissChecklist}
+                    className="w-7 h-7 flex-shrink-0 rounded-full flex items-center justify-center text-slate-300 hover:text-slate-500 hover:bg-slate-100 transition-colors"
+                    aria-label="Dismiss"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <div className="space-y-2.5">
+                  {checklistSteps.map(step => (
+                    <div key={step.label} className="flex items-center gap-3">
+                      {step.done
+                        ? <CheckCircle2 className="w-5 h-5 text-teal-500 flex-shrink-0" strokeWidth={2} />
+                        : <Circle className="w-5 h-5 text-slate-300 dark:text-slate-600 flex-shrink-0" strokeWidth={1.8} />
+                      }
+                      <span className={`text-sm ${step.done ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-200'}`}>
+                        {step.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={dismissChecklist}
+                  className="mt-3 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                >
+                  Skip for now
+                </button>
+              </Card>
+            )}
 
             {/* Renewal banners */}
             {expiringRecurring.map(job => {
