@@ -83,6 +83,9 @@ export default async function Home({
               </Link>
               <ScrollButton />
             </div>
+            <a href="#install" className="text-teal-200 text-xs mt-3 inline-block hover:text-white transition-colors">
+              📲 How to install on your phone →
+            </a>
           </div>
 
           <div className="flex-shrink-0 flex justify-center lg:justify-end w-full lg:w-auto">
@@ -242,6 +245,88 @@ export default async function Home({
                 <p className="text-xs text-slate-400 leading-relaxed">{desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── POWER FEATURES ── */}
+      <section className="px-6 py-16 lg:py-20 bg-[#0a1a1a]">
+        <div className="max-w-3xl mx-auto">
+          <p className="text-xs font-bold text-teal-400 uppercase tracking-widest mb-3 text-center">Everything at your fingertips</p>
+          <h2 className="text-2xl lg:text-3xl font-bold text-white mb-2 text-center">Built for the job site, not a desk.</h2>
+          <p className="text-slate-400 text-sm text-center mb-10">Every feature is one tap away on your phone.</p>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { emoji: '🤖', title: 'AI Receipt Scanner', desc: 'Point your camera at a receipt — SparkClean reads it and logs the expense automatically.' },
+              { emoji: '📤', title: 'Send Invoice on the Spot', desc: 'Create and send a professional PDF invoice before you leave the driveway.' },
+              { emoji: '🗺️', title: 'GPS Navigation', desc: 'Tap a client\'s address on their job card to open navigation instantly.' },
+              { emoji: '💬', title: 'SMS Client Directly', desc: 'Tap to text your client straight from the job card. No copy-pasting numbers.' },
+              { emoji: '📋', title: 'Estimate Builder', desc: 'Send professional quotes to potential clients and convert them to invoices in one tap.' },
+              { emoji: '🎨', title: 'Your Logo & Branding', desc: 'Upload your logo — it appears on every invoice and estimate you send.' },
+              { emoji: '⚙️', title: 'Flexible Tax Settings', desc: 'Set your tax label, rate, and number. Works for HST, GST, Sales Tax, or no tax at all.' },
+              { emoji: '👥', title: 'Team Roles & Permissions', desc: 'Invite team members and control exactly what each person can see and do.' },
+            ].map(({ emoji, title, desc }) => (
+              <div key={title} className="bg-[#0d2020] rounded-2xl p-5 border border-slate-800">
+                <div className="text-2xl mb-3">{emoji}</div>
+                <p className="font-semibold text-white text-sm mb-1">{title}</p>
+                <p className="text-xs text-slate-400 leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── HOW TO INSTALL ── */}
+      <section id="install" className="px-6 py-16 lg:py-20 bg-[#0d2020]">
+        <div className="max-w-3xl mx-auto">
+          <p className="text-xs font-bold text-teal-400 uppercase tracking-widest mb-3 text-center">No App Store needed</p>
+          <h2 className="text-2xl lg:text-3xl font-bold text-white mb-2 text-center">Install it like a native app.</h2>
+          <p className="text-slate-400 text-sm text-center mb-10">SparkClean installs directly to your home screen on any device — no App Store, no downloads.</p>
+          <div className="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
+
+            {/* Android */}
+            <div className="bg-[#0a1a1a] rounded-2xl p-6 border border-slate-800">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 rounded-xl bg-teal-900 flex items-center justify-center text-xl">🤖</div>
+                <p className="font-bold text-white text-base">Android</p>
+              </div>
+              <ol className="space-y-3">
+                {[
+                  'Open sparkcleanapp.ca in Chrome',
+                  'Tap the 3 dots in the top right corner',
+                  'Tap "Add to Home Screen"',
+                  'Tap "Install" — done!',
+                ].map((step, i) => (
+                  <li key={i} className="flex items-start gap-3 text-sm text-slate-300">
+                    <span className="w-5 h-5 rounded-full bg-teal-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
+                    {step}
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            {/* iPhone */}
+            <div className="bg-[#0a1a1a] rounded-2xl p-6 border border-slate-800">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 rounded-xl bg-teal-900 flex items-center justify-center text-xl">🍎</div>
+                <p className="font-bold text-white text-base">iPhone</p>
+              </div>
+              <ol className="space-y-3">
+                {[
+                  'Open sparkcleanapp.ca in Safari',
+                  'Tap the Share button (box with arrow ↑)',
+                  'Tap "Add to Home Screen"',
+                  'Tap "Add" — done!',
+                ].map((step, i) => (
+                  <li key={i} className="flex items-start gap-3 text-sm text-slate-300">
+                    <span className="w-5 h-5 rounded-full bg-teal-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
+                    {step}
+                  </li>
+                ))}
+              </ol>
+              <p className="text-xs text-slate-500 mt-4">💡 Safari recommended on iPhone for best experience</p>
+            </div>
+
           </div>
         </div>
       </section>
