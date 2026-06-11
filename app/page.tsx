@@ -109,7 +109,7 @@ export default async function Home({
 
       {/* ── SOCIAL PROOF STRIP ── */}
       <div className="border-y border-slate-800 py-4 px-6">
-        <div className="max-w-3xl mx-auto flex flex-wrap items-center justify-center gap-6 text-xs text-slate-500 font-medium">
+        <div className="max-w-3xl mx-auto flex flex-wrap items-center justify-center gap-6 text-sm text-slate-400 font-medium">
           {['Free to start', 'No credit card required', 'Tax ready', 'Mobile-first', 'Cancel anytime'].map(t => (
             <span key={t} className="flex items-center gap-1.5">
               <span className="w-1 h-1 rounded-full bg-teal-500 inline-block" />
