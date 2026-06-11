@@ -56,7 +56,7 @@ export default async function Home({
             <h1 className="text-2xl lg:text-3xl font-bold text-white mb-2 leading-snug">
               Simple tools for independent<br className="hidden sm:block" /> cleaning businesses.
             </h1>
-            <p className="text-teal-100 text-sm mb-6">Run your whole business from your phone.</p>
+            <p className="text-teal-100 text-base mb-6">Run your whole business from your phone.</p>
 
             {/* Feature pills */}
             <div className="flex flex-wrap gap-2 mb-8">
@@ -72,7 +72,7 @@ export default async function Home({
             </div>
 
             {/* Trust line */}
-            <p className="text-teal-200 text-xs mb-8">
+            <p className="text-teal-200 text-sm mb-8">
               ✦ Simple · Mobile-first · Free to start
             </p>
 
@@ -80,7 +80,7 @@ export default async function Home({
             <div className="flex flex-col sm:flex-row gap-3 max-w-xs">
               <Link
                 href="/signup"
-                className="w-full bg-white text-teal-700 font-semibold px-6 py-3 rounded-xl hover:bg-teal-50 transition-colors text-sm text-center"
+                className="w-full bg-white text-teal-700 font-semibold px-5 py-2.5 rounded-xl hover:bg-teal-50 transition-colors text-sm text-center"
               >
                 Start for free
               </Link>
@@ -91,8 +91,8 @@ export default async function Home({
           {/* RIGHT — two phone mockups */}
           <div className="flex-shrink-0 flex justify-center lg:justify-end w-full lg:w-auto">
             <div className="flex items-end gap-4">
-              {/* Today screen — slightly taller/front */}
-              <div className="relative" style={{ width: '200px' }}>
+              {/* Today screen */}
+              <div className="relative" style={{ width: '240px' }}>
                 <div className="bg-slate-900 rounded-[2.8rem] p-[10px] shadow-2xl ring-2 ring-white/10">
                   <div className="absolute top-[18px] left-1/2 -translate-x-1/2 w-20 h-4 bg-slate-900 rounded-full z-10" />
                   <div className="rounded-[2.2rem] overflow-hidden">
@@ -107,9 +107,9 @@ export default async function Home({
                   </div>
                 </div>
               </div>
-              {/* Weekly schedule — slightly shorter/behind */}
-              <div className="relative mb-6" style={{ width: '180px' }}>
-                <div className="bg-slate-900 rounded-[2.8rem] p-[10px] shadow-xl ring-1 ring-white/10 opacity-90">
+              {/* Weekly schedule */}
+              <div className="relative mb-4" style={{ width: '240px' }}>
+                <div className="bg-slate-900 rounded-[2.8rem] p-[10px] shadow-2xl ring-2 ring-white/10">
                   <div className="absolute top-[18px] left-1/2 -translate-x-1/2 w-20 h-4 bg-slate-900 rounded-full z-10" />
                   <div className="rounded-[2.2rem] overflow-hidden">
                     <Image
