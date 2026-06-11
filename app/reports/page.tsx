@@ -315,13 +315,14 @@ export default function ReportsPage() {
       await generateTaxSummaryPDF({
         year: annualYear,
         business: {
-          name:      business?.business_name ?? 'My Business',
-          hstNumber: business?.hst_number    ?? null,
-          city:      business?.city          ?? null,
-          province:  business?.province      ?? null,
-          email:     business?.email         ?? null,
-          phone:     business?.phone         ?? null,
-          logoUrl:   business?.logo_url      ?? null,
+          name:           business?.business_name    ?? 'My Business',
+          hstNumber:      business?.hst_number       ?? null,
+          taxNumberLabel: business?.tax_number_label ?? null,
+          city:           business?.city             ?? null,
+          province:       business?.province         ?? null,
+          email:          business?.email            ?? null,
+          phone:          business?.phone            ?? null,
+          logoUrl:        business?.logo_url         ?? null,
         },
         revenue: {
           totalPaid:    ad.income,
@@ -666,7 +667,7 @@ function TaxSummaryView({ data, taxLabel, taxEnabled }: { data: AnnualData; taxL
       </Card>
 
       <SectionLabel>Mileage deduction</SectionLabel>
-      <MileageCard km={data.totalKm} deduction={data.mileageDeduction} trips={data.tripCount} annual />
+      <MileageCard km={data.totalKm} deduction={data.mileageDeduction} trips={data.tripCount} annual neutral />
 
       <SectionLabel>Net income</SectionLabel>
       <Card className="p-4 space-y-3 mb-5">
@@ -680,7 +681,7 @@ function TaxSummaryView({ data, taxLabel, taxEnabled }: { data: AnnualData; taxL
       </Card>
 
       <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/50 rounded-xl px-4 py-3 text-xs text-amber-800 dark:text-amber-300 leading-relaxed mb-5">
-        SparkClean is designed with sole proprietors in mind. Your situation may differ — consult a tax professional to confirm what reports and deductions apply to you.
+        This summary reflects income and expenses tracked in SparkClean only. SparkClean does not provide tax or financial advice. Consult a qualified tax professional for guidance on your specific situation.
       </div>
     </>
   )
@@ -703,7 +704,7 @@ function DataRow({ label, value, valueClass }: { label: string; value: string; v
   )
 }
 
-function MileageCard({ km, deduction, trips, annual }: { km: number; deduction: number; trips: number; annual?: boolean }) {
+function MileageCard({ km, deduction, trips, annual, neutral }: { km: number; deduction: number; trips: number; annual?: boolean; neutral?: boolean }) {
   return (
     <Card className="p-4 mb-5">
       {km === 0 ? (
@@ -724,7 +725,7 @@ function MileageCard({ km, deduction, trips, annual }: { km: number; deduction: 
           ].map(r => <DataRow key={r.label} label={r.label} value={r.value} valueClass={r.color} />)}
           <div className="border-t border-slate-100 pt-3">
             <p className="text-xs text-slate-400 dark:text-slate-500 leading-relaxed">
-              CRA 2025 rate: $0.72/km (first {CRA_KM_THRESHOLD.toLocaleString()} km) · $0.66/km after.
+              {neutral ? 'Standard rate (2025): $0.72/km (first ' + CRA_KM_THRESHOLD.toLocaleString() + ' km) · $0.66/km after.' : 'CRA 2025 rate: $0.72/km (first ' + CRA_KM_THRESHOLD.toLocaleString() + ' km) · $0.66/km after.'}
               {!annual && ' Deduction accounts for km driven earlier in the year.'}
             </p>
           </div>
