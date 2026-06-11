@@ -97,7 +97,7 @@ export default async function Home({
               {/* Today screen */}
               <div className="relative" style={{ width: '240px' }}>
                 <div className="bg-slate-900 rounded-[2.8rem] p-[10px] shadow-2xl ring-2 ring-white/10">
-                  <div className="rounded-[2.2rem] overflow-hidden">
+                  <div className="rounded-[1.8rem] overflow-hidden">
                     <Image
                       src="/screenshots/today.jpg"
                       alt="SparkClean today dashboard"
@@ -112,7 +112,7 @@ export default async function Home({
               {/* Weekly schedule */}
               <div className="relative mb-4" style={{ width: '240px' }}>
                 <div className="bg-slate-900 rounded-[2.8rem] p-[10px] shadow-2xl ring-2 ring-white/10">
-                  <div className="rounded-[2.2rem] overflow-hidden">
+                  <div className="rounded-[1.8rem] overflow-hidden">
                     <Image
                       src="/screenshots/weekly.jpg"
                       alt="SparkClean weekly schedule"
@@ -156,7 +156,7 @@ export default async function Home({
           <div className="flex justify-center mb-10">
             <div className="relative" style={{ width: '260px' }}>
               <div className="bg-slate-800 rounded-[2.8rem] p-[10px] shadow-2xl ring-1 ring-slate-700">
-                <div className="rounded-[2.2rem] overflow-hidden">
+                <div className="rounded-[1.8rem] overflow-hidden">
                   <Image src="/screenshots/weekly.jpg" alt="Schedule" width={400} height={800} className="w-full h-auto block" />
                 </div>
               </div>
@@ -192,7 +192,7 @@ export default async function Home({
             <div className="relative" style={{ width: '260px' }}>
               <div className="bg-slate-800 rounded-[2.8rem] p-[10px] shadow-2xl ring-1 ring-slate-700">
                 <div className="absolute top-[18px] left-1/2 -translate-x-1/2 w-24 h-5 bg-slate-800 rounded-full z-10" />
-                <div className="rounded-[2.2rem] overflow-hidden">
+                <div className="rounded-[1.8rem] overflow-hidden">
                   <Image src="/screenshots/invoices.jpg" alt="Invoices" width={400} height={800} className="w-full h-auto block" />
                 </div>
               </div>
@@ -228,7 +228,7 @@ export default async function Home({
             <div className="relative" style={{ width: '260px' }}>
               <div className="bg-slate-800 rounded-[2.8rem] p-[10px] shadow-2xl ring-1 ring-slate-700">
                 <div className="absolute top-[18px] left-1/2 -translate-x-1/2 w-24 h-5 bg-slate-800 rounded-full z-10" />
-                <div className="rounded-[2.2rem] overflow-hidden">
+                <div className="rounded-[1.8rem] overflow-hidden">
                   <Image src="/screenshots/reports.jpg" alt="Reports" width={400} height={800} className="w-full h-auto block" />
                 </div>
               </div>
