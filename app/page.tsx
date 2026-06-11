@@ -55,7 +55,7 @@ export default async function Home({
       {/* ── SOCIAL PROOF STRIP ── */}
       <div className="border-y border-slate-800 py-4 px-6">
         <div className="max-w-3xl mx-auto flex flex-wrap items-center justify-center gap-6 text-xs text-slate-500 font-medium">
-          {['Free to start', 'No credit card required', 'HST & CRA ready', 'Built for Canadian cleaners', 'Cancel anytime'].map(t => (
+          {['Free to start', 'No credit card required', 'Tax ready', 'Mobile-first', 'Cancel anytime'].map(t => (
             <span key={t} className="flex items-center gap-1.5">
               <span className="w-1 h-1 rounded-full bg-teal-500 inline-block" />
               {t}
@@ -127,8 +127,8 @@ export default async function Home({
               <p className="text-xs text-slate-400 leading-relaxed">Upload your logo and every invoice looks like it came from a real business.</p>
             </div>
             <div className="bg-[#0d2020] border border-slate-800 rounded-2xl p-5 text-left">
-              <p className="font-semibold text-white text-sm mb-1">HST calculated automatically</p>
-              <p className="text-xs text-slate-400 leading-relaxed">Ontario HST at 13% applied instantly. No manual math.</p>
+              <p className="font-semibold text-white text-sm mb-1">Tax calculated automatically</p>
+              <p className="text-xs text-slate-400 leading-relaxed">Tax applied instantly based on your settings. No manual math.</p>
             </div>
           </div>
         </div>
@@ -140,12 +140,12 @@ export default async function Home({
       {/* ── REPORTS ── */}
       <section className="px-6 py-16 lg:py-24">
         <div className="max-w-4xl mx-auto text-center">
-          <p className="text-xs font-bold text-teal-400 uppercase tracking-widest mb-4">Built for Canada</p>
+          <p className="text-xs font-bold text-teal-400 uppercase tracking-widest mb-4">Built for independent cleaners</p>
           <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4 leading-tight">
-            HST reports ready<br className="hidden sm:block" /> for your accountant.
+            Tax reports ready<br className="hidden sm:block" /> for your accountant.
           </h2>
           <p className="text-slate-400 text-base max-w-xl mx-auto mb-10 leading-relaxed">
-            SparkClean tracks HST collected and input tax credits automatically. Quarterly reports you can hand straight to your accountant.
+            SparkClean tracks tax collected and input tax credits automatically. Reports you can hand straight to your accountant.
           </p>
           <div className="flex justify-center mb-10">
             <div className="relative" style={{ width: '260px' }}>
@@ -158,7 +158,7 @@ export default async function Home({
             </div>
           </div>
           <div className="flex flex-wrap justify-center gap-3">
-            {['HST tracking', 'ITC deductions', 'Quarterly reports', 'CRA-ready'].map(tag => (
+            {['Tax tracking', 'ITC deductions', 'Quarterly reports', 'Accountant-ready'].map(tag => (
               <span key={tag} className="bg-[#0d2020] text-teal-400 text-xs font-medium px-4 py-2 rounded-full border border-slate-800">
                 {tag}
               </span>
@@ -173,16 +173,16 @@ export default async function Home({
           <h2 className="text-2xl lg:text-3xl font-bold text-white mb-2 text-center">
             Everything you need. Nothing you don't.
           </h2>
-          <p className="text-slate-400 text-sm text-center mb-10">Built specifically for solo cleaners and small teams in Canada.</p>
+          <p className="text-slate-400 text-sm text-center mb-10">Built specifically for independent cleaners and small teams.</p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               { icon: LayoutDashboard, title: 'Today dashboard',     desc: 'Jobs, money owed, and weekly income at a glance.' },
               { icon: CalendarDays,   title: 'Smart scheduling',     desc: 'One-time or recurring jobs. Never miss a clean.' },
-              { icon: FileText,       title: 'Invoices & estimates', desc: 'Professional PDFs with your logo and HST number.' },
-              { icon: Receipt,        title: 'Expense tracking',     desc: 'AI receipt scanning and HST deduction tracking.' },
+              { icon: FileText,       title: 'Invoices & estimates', desc: 'Professional PDFs with your logo and tax details.' },
+              { icon: Receipt,        title: 'Expense tracking',     desc: 'AI receipt scanning and tax deduction tracking.' },
               { icon: UsersRound,     title: 'Team management',      desc: 'Invite cleaners and control what they can see.' },
-              { icon: Car,            title: 'Mileage tracker',      desc: 'Log trips and calculate CRA deductions.' },
-              { icon: BarChart2,      title: 'Reports & exports',    desc: 'Quarterly HST reports. Export PDFs for your accountant.' },
+              { icon: Car,            title: 'Mileage tracker',      desc: 'Log trips and calculate mileage deductions.' },
+              { icon: BarChart2,      title: 'Reports & exports',    desc: 'Tax reports and income summaries. Export PDFs for your accountant.' },
               { icon: DollarSign,     title: 'Payment tracking',     desc: 'See exactly who owes you and what\'s been paid.' },
             ].map(({ icon: Icon, title, desc }) => (
               <div key={title} className="bg-[#0a1a1a] rounded-2xl p-5 border border-slate-800">
@@ -211,7 +211,7 @@ export default async function Home({
               { stat: '$0',    label: 'to start' },
               { stat: '5 min', label: 'to set up' },
               { stat: '100%',  label: 'mobile-first' },
-              { stat: 'HST',   label: 'built in' },
+              { stat: 'Tax',   label: 'ready' },
             ].map(({ stat, label }) => (
               <div key={stat} className="bg-white/10 border border-white/20 rounded-2xl p-4 text-center">
                 <p className="text-2xl font-bold text-white mb-1">{stat}</p>
