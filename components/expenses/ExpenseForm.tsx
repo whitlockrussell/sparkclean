@@ -6,6 +6,7 @@ import { X, Camera, Sparkles, Lock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import type { Expense, NewExpense } from '@/lib/types'
 import Link from 'next/link'
+import { useBusiness } from '@/lib/hooks/useBusiness'
 
 interface ExpenseFormProps {
   expense?: Expense
@@ -68,6 +69,10 @@ function resizeImage(file: File): Promise<{ base64: string; mediaType: string }>
 }
 
 export function ExpenseForm({ expense, isPro = false, onSave, onClose }: ExpenseFormProps) {
+  const { business } = useBusiness()
+  const taxLabel      = business?.tax_label ?? 'Tax'
+  const taxConfigured = (business?.tax_rate ?? 0) > 0
+
   const [form, setForm] = useState<NewExpense>(
     expense ? {
       description: expense.description,
@@ -266,7 +271,7 @@ export function ExpenseForm({ expense, isPro = false, onSave, onClose }: Expense
                   <>
                     <Camera className="w-6 h-6" strokeWidth={1.5} />
                     <span className="text-sm font-medium">Take photo or upload receipt</span>
-                    <span className="text-xs">AI will auto-fill the details · CRA accepts digital copies</span>
+                    <span className="text-xs">AI will auto-fill the details · Tax authorities accept digital copies</span>
                   </>
                 )}
               </button>
@@ -327,8 +332,8 @@ export function ExpenseForm({ expense, isPro = false, onSave, onClose }: Expense
             />
           </div>
 
-          {/* Amount + HST */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Amount + Tax */}
+          <div className={taxConfigured ? 'grid grid-cols-2 gap-3' : ''}>
             <div>
               <label className="block text-xs font-medium text-slate-500 mb-1.5">
                 Total amount ($) <span className="text-red-400">*</span>
@@ -343,19 +348,21 @@ export function ExpenseForm({ expense, isPro = false, onSave, onClose }: Expense
                 className={inputClass}
               />
             </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1.5">HST paid ($)</label>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={form.hst_paid || ''}
-                onChange={e => set('hst_paid', parseFloat(e.target.value) || 0)}
-                placeholder="8.91"
-                className={inputClass}
-              />
-              <p className="text-[11px] text-slate-400 mt-1">Input tax credit</p>
-            </div>
+            {taxConfigured && (
+              <div>
+                <label className="block text-xs font-medium text-slate-500 mb-1.5">{taxLabel} paid ($)</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.hst_paid || ''}
+                  onChange={e => set('hst_paid', parseFloat(e.target.value) || 0)}
+                  placeholder="8.91"
+                  className={inputClass}
+                />
+                <p className="text-[11px] text-slate-400 mt-1">Input tax credit</p>
+              </div>
+            )}
           </div>
 
           {error && <p className="text-sm text-red-500 bg-red-50 rounded-xl px-3 py-2">{error}</p>}

@@ -437,7 +437,7 @@ export default function SettingsPage() {
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">%</span>
                   </div>
-                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">Set to 0 to disable tax.</p>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">Set to 0 to disable tax. For provinces with multiple taxes (e.g. GST + PST), enter your combined rate or consult your accountant. US users can set this to 0 if sales tax does not apply to your services.</p>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Tax number label</label>

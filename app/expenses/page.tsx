@@ -12,6 +12,7 @@ import { PageSkeleton } from '@/components/ui/Skeleton'
 import { ExpenseForm } from '@/components/expenses/ExpenseForm'
 import { useExpenses } from '@/lib/hooks/useExpenses'
 import { usePlan } from '@/lib/hooks/usePlan'
+import { useBusiness } from '@/lib/hooks/useBusiness'
 import { Receipt, Plus, Pencil, Trash2 } from 'lucide-react'
 import type { Expense, NewExpense } from '@/lib/types'
 
@@ -58,6 +59,8 @@ function formatMonth(monthStr: string) {
 export default function ExpensesPage() {
   const { expenses, loading, error, addExpense, updateExpense, deleteExpense } = useExpenses()
   const { isPro } = usePlan()
+  const { business } = useBusiness()
+  const taxLabel = business?.tax_label ?? 'HST'
   const [showForm, setShowForm] = useState(false)
   const [editingExpense, setEditingExpense] = useState<Expense | undefined>()
 
@@ -109,7 +112,7 @@ export default function ExpensesPage() {
           <EmptyState
             icon={Receipt}
             title="No expenses logged"
-            description="Track your business costs to get accurate HST and profit numbers."
+            description={`Track your business costs to get accurate ${taxLabel} and profit numbers.`}
             actionLabel="Log first expense"
             onAction={() => setShowForm(true)}
           />
