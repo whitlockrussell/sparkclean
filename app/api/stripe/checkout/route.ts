@@ -13,6 +13,7 @@ export async function POST() {
   const { data: business } = await supabase
     .from('businesses')
     .select('stripe_customer_id, business_name, email')
+    .eq('user_id', user.id)
     .single()
 
   let customerId = business?.stripe_customer_id as string | undefined
