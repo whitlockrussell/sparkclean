@@ -224,6 +224,27 @@ export function useAppointments() {
     return data ?? []
   }, [])
 
+  const fetchNeedsAttention = useCallback(async () => {
+    const today = localDateStr()
+    const { data } = await supabase
+      .from('appointments')
+      .select(`
+        *,
+        clients (
+          first_name,
+          last_name,
+          address,
+          city,
+          notes,
+          phone
+        )
+      `)
+      .eq('status', 'scheduled')
+      .lt('scheduled_date', today)
+      .order('scheduled_date', { ascending: true })
+    return data ?? []
+  }, [])
+
   const cancelAppointment = async (id: string) => {
     const { error } = await supabase
       .from('appointments')
@@ -360,6 +381,7 @@ export function useAppointments() {
     deleteAppointment,
     fetchToday,
     fetchUnpaid,
+    fetchNeedsAttention,
     refetch: fetchAppointments,
   }
 }

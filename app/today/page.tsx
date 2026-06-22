@@ -55,13 +55,14 @@ function getWeekRange() {
 
 
 export default function TodayPage() {
-  const { addAppointment, updateAppointment, deleteAppointment, fetchToday, fetchUnpaid } = useAppointments()
+  const { addAppointment, updateAppointment, deleteAppointment, fetchToday, fetchUnpaid, fetchNeedsAttention } = useAppointments()
   const { clients, refetch: refetchClients } = useClients()
   const { createInvoice } = useInvoices()
   const { isPro } = usePlan()
   const { business } = useBusiness()
   const [todayJobs, setTodayJobs] = useState<Appointment[]>([])
   const [unpaidJobs, setUnpaidJobs] = useState<Appointment[]>([])
+  const [needsAttentionJobs, setNeedsAttentionJobs] = useState<Appointment[]>([])
   const [weekIncome, setWeekIncome] = useState(0)
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -90,9 +91,10 @@ export default function TodayPage() {
     const threeWeeksOut  = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 21)
     const localTwoWeeks = `${threeWeeksOut.getFullYear()}-${String(threeWeeksOut.getMonth()+1).padStart(2,'0')}-${String(threeWeeksOut.getDate()).padStart(2,'0')}`
 
-    const [jobs, unpaid, weekJobs, expiring, apptCount, invoiceCount] = await Promise.all([
+    const [jobs, unpaid, needsAttention, weekJobs, expiring, apptCount, invoiceCount] = await Promise.all([
       fetchToday(),
       fetchUnpaid(),
+      fetchNeedsAttention(),
       supabase
         .from('appointments')
         .select('price')
@@ -113,6 +115,7 @@ export default function TodayPage() {
 
     setTodayJobs(jobs)
     setUnpaidJobs(unpaid)
+    setNeedsAttentionJobs(needsAttention)
     setWeekIncome((weekJobs.data ?? []).reduce((s, j) => s + j.price, 0))
     setHasAnyAppointment((apptCount.count ?? 0) > 0)
     setHasAnyInvoice((invoiceCount.count ?? 0) > 0)
@@ -386,6 +389,63 @@ export default function TodayPage() {
                   )
                 })}
               </div>
+            )}
+
+            {/* Needs Attention */}
+            {needsAttentionJobs.length > 0 && (
+              <>
+                <div className="flex items-center justify-between bg-red-50 dark:bg-red-900/20 rounded-xl px-4 py-2.5 mb-4 mt-2">
+                  <h2 className="text-sm font-bold text-red-800 dark:text-red-300 uppercase tracking-wide">Needs Attention</h2>
+                  <span className="text-xs font-semibold text-red-500">{needsAttentionJobs.length} job{needsAttentionJobs.length !== 1 ? 's' : ''}</span>
+                </div>
+
+                <div className="space-y-3 mb-6">
+                  {needsAttentionJobs.map(job => {
+                    const client = job.clients
+                    const name = client
+                      ? `${client.first_name} ${client.last_name}`
+                      : 'Unknown client'
+                    const isDone = job.status === 'completed' || job.status === 'payment_received'
+                    const isPaid = job.status === 'payment_received'
+                    return (
+                      <Card key={job.id} className="p-4 opacity-60" onClick={() => setEditingJob(job)}>
+                        <div className="flex items-start justify-between gap-3 mb-1">
+                          <p className="font-semibold text-slate-900 dark:text-white text-[15px] truncate">{name}</p>
+                          <p className={`text-lg font-semibold flex-shrink-0 ${job.price === 0 ? 'text-slate-400 dark:text-slate-500' : 'text-amber-600'}`}>{job.price === 0 ? 'TBD' : `$${job.price.toFixed(0)}`}</p>
+                        </div>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 mb-1">
+                          {new Date(job.scheduled_date + 'T12:00:00').toLocaleDateString('en-CA', {
+                            weekday: 'short', month: 'short', day: 'numeric',
+                          })}
+                        </p>
+                        <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                          <div className="flex items-center py-1.5 gap-3">
+                            <p className="text-sm text-slate-700 dark:text-slate-200 flex-1">Job done</p>
+                            <button
+                              type="button"
+                              onClick={e => { e.stopPropagation(); handleToggleStatus(job.id, isDone ? 'scheduled' : 'completed') }}
+                              className={`w-10 h-[22px] rounded-full transition-colors relative flex-shrink-0 ${isDone ? 'bg-teal-500' : 'bg-slate-300'}`}
+                            >
+                              <span className={`absolute left-0 top-[3px] w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${isDone ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
+                            </button>
+                          </div>
+                          <div className="flex items-center py-1.5 gap-3">
+                            <p className={`text-sm flex-1 ${isDone ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400 dark:text-slate-500'}`}>Payment received</p>
+                            <button
+                              type="button"
+                              disabled={!isDone}
+                              onClick={e => { e.stopPropagation(); handleToggleStatus(job.id, isPaid ? 'completed' : 'payment_received') }}
+                              className={`w-10 h-[22px] rounded-full transition-colors relative flex-shrink-0 ${isPaid ? 'bg-teal-500' : 'bg-slate-300'} disabled:opacity-40 disabled:cursor-not-allowed`}
+                            >
+                              <span className={`absolute left-0 top-[3px] w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${isPaid ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
+                            </button>
+                          </div>
+                        </div>
+                      </Card>
+                    )
+                  })}
+                </div>
+              </>
             )}
 
             {/* Money Owed */}
