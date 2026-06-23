@@ -30,7 +30,7 @@ export default function TermsPage() {
               By creating an account or using SparkClean, you agree to these Terms of Service. SparkClean is operated by Russell Whitlock, based in Ottawa, Ontario, Canada. If you do not agree to these terms, do not use the service.
             </p>
             <p className="mt-2">
-              Questions? Contact us at <a href="mailto:hello@sparkclean.ca" className="text-teal-600 hover:underline">hello@sparkclean.ca</a>.
+              Questions? Contact us at <a href="mailto:hello@sparkcleanapp.ca" className="text-teal-600 hover:underline">hello@sparkcleanapp.ca</a>.
             </p>
           </section>
 
@@ -150,7 +150,7 @@ export default function TermsPage() {
               Russell Whitlock<br />
               SparkClean<br />
               Ottawa, Ontario, Canada<br />
-              <a href="mailto:hello@sparkclean.ca" className="text-teal-600 hover:underline">hello@sparkclean.ca</a>
+              <a href="mailto:hello@sparkcleanapp.ca" className="text-teal-600 hover:underline">hello@sparkcleanapp.ca</a>
             </p>
           </section>
         </div>

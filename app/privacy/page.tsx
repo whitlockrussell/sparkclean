@@ -30,7 +30,7 @@ export default function PrivacyPage() {
               SparkClean is a software service operated by Russell Whitlock, based in Ottawa, Ontario, Canada. We help solo residential cleaners and small cleaning teams manage their business — scheduling, invoicing, expenses, and reporting.
             </p>
             <p className="mt-2">
-              Contact us at <a href="mailto:hello@sparkclean.ca" className="text-teal-600 hover:underline">hello@sparkclean.ca</a> with any privacy questions.
+              Contact us at <a href="mailto:hello@sparkcleanapp.ca" className="text-teal-600 hover:underline">hello@sparkcleanapp.ca</a> with any privacy questions.
             </p>
           </section>
 
@@ -71,6 +71,7 @@ export default function PrivacyPage() {
               <li><strong>Stripe</strong> — payment processing. Card data never touches our servers. <a href="https://stripe.com/privacy" className="text-teal-600 hover:underline" target="_blank" rel="noopener noreferrer">Stripe Privacy Policy</a></li>
               <li><strong>Anthropic</strong> — AI receipt scanning. Receipt images are sent per-request and not retained for training. <a href="https://www.anthropic.com/privacy" className="text-teal-600 hover:underline" target="_blank" rel="noopener noreferrer">Anthropic Privacy Policy</a></li>
               <li><strong>Vercel</strong> — application hosting. <a href="https://vercel.com/legal/privacy-policy" className="text-teal-600 hover:underline" target="_blank" rel="noopener noreferrer">Vercel Privacy Policy</a></li>
+              <li><strong>Sentry</strong> — error monitoring and crash reporting, used to help us diagnose and fix bugs. <a href="https://sentry.io/privacy/" className="text-teal-600 hover:underline" target="_blank" rel="noopener noreferrer">Sentry Privacy Policy</a></li>
             </ul>
           </section>
 
@@ -100,7 +101,7 @@ export default function PrivacyPage() {
               <li><strong>Deletion</strong> — request deletion of your account and all associated data</li>
               <li><strong>Portability</strong> — request your data in a structured, machine-readable format</li>
             </ul>
-            <p className="mt-2">To exercise any of these rights, contact us at <a href="mailto:hello@sparkclean.ca" className="text-teal-600 hover:underline">hello@sparkclean.ca</a>.</p>
+            <p className="mt-2">To exercise any of these rights, contact us at <a href="mailto:hello@sparkcleanapp.ca" className="text-teal-600 hover:underline">hello@sparkcleanapp.ca</a>.</p>
           </section>
 
           <section>
@@ -123,7 +124,7 @@ export default function PrivacyPage() {
               Russell Whitlock<br />
               SparkClean<br />
               Ottawa, Ontario, Canada<br />
-              <a href="mailto:hello@sparkclean.ca" className="text-teal-600 hover:underline">hello@sparkclean.ca</a>
+              <a href="mailto:hello@sparkcleanapp.ca" className="text-teal-600 hover:underline">hello@sparkcleanapp.ca</a>
             </p>
           </section>
         </div>

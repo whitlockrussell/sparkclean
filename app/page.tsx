@@ -88,7 +88,7 @@ export default async function Home({
           </div>
 
           <div className="flex-shrink-0 flex justify-center lg:justify-end w-full lg:w-auto">
-            <div className="flex items-end gap-4">
+            <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4">
               <div className="relative" style={{ width: '240px' }}>
                 <div className="bg-slate-900 rounded-[2.8rem] p-[10px] shadow-2xl ring-2 ring-white/10">
                   <div className="rounded-[1.8rem] overflow-hidden">
@@ -96,7 +96,7 @@ export default async function Home({
                   </div>
                 </div>
               </div>
-              <div className="relative mb-4" style={{ width: '240px' }}>
+              <div className="relative sm:mb-4" style={{ width: '240px' }}>
                 <div className="bg-slate-900 rounded-[2.8rem] p-[10px] shadow-2xl ring-2 ring-white/10">
                   <div className="rounded-[1.8rem] overflow-hidden">
                     <Image src="/screenshots/weekly.jpg" alt="SparkClean weekly schedule" width={400} height={800} className="w-full h-auto block" priority />
